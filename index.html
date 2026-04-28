@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Estoque Pro - Gestão Profissional</title>
+    <title>Estoque Pro v3.0</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         :root {
@@ -18,46 +18,51 @@
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: -apple-system, system-ui, sans-serif; background: var(--bg); color: var(--text); line-height: 1.5; }
+        body { font-family: -apple-system, system-ui, sans-serif; background: var(--bg); color: var(--text); }
 
-        /* Utilitários */
         .hidden { display: none !important; }
         .card { background: var(--card-bg); padding: 25px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); margin-bottom: 20px; }
+        
+        /* Estilo da Mensagem de Erro */
+        #msg { 
+            display: none; 
+            padding: 12px; 
+            border-radius: 8px; 
+            margin-bottom: 15px; 
+            font-size: 14px; 
+            text-align: center;
+            background-color: #ffebeb;
+            border: 1px solid var(--danger);
+            color: #d70015;
+        }
+
         .btn { padding: 10px 20px; border: none; border-radius: 8px; cursor: pointer; font-weight: 500; transition: 0.2s; }
         .btn-primary { background: var(--primary); color: white; }
         .btn-danger { background: var(--danger); color: white; }
         .btn-success { background: var(--success); color: white; }
+        .btn:disabled { background: #ccc; cursor: not-allowed; }
+
         input, select { padding: 10px; border: 1px solid #d2d2d7; border-radius: 8px; outline: none; font-size: 14px; }
-        input:focus { border-color: var(--primary); }
-
-        /* Área de Login */
+        
         #loginArea { height: 100vh; display: flex; align-items: center; justify-content: center; }
-        .login-box { width: 100%; max-width: 380px; text-align: center; }
-
-        /* Dashboard e App */
         .container { max-width: 1000px; margin: 40px auto; padding: 0 20px; }
-        header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
         
         .dashboard-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 30px; }
         .stat-card { padding: 20px; border-radius: 12px; background: white; border-left: 5px solid var(--primary); }
-        .stat-card.val { border-left-color: var(--success); }
 
-        /* Tabela */
-        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-        th { text-align: left; background: #f9f9fb; padding: 12px; font-size: 13px; color: var(--text-secondary); }
+        table { width: 100%; border-collapse: collapse; }
+        th { text-align: left; background: #f9f9fb; padding: 12px; color: var(--text-secondary); }
         td { padding: 15px 12px; border-bottom: 1px solid #eee; }
 
-        /* Modal */
         #modalEdicao { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000; }
     </style>
 </head>
 <body>
 
 <div id="loginArea">
-    <div class="card login-box">
-        <h1>Estoque Pro</h1>
-        <p style="margin-bottom: 20px; color: var(--text-secondary);">Acesse sua conta</p>
-        <div id="msg" style="margin-bottom: 15px; font-size: 14px; color: var(--danger);"></div>
+    <div class="card" style="width: 380px;">
+        <h1 style="text-align:center; margin-bottom:10px;">Estoque Pro</h1>
+        <div id="msg"></div>
         <input type="email" id="email" placeholder="E-mail" style="width:100%; margin-bottom:10px;">
         <input type="password" id="senha" placeholder="Senha" style="width:100%; margin-bottom:15px;">
         <button class="btn btn-primary" id="btnEntrar" style="width:100%" onclick="tentarLogin()">Entrar</button>
@@ -66,168 +71,154 @@
 
 <div id="appArea" class="hidden">
     <div class="container">
-        <header>
-            <div>
-                <h1 id="boasVindas">Olá!</h1>
-                <p style="color: var(--text-secondary);">Gestão de Inventário</p>
-            </div>
+        <header style="display:flex; justify-content:space-between; margin-bottom:30px;">
+            <h1 id="boasVindas">Olá</h1>
             <button class="btn btn-danger" onclick="logout()">Sair</button>
         </header>
 
         <div class="dashboard-grid">
             <div class="stat-card">
-                <small>ITENS EM ESTOQUE</small>
+                <small>TOTAL DE ITENS</small>
                 <h2 id="cardTotalItens">0</h2>
             </div>
-            <div class="stat-card val">
-                <small>VALOR PATRIMONIAL</small>
+            <div class="stat-card" style="border-left-color: var(--success);">
+                <small>VALOR TOTAL</small>
                 <h2 id="cardValorTotal">R$ 0,00</h2>
             </div>
         </div>
 
         <div class="card">
-            <h3>Adicionar Novo Produto</h3>
-            <div style="display: flex; gap: 10px; margin-top: 15px; flex-wrap: wrap;">
-                <input type="text" id="pNome" placeholder="Nome do Produto" style="flex: 2; min-width: 200px;">
-                <input type="number" id="pQtd" placeholder="Qtd" style="flex: 0.5;">
-                <input type="number" step="0.01" id="pPreco" placeholder="Preço R$" style="flex: 0.5;">
-                <button class="btn btn-primary" onclick="salvarProduto()">Cadastrar</button>
+            <h3>Novo Produto</h3>
+            <div style="display:flex; gap:10px; margin-top:10px;">
+                <input type="text" id="pNome" placeholder="Nome" style="flex:2">
+                <input type="number" id="pQtd" placeholder="Qtd" style="flex:0.5">
+                <input type="number" step="0.01" id="pPreco" placeholder="R$" style="flex:0.5">
+                <button class="btn btn-primary" onclick="salvarProduto()">Adicionar</button>
             </div>
         </div>
 
         <div class="card">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px;">
-                <input type="text" id="inputBusca" placeholder="🔍 Buscar por nome..." onkeyup="filtrarProdutos()" style="width: 300px;">
-                <select id="filtroStatus" onchange="filtrarProdutos()">
-                    <option value="todos">Todos os Itens</option>
-                    <option value="baixo">⚠️ Estoque Baixo</option>
-                </select>
-                <button class="btn btn-success" onclick="exportarHistorico()">📊 Exportar Excel</button>
+            <div style="display:flex; justify-content:space-between; margin-bottom:15px;">
+                <input type="text" id="inputBusca" placeholder="🔍 Buscar..." onkeyup="filtrar()">
+                <button class="btn btn-success" onclick="exportar()">Excel (CSV)</button>
             </div>
-
             <table>
                 <thead>
-                    <tr>
-                        <th>PRODUTO</th>
-                        <th style="text-align:center;">QTD</th>
-                        <th style="text-align:right;">PREÇO</th>
-                        <th style="text-align:right;">AÇÕES</th>
-                    </tr>
+                    <tr><th>Produto</th><th>Qtd</th><th>Preço</th><th>Ações</th></tr>
                 </thead>
                 <tbody id="listaProdutos"></tbody>
             </table>
-        </div>
-
-        <div class="card">
-            <h3>Últimas Movimentações</h3>
-            <div id="listaHistorico" style="margin-top: 15px;"></div>
         </div>
     </div>
 </div>
 
 <div id="modalEdicao" class="hidden">
-    <div class="card" style="width: 90%; max-width: 400px;">
-        <h3>Editar Produto</h3><br>
+    <div class="card" style="width: 400px;">
+        <h3>Editar</h3><br>
         <input type="hidden" id="editId">
-        <input type="text" id="editNome" placeholder="Nome" style="width:100%; margin-bottom:10px;">
-        <input type="number" id="editQtd" placeholder="Quantidade" style="width:100%; margin-bottom:10px;">
-        <input type="number" step="0.01" id="editPreco" placeholder="Preço" style="width:100%; margin-bottom:15px;">
-        <div style="display: flex; gap: 10px;">
-            <button class="btn btn-primary" style="flex:1" onclick="salvarEdicao()">Salvar</button>
-            <button class="btn" style="flex:1" onclick="fecharModal()">Cancelar</button>
-        </div>
+        <input type="text" id="editNome" style="width:100%; margin-bottom:10px;">
+        <input type="number" id="editQtd" style="width:100%; margin-bottom:10px;">
+        <input type="number" step="0.01" id="editPreco" style="width:100%; margin-bottom:15px;">
+        <button class="btn btn-primary" onclick="salvarEdicao()">Salvar</button>
+        <button class="btn" onclick="fecharModal()">Cancelar</button>
     </div>
 </div>
 
 <script>
-// --- CONFIGURAÇÃO SUPABASE ---
 const SB_URL = 'https://lwqkjjlyyaohjzqpwwiv.supabase.co';
 const SB_KEY = 'sb_publishable_iA0VKR6xQ3lvmf5gf3d1MA_mwiEW__l';
 const supabase = window.supabase.createClient(SB_URL, SB_KEY);
 
 let produtosLocal = [];
 
-// --- AUTENTICAÇÃO ---
 async function tentarLogin() {
-    const email = document.getElementById('email').value;
-    const senha = document.getElementById('senha').value;
+    const email = document.getElementById('email').value.trim();
+    const senha = document.getElementById('senha').value.trim();
+    const msg = document.getElementById('msg');
+    const btn = document.getElementById('btnEntrar');
+
+    msg.style.display = "none";
+
+    if(!email || !senha) {
+        mostrarErro("Preencha todos os campos.");
+        return;
+    }
+
+    btn.disabled = true;
+    btn.innerText = "Acessando...";
+
     const { data, error } = await supabase.auth.signInWithPassword({ email, password: senha });
 
-    if (error) {
-        document.getElementById('msg').innerText = "Erro: " + error.message;
+    if(error) {
+        let txt = "E-mail ou senha incorretos.";
+        if(error.message.includes("confirmed")) txt = "Confirme seu e-mail antes de logar.";
+        mostrarErro(txt);
+        btn.disabled = false;
+        btn.innerText = "Entrar";
     } else {
         location.reload();
     }
 }
 
-async function logout() {
-    await supabase.auth.signOut();
-    location.reload();
+function mostrarErro(texto) {
+    const msg = document.getElementById('msg');
+    msg.innerText = texto;
+    msg.style.display = "block";
 }
 
-// --- LOGICA DE PRODUTOS ---
-async function carregarDados() {
+async function logout() { await supabase.auth.signOut(); location.reload(); }
+
+async function init() {
     const { data: { session } } = await supabase.auth.getSession();
-    if (!session) return;
-
-    document.getElementById('loginArea').classList.add('hidden');
-    document.getElementById('appArea').classList.remove('hidden');
-    document.getElementById('boasVindas').innerText = "Olá, " + session.user.email.split('@')[0];
-
-    carregarProdutos();
-    carregarHistorico();
+    if(session) {
+        document.getElementById('loginArea').classList.add('hidden');
+        document.getElementById('appArea').classList.remove('hidden');
+        document.getElementById('boasVindas').innerText = "Olá, " + session.user.email;
+        carregarProdutos();
+    }
 }
 
 async function carregarProdutos() {
-    const { data, error } = await supabase.from('produtos').select('*').order('nome');
-    if (error) return;
+    const { data } = await supabase.from('produtos').select('*').order('nome');
     produtosLocal = data;
-    atualizarDashboard(data);
-    renderizarTabela(data);
+    render(data);
 }
 
-function renderizarTabela(itens) {
+function render(itens) {
     const lista = document.getElementById('listaProdutos');
-    lista.innerHTML = itens.map(p => `
-        <tr>
+    let totalQtd = 0; let totalVal = 0;
+    
+    lista.innerHTML = itens.map(p => {
+        totalQtd += p.quantidade;
+        totalVal += (p.quantidade * p.preco_unitario);
+        return `<tr>
+            <td>${p.nome} ${p.quantidade < 5 ? '<b style="color:red; font-size:10px;">(BAIXO)</b>' : ''}</td>
+            <td>${p.quantidade}</td>
+            <td>R$ ${p.preco_unitario.toFixed(2)}</td>
             <td>
-                <strong>${p.nome}</strong>
-                ${p.quantidade < 5 ? '<br><span style="color:var(--warning); font-size:11px;">⚠️ Estoque Baixo</span>' : ''}
+                <button onclick="abrirModal('${p.id}')">Editar</button>
+                <button onclick="remover('${p.id}')" style="color:red">X</button>
             </td>
-            <td style="text-align:center;">${p.quantidade}</td>
-            <td style="text-align:right;">R$ ${Number(p.preco_unitario).toFixed(2)}</td>
-            <td style="text-align:right;">
-                <button onclick="abrirModal('${p.id}')" style="color:var(--primary); border:none; background:none; cursor:pointer; font-weight:bold; margin-right:10px;">Editar</button>
-                <button onclick="removerProduto('${p.id}')" style="color:var(--danger); border:none; background:none; cursor:pointer;">Excluir</button>
-            </td>
-        </tr>
-    `).join('');
+        </tr>`;
+    }).join('');
+
+    document.getElementById('cardTotalItens').innerText = totalQtd;
+    document.getElementById('cardValorTotal').innerText = totalVal.toLocaleString('pt-BR', {style:'currency', currency:'BRL'});
 }
 
 async function salvarProduto() {
     const nome = document.getElementById('pNome').value;
-    const qtd = parseInt(document.getElementById('pQtd').value) || 0;
-    const preco = parseFloat(document.getElementById('pPreco').value) || 0;
+    const quantidade = parseInt(document.getElementById('pQtd').value) || 0;
+    const preco_unitario = parseFloat(document.getElementById('pPreco').value) || 0;
 
-    const { data, error } = await supabase.from('produtos').insert([{ nome, quantidade: qtd, preco_unitario: preco }]).select();
-    
-    if (!error) {
-        registrarMovimento(data[0].id, 'entrada', qtd, 'Cadastro Inicial');
-        limparCampos();
-        carregarProdutos();
-    }
+    await supabase.from('produtos').insert([{ nome, quantidade, preco_unitario }]);
+    location.reload();
 }
 
-async function removerProduto(id) {
-    if (confirm("Deseja excluir este item?")) {
-        await supabase.from('produtos').delete().eq('id', id);
-        carregarProdutos();
-    }
-}
+async function remover(id) { if(confirm("Apagar?")) { await supabase.from('produtos').delete().eq('id', id); carregarProdutos(); } }
 
-// --- EDIÇÃO (MODAL) ---
 function abrirModal(id) {
-    const p = produtosLocal.find(item => item.id === id);
+    const p = produtosLocal.find(x => x.id === id);
     document.getElementById('editId').value = p.id;
     document.getElementById('editNome').value = p.nome;
     document.getElementById('editQtd').value = p.quantidade;
@@ -239,74 +230,28 @@ function fecharModal() { document.getElementById('modalEdicao').classList.add('h
 
 async function salvarEdicao() {
     const id = document.getElementById('editId').value;
-    const { error } = await supabase.from('produtos').update({
+    await supabase.from('produtos').update({
         nome: document.getElementById('editNome').value,
         quantidade: parseInt(document.getElementById('editQtd').value),
         preco_unitario: parseFloat(document.getElementById('editPreco').value)
     }).eq('id', id);
-
-    if (!error) {
-        registrarMovimento(id, 'entrada', 0, 'Ajuste de Informações');
-        fecharModal();
-        carregarProdutos();
-    }
+    fecharModal(); carregarProdutos();
 }
 
-// --- BUSCA E DASHBOARD ---
-function filtrarProdutos() {
-    const termo = document.getElementById('inputBusca').value.toLowerCase();
-    const status = document.getElementById('filtroStatus').value;
-    const filtrados = produtosLocal.filter(p => {
-        const match = p.nome.toLowerCase().includes(termo);
-        return status === 'baixo' ? (match && p.quantidade < 5) : match;
-    });
-    renderizarTabela(filtrados);
+function filtrar() {
+    const t = document.getElementById('inputBusca').value.toLowerCase();
+    render(produtosLocal.filter(p => p.nome.toLowerCase().includes(t)));
 }
 
-function atualizarDashboard(dados) {
-    const total = dados.reduce((acc, p) => acc + p.quantidade, 0);
-    const valor = dados.reduce((acc, p) => acc + (p.quantidade * p.preco_unitario), 0);
-    document.getElementById('cardTotalItens').innerText = total;
-    document.getElementById('cardValorTotal').innerText = valor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-}
-
-// --- HISTÓRICO E EXPORTAÇÃO ---
-async function registrarMovimento(produtoId, tipo, quantidade, motivo) {
-    const { data: { session } } = await supabase.auth.getSession();
-    await supabase.from('historico').insert([{ produto_id: produtoId, tipo, quantidade, motivo, usuario_email: session.user.email }]);
-    carregarHistorico();
-}
-
-async function carregarHistorico() {
-    const { data } = await supabase.from('historico').select('*, produtos(nome)').order('criado_at', { ascending: false }).limit(10);
-    document.getElementById('listaHistorico').innerHTML = data.map(h => `
-        <div style="font-size:13px; padding:8px 0; border-bottom:1px solid #f5f5f7; display:flex; justify-content:space-between;">
-            <span><strong>${h.tipo.toUpperCase()}</strong>: ${h.produtos?.nome} (${h.quantidade} un)</span>
-            <span style="color:var(--text-secondary)">${new Date(h.criado_at).toLocaleDateString()}</span>
-        </div>
-    `).join('');
-}
-
-async function exportarHistorico() {
-    const { data } = await supabase.from('historico').select('*, produtos(nome)');
-    let csv = "Data,Produto,Tipo,Qtd,Motivo\n";
-    data.forEach(h => {
-        csv += `${new Date(h.criado_at).toLocaleDateString()},${h.produtos?.nome},${h.tipo},${h.quantidade},${h.motivo}\n`;
-    });
+function exportar() {
+    let csv = "Produto,Quantidade,Preco\n";
+    produtosLocal.forEach(p => csv += `${p.nome},${p.quantidade},${p.preco_unitario}\n`);
     const blob = new Blob([csv], { type: 'text/csv' });
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url; a.download = 'estoque.csv'; a.click();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a'); a.href = url; a.download = 'estoque.csv'; a.click();
 }
 
-function limparCampos() {
-    document.getElementById('pNome').value = "";
-    document.getElementById('pQtd').value = "";
-    document.getElementById('pPreco').value = "";
-}
-
-// Inicialização
-window.onload = carregarDados;
+window.onload = init;
 </script>
 </body>
 </html>
