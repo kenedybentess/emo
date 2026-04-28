@@ -116,6 +116,58 @@ function exibirErro(texto) {
     msg.className = "error";
 }
 </script>
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Configuração Inicial - Criar Usuário</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+    <div style="font-family: sans-serif; max-width: 400px; margin: 50px auto; padding: 20px; border: 1px solid #ccc; border-radius: 8px;">
+        <h2>Cadastrar Primeiro Usuário</h2>
+        <p>Este script vai inserir um usuário diretamente na tabela <strong>usuarios</strong>.</p>
+        <button id="btn" onclick="criarAdmin()" style="width:100%; padding:10px; background:#0071e3; color:white; border:none; cursor:pointer;">
+            Criar Usuário Admin
+        </button>
+        <div id="status" style="margin-top:20px; font-size:14px;"></div>
+    </div>
 
+    <script>
+        const SB_URL = 'https://lwqkjjlyyaohjzqpwwiv.supabase.co';
+        const SB_KEY = 'sb_publishable_iA0VKR6xQ3lvmf5gf3d1MA_mwiEW__l';
+        const supabase = window.supabase.createClient(SB_URL, SB_KEY);
+
+        async function criarAdmin() {
+            const status = document.getElementById('status');
+            status.innerText = "Processando...";
+
+            const novoUsuario = {
+                nome: "Administrador",
+                email: "admin@estoque.com",
+                senha: "admin", // <--- Esta será sua senha
+                perfil: "Admin",
+                ativo: true
+            };
+
+            const { error } = await supabase
+                .from('usuarios')
+                .insert([novoUsuario]);
+
+            if (error) {
+                status.innerHTML = `<span style="color:red">Erro: ${error.message}</span><br>
+                <small>Dica: Verifique se a tabela 'usuarios' existe e se as políticas RLS permitem inserção (INSERT).</small>`;
+            } else {
+                status.innerHTML = `<span style="color:green"><strong>Sucesso!</strong></span><br>
+                Utilize os dados abaixo no seu login:<br><br>
+                <strong>Email:</strong> admin@estoque.com<br>
+                <strong>Senha:</strong> admin`;
+            }
+        }
+    </script>
+</body>
+</html>
+
+   
 </body>
 </html>
