@@ -3,104 +3,119 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Controle de Estoque v2.1 - Supabase</title>
+<title>Sistema de Estoque - v2.2</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
-    /* Estilos mantidos para consistência visual */
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f5f5f7; color: #1d1d1f; }
-    .login-container { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px; }
-    .login-box { background: white; padding: 40px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); width: 100%; max-width: 400px; }
-    .input-group { margin-bottom: 16px; }
-    .input-group label { display: block; font-size: 14px; font-weight: 500; margin-bottom: 6px; }
-    .input-group input { width: 100%; padding: 12px; border: 1px solid #d2d2d7; border-radius: 8px; font-size: 16px; }
-    .btn { width: 100%; padding: 12px; background: #0071e3; color: white; border: none; border-radius: 8px; font-size: 16px; font-weight: 500; cursor: pointer; }
-    .header { background: white; border-bottom: 1px solid #d2d2d7; padding: 16px 24px; display: flex; justify-content: space-between; align-items: center; }
-    .container { max-width: 1200px; margin: 0 auto; padding: 24px; }
-    .hidden { display: none !important; }
-    .alert { padding: 12px; border-radius: 8px; margin-bottom: 16px; font-size: 14px; }
-    .alert-error { background: #ffebeb; color: #c41e3a; border: 1px solid #ffcccc; }
+    body { font-family: -apple-system, system-ui, sans-serif; background: #f5f5f7; display: flex; align-items: center; justify-content: center; min-height: 100vh; }
+    .card { background: white; padding: 30px; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); width: 100%; max-width: 380px; }
+    h1 { font-size: 24px; margin-bottom: 20px; text-align: center; color: #1d1d1f; }
+    .input-group { margin-bottom: 15px; }
+    label { display: block; font-size: 13px; margin-bottom: 5px; color: #6e6e73; }
+    input { width: 100%; padding: 12px; border: 1px solid #d2d2d7; border-radius: 8px; font-size: 16px; outline: none; }
+    input:focus { border-color: #0071e3; }
+    .btn { width: 100%; padding: 12px; background: #0071e3; color: white; border: none; border-radius: 8px; font-size: 16px; cursor: pointer; font-weight: 500; }
+    .btn:disabled { background: #b0b0b0; cursor: not-allowed; }
+    #msg { margin-top: 15px; padding: 10px; border-radius: 6px; font-size: 14px; display: none; }
+    .error { background: #ffebeb; color: #d70015; border: 1px solid #ffb3b3; display: block !important; }
+    .success { background: #e8f5e9; color: #2e7d32; display: block !important; }
+    .hidden { display: none; }
+    #appContent { background: white; padding: 40px; border-radius: 12px; text-align: center; }
 </style>
 </head>
 <body>
 
-<div id="loginScreen" class="login-container">
-  <div class="login-box">
-    <h1>Estoque Supabase</h1>
-    <p>Digite suas credenciais</p>
-    <div id="loginAlert"></div>
+<div id="loginArea" class="card">
+    <h1>Estoque Pro</h1>
+    <div id="msg"></div>
+    
     <div class="input-group">
-      <label>Email</label>
-      <input type="email" id="loginEmail" placeholder="seu@email.com">
+        <label>E-mail</label>
+        <input type="email" id="email" placeholder="exemplo@email.com">
     </div>
+    
     <div class="input-group">
-      <label>Senha</label>
-      <input type="password" id="loginSenha" placeholder="••••••••">
+        <label>Senha</label>
+        <input type="password" id="senha" placeholder="Sua senha">
     </div>
-    <button class="btn" onclick="executarLogin()">Entrar</button>
-  </div>
+    
+    <button id="btnEntrar" class="btn" onclick="tentarLogin()">Entrar</button>
+    <p style="font-size: 11px; color: #86868b; margin-top: 15px; text-align: center;">
+        Dica: Verifique se as credenciais na tabela 'usuarios' do Supabase são idênticas.
+    </p>
 </div>
 
-<div id="appScreen" class="hidden">
-  <div class="header">
-    <h2>Painel de Controle</h2>
-    <div>
-      <span id="txtUsuario"></span>
-      <button onclick="location.reload()" style="margin-left:10px;">Sair</button>
+<div id="appArea" class="hidden">
+    <div id="appContent">
+        <h1 id="boasVindas"></h1>
+        <p>Acesso ao banco de dados confirmado com sucesso!</p>
+        <br>
+        <button class="btn" onclick="location.reload()">Sair do Sistema</button>
     </div>
-  </div>
-  <div class="container">
-    <div class="card">
-      <h3>Bem-vindo ao sistema de inventário.</h3>
-      <p>Conexão com banco de dados ativa.</p>
-    </div>
-  </div>
 </div>
 
 <script>
-// Credenciais do seu banco de dados
-const SUPABASE_URL = 'https://lwqkjjlyyaohjzqpwwiv.supabase.co';
-const SUPABASE_KEY = 'sb_publishable_iA0VKR6xQ3lvmf5gf3d1MA_mwiEW__l';
-const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+// Configuração do Banco
+const SB_URL = 'https://lwqkjjlyyaohjzqpwwiv.supabase.co';
+const SB_KEY = 'sb_publishable_iA0VKR6xQ3lvmf5gf3d1MA_mwiEW__l';
+const supabase = window.supabase.createClient(SB_URL, SB_KEY);
 
-async function executarLogin() {
-    const email = document.getElementById('loginEmail').value;
-    const senha = document.getElementById('loginSenha').value;
-    const alertBox = document.getElementById('loginAlert');
+async function tentarLogin() {
+    const email = document.getElementById('email').value.trim();
+    const senha = document.getElementById('senha').value.trim();
+    const btn = document.getElementById('btnEntrar');
+    const msg = document.getElementById('msg');
 
     if (!email || !senha) {
-        alertBox.innerHTML = '<div class="alert alert-error">Preencha todos os campos.</div>';
+        exibirErro("Por favor, preencha todos os campos.");
         return;
     }
 
+    btn.disabled = true;
+    btn.innerText = "Verificando...";
+    msg.className = "";
+    msg.innerText = "";
+
     try {
-        // Busca o usuário na tabela 'usuarios'
+        // Tenta buscar o utilizador
         const { data, error } = await supabase
             .from('usuarios')
-            .select('*')
+            .select('nome, email, senha')
             .eq('email', email)
-            .eq('senha', senha) // Verificação simples de senha
-            .single();
+            .maybeSingle();
 
         if (error) {
-            console.error("Erro Supabase:", error.message);
-            alertBox.innerHTML = `<div class="alert alert-error">Erro: ${error.message}. Verifique as políticas RLS no painel.</div>`;
-            return;
+            // Se der erro aqui, o problema é provavelmente RLS ou nome da tabela
+            console.error("Erro Supabase:", error);
+            exibirErro("Erro de Conexão: " + error.message + ". Verifique as políticas RLS no painel do Supabase.");
+        } 
+        else if (!data) {
+            exibirErro("Utilizador não encontrado no banco de dados.");
+        } 
+        else if (data.senha !== senha) {
+            exibirErro("Senha incorreta.");
+        } 
+        else {
+            // Sucesso
+            document.getElementById('loginArea').classList.add('hidden');
+            document.getElementById('appArea').classList.remove('hidden');
+            document.getElementById('boasVindas').innerText = "Bem-vindo, " + data.nome;
         }
-
-        if (data) {
-            document.getElementById('loginScreen').classList.add('hidden');
-            document.getElementById('appScreen').classList.remove('hidden');
-            document.getElementById('txtUsuario').textContent = `Olá, ${data.nome}`;
-        } else {
-            alertBox.innerHTML = '<div class="alert alert-error">Usuário não encontrado ou senha incorreta.</div>';
-        }
-
     } catch (err) {
-        console.error("Erro inesperado:", err);
-        alertBox.innerHTML = '<div class="alert alert-error">Falha na conexão com o servidor.</div>';
+        exibirErro("Erro inesperado de rede.");
+        console.error(err);
+    } finally {
+        btn.disabled = false;
+        btn.innerText = "Entrar";
     }
 }
+
+function exibirErro(texto) {
+    const msg = document.getElementById('msg');
+    msg.innerText = texto;
+    msg.className = "error";
+}
 </script>
+
 </body>
 </html>
