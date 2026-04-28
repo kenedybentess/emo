@@ -250,6 +250,47 @@ function exportar() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a'); a.href = url; a.download = 'estoque.csv'; a.click();
 }
+    <!DOCTYPE html>
+<html>
+<body>
+    <h2>Configuração de Usuário Mestre</h2>
+    <p>Este script cria o acesso oficial no Supabase Auth.</p>
+    
+    <input type="email" id="novoEmail" placeholder="email@teste.com"><br><br>
+    <input type="password" id="novaSenha" placeholder="senha123"><br><br>
+    
+    <button onclick="registrar()">Criar Usuário Agora</button>
+    <div id="status" style="margin-top:20px;"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+        const supabase = window.supabase.createClient(
+            'https://lwqkjjlyyaohjzqpwwiv.supabase.co', 
+            'sb_publishable_iA0VKR6xQ3lvmf5gf3d1MA_mwiEW__l'
+        );
+
+        async function registrar() {
+            const email = document.getElementById('novoEmail').value;
+            const password = document.getElementById('novaSenha').value;
+            const status = document.getElementById('status');
+
+            status.innerText = "Processando...";
+
+            const { data, error } = await supabase.auth.signUp({
+                email: email,
+                password: password
+            });
+
+            if (error) {
+                status.innerHTML = "<b style='color:red'>Erro: " + error.message + "</b>";
+            } else {
+                status.innerHTML = "<b style='color:green'>Sucesso!</b><br>Usuário criado. " +
+                "<br><b>IMPORTANTE:</b> Vá ao painel do Supabase > Authentication > Providers > Email e DESATIVE 'Confirm Email' para logar sem validar o e-mail.";
+            }
+        }
+    </script>
+</body>
+</html>
 
 window.onload = init;
 </script>
