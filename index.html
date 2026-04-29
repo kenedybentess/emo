@@ -99,7 +99,7 @@
                 <input type="text" id="codigo" placeholder="Código*" required>
                 <input type="text" id="nome" placeholder="Descrição*" required>
                 <input type="number" id="qtd" placeholder="Quantidade" min="0" value="0">
-                <input type="number" id="minimo" placeholder="Mínimo" min="0" value="0">
+                <input type="number" id="minimo" placeholder="Mínimo" min="0" value="50">
             </div>
             <button class="btn btn-primary" onclick="addProduto()">Cadastrar Produto</button>
             <hr style="margin:20px 0; border:none; border-top:1px solid #e8e8ed;">
@@ -460,6 +460,7 @@ window.addProduto = async () => {
         nome: document.getElementById('nome').value.trim(),
         qtd: parseInt(document.getElementById('qtd').value) || 0,
         minimo: parseInt(document.getElementById('minimo').value) || 0,
+        unidade: 'PC',
         criado: new Date().toLocaleString('pt-BR')
     };
     if (!p.codigo || !p.nome) return alert('Preencha Código e Descrição!');
@@ -552,7 +553,7 @@ function renderProdutos() {
     );
     const isAdmin = nivelUsuario === 'admin';
     const html = `
-        <thead><tr><th>Código</th><th>Descrição</th><th>Quantidade</th><th>Mínimo</th>${isAdmin ? '<th>Ações</th>' : ''}</tr></thead>
+        <thead><tr><th>Código</th><th>Descrição</th><th>Quantidade</th><th>Unid.</th><th>Mínimo</th>${isAdmin ? '<th>Ações</th>' : ''}</tr></thead>
         <tbody>
             ${filtrados.map(p => {
                 const status = p.qtd === 0 ? 'danger' : p.qtd <= p.minimo ? 'warn' : 'ok';
@@ -561,6 +562,7 @@ function renderProdutos() {
                         <td>${p.codigo}</td>
                         <td><strong>${p.nome}</strong></td>
                         <td><span class="badge ${status}">${p.qtd}</span></td>
+                        <td>${p.unidade || 'PC'}</td>
                         <td>${p.minimo}</td>
                         ${isAdmin ? `<td class="actions">
                             <button class="btn btn-warning" onclick="abrirEditarProduto('${p.id}')">Editar</button>
@@ -644,11 +646,13 @@ window.importarExcel = async () => {
         const sheet = workbook.Sheets[workbook.SheetNames[0]];
         const rows = XLSX.utils.sheet_to_json(sheet, { header: 1 });
         
-        // Detecta colunas: procura por "codigo", "descrição", "quantidade"
-        const header = rows[0].map(h => String(h).toLowerCase());
-        const idxCodigo = header.findIndex(h => h.includes('codig'));
-        const idxDesc = header.findIndex(h => h.includes('descri') || h.includes('nome'));
-        const idxQtd = header.findIndex(h => h.includes('quant') || h.includes('qtd'));
+        // Detecta colunas
+        const header = (rows[0] || []).map(h => String(h || '').toLowerCase());
+        const idxCodigo = header.findIndex(h => h && h.includes('codig'));
+        const idxDesc = header.findIndex(h => h && (h.includes('descri') || h.includes('nome')));
+        const idxQtd = header.findIndex(h => h && (h.includes('quant') || h.includes('qtd')));
+        const idxMin = header.findIndex(h => h && h.includes('minim'));
+        const idxUnid = header.findIndex(h => h && (h.includes('unid') || h.includes('med')));
         
         if (idxCodigo === -1 || idxDesc === -1) {
             status.textContent = 'Erro: planilha precisa ter colunas Codigo e Descrição';
@@ -665,10 +669,11 @@ window.importarExcel = async () => {
             const codigo = String(row[idxCodigo]).trim();
             const nome = String(row[idxDesc] || '').trim();
             const qtd = parseInt(row[idxQtd]) || 0;
+            const minimo = idxMin !== -1 ? (parseInt(row[idxMin]) || 50) : 50;
+            const unidade = idxUnid !== -1 ? String(row[idxUnid] || 'PC').trim().toUpperCase() : 'PC';
             
             if (!codigo || !nome) continue;
             
-            // verifica duplicata
             if (produtosCache.find(p => p.codigo === codigo)) {
                 pulados++;
                 continue;
@@ -678,8 +683,9 @@ window.importarExcel = async () => {
                 codigo,
                 nome,
                 qtd,
-                minimo: 50,
-                criado: 'Importado via Excel - min 50'
+                minimo,
+                unidade,
+                criado: 'Importado via Excel'
             });
             importados++;
             status.textContent = `Importando... ${importados} produtos`;
