@@ -52,6 +52,7 @@
     .modal-content h2 { margin-bottom: 20px; }
     label { display: block; margin-bottom: 5px; font-size: 13px; font-weight: 600; color: #6e6e73; }
 </style>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 </head>
 <body>
 
@@ -101,6 +102,11 @@
                 <input type="number" id="minimo" placeholder="Mínimo" min="0" value="0">
             </div>
             <button class="btn btn-primary" onclick="addProduto()">Cadastrar Produto</button>
+            <hr style="margin:20px 0; border:none; border-top:1px solid #e8e8ed;">
+            <h3 style="font-size:16px; margin-bottom:10px;">Importar do Excel</h3>
+            <input type="file" id="excelFile" accept=".xlsx,.xls,.csv" style="margin-bottom:10px;">
+            <button class="btn btn-success" onclick="importarExcel()">Importar Arquivo</button>
+            <p id="importStatus" style="margin-top:10px; font-size:13px; color:#6e6e73;"></p>
         </div>
         <div class="card">
             <h2>Lista de Produtos</h2>
@@ -622,6 +628,72 @@ function renderUsuarios() {
     `;
     document.getElementById('tabela-usuarios').innerHTML = html;
 }
+
+window.importarExcel = async () => {
+    if (nivelUsuario !== 'admin') return alert('Sem permissão');
+    const fileInput = document.getElementById('excelFile');
+    const status = document.getElementById('importStatus');
+    if (!fileInput.files.length) return alert('Selecione um arquivo .xlsx ou .csv');
+    
+    const file = fileInput.files[0];
+    status.textContent = 'Lendo arquivo...';
+    
+    try {
+        const data = await file.arrayBuffer();
+        const workbook = XLSX.read(data);
+        const sheet = workbook.Sheets[workbook.SheetNames[0]];
+        const rows = XLSX.utils.sheet_to_json(sheet, { header: 1 });
+        
+        // Detecta colunas: procura por "codigo", "descrição", "quantidade"
+        const header = rows[0].map(h => String(h).toLowerCase());
+        const idxCodigo = header.findIndex(h => h.includes('codig'));
+        const idxDesc = header.findIndex(h => h.includes('descri') || h.includes('nome'));
+        const idxQtd = header.findIndex(h => h.includes('quant') || h.includes('qtd'));
+        
+        if (idxCodigo === -1 || idxDesc === -1) {
+            status.textContent = 'Erro: planilha precisa ter colunas Codigo e Descrição';
+            return;
+        }
+        
+        let importados = 0;
+        let pulados = 0;
+        
+        for (let i = 1; i < rows.length; i++) {
+            const row = rows[i];
+            if (!row || !row[idxCodigo]) continue;
+            
+            const codigo = String(row[idxCodigo]).trim();
+            const nome = String(row[idxDesc] || '').trim();
+            const qtd = parseInt(row[idxQtd]) || 0;
+            
+            if (!codigo || !nome) continue;
+            
+            // verifica duplicata
+            if (produtosCache.find(p => p.codigo === codigo)) {
+                pulados++;
+                continue;
+            }
+            
+            await push(ref(db, 'produtos'), {
+                codigo,
+                nome,
+                qtd,
+                minimo: 0,
+                criado: 'Importado via Excel'
+            });
+            importados++;
+            status.textContent = `Importando... ${importados} produtos`;
+        }
+        
+        status.textContent = `✓ Concluído! ${importados} importados, ${pulados} já existiam.`;
+        fileInput.value = '';
+        setTimeout(() => status.textContent = '', 5000);
+    } catch (e) {
+        status.textContent = 'Erro: ' + e.message;
+        console.error(e);
+    }
+};
+
 </script>
 </body>
 </html>
