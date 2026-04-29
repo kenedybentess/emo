@@ -4,100 +4,61 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Controle de Estoque</title>
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
 <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f5f5f7; color: #1d1d1f; }
-   .login-overlay { position: fixed; inset: 0; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); display: flex; align-items: center; justify-content: center; z-index: 9999; }
-   .login-box { background: white; padding: 40px; border-radius: 16px; width: 90%; max-width: 400px; text-align: center; box-shadow: 0 20px 60px rgba(0,0,0,0.3); }
-   .login-box h2 { margin-bottom: 10px; font-size: 24px; }
-   .login-box p { color: #6e6e73; margin-bottom: 20px; font-size: 14px; }
-   .login-box input { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #d2d2d7; border-radius: 8px; font-size: 16px; }
-   .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
-    header { background: #fff; padding: 20px; border-radius: 12px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; }
-    h1 { font-size: 28px; }
+    .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+    header { background: #fff; padding: 20px; border-radius: 12px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+    h1 { font-size: 28px; margin-bottom: 10px; }
     nav { display: flex; gap: 10px; flex-wrap: wrap; }
     nav button { padding: 10px 20px; border: none; border-radius: 8px; background: #e8e8ed; cursor: pointer; font-size: 14px; font-weight: 500; }
     nav button.active { background: #007aff; color: white; }
-   .header-actions { display: flex; gap: 10px; align-items: center; }
-   .card { background: white; padding: 20px; border-radius: 12px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
-   .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px; margin-bottom: 20px; }
-   .metric { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px; border-radius: 12px; }
-   .metric h3 { font-size: 14px; opacity: 0.9; margin-bottom: 8px; }
-   .metric p { font-size: 32px; font-weight: 700; }
-   .metric.alert { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); }
+    nav button:hover { opacity: 0.8; }
+    .card { background: white; padding: 20px; border-radius: 12px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px; margin-bottom: 20px; }
+    .metric { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px; border-radius: 12px; }
+    .metric h3 { font-size: 14px; opacity: 0.9; margin-bottom: 8px; }
+    .metric p { font-size: 32px; font-weight: 700; }
+    .metric.alert { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); }
     table { width: 100%; border-collapse: collapse; }
     th, td { text-align: left; padding: 12px; border-bottom: 1px solid #e8e8ed; }
     th { font-weight: 600; color: #6e6e73; font-size: 13px; text-transform: uppercase; }
     tr:hover { background: #f5f5f7; }
-   .badge { display: inline-block; padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: 600; }
-   .badge.ok { background: #d1f4e0; color: #0a5; }
-   .badge.warn { background: #ffe4b3; color: #a60; }
-   .badge.danger { background: #ffd4d4; color: #c00; }
-   .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 15px; }
+    .badge { display: inline-block; padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: 600; }
+    .badge.ok { background: #d1f4e0; color: #0a5; }
+    .badge.warn { background: #ffe4b3; color: #a60; }
+    .badge.danger { background: #ffd4d4; color: #c00; }
+    .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 15px; }
     input, select, textarea { width: 100%; padding: 10px; border: 1px solid #d2d2d7; border-radius: 8px; font-size: 14px; }
-   .btn { padding: 10px 24px; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 14px; }
-   .btn-primary { background: #007aff; color: white; }
-   .btn-success { background: #34c759; color: white; }
-   .btn-danger { background: #ff3b30; color: white; }
-   .btn-secondary { background: #8e8e93; color: white; }
-   .btn:hover { opacity: 0.9; }
-   .actions { display: flex; gap: 8px; }
-   .hidden { display: none!important; }
-   .alerta { background: #fff3cd; border-left: 4px solid #ffc107; padding: 12px; border-radius: 8px; margin-bottom: 15px; }
-   .chart-container { position: relative; height: 300px; margin-top: 20px; }
-   .sync-status { padding: 6px 12px; border-radius: 6px; font-size: 12px; font-weight: 600; }
-   .sync-status.online { background: #d1f4e0; color: #0a5; }
-   .sync-status.offline { background: #ffe4b3; color: #a60; }
-   .config-card { background: #f5f5f7; padding: 15px; border-radius: 8px; margin-bottom: 15px; }
-   .user-info { font-size: 13px; color: #6e6e73; }
-    @media (max-width: 768px) {
+    input:focus, select:focus { outline: none; border-color: #007aff; }
+    .btn { padding: 10px 24px; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 14px; }
+    .btn-primary { background: #007aff; color: white; }
+    .btn-success { background: #34c759; color: white; }
+    .btn-danger { background: #ff3b30; color: white; }
+    .btn:hover { opacity: 0.9; }
+    .actions { display: flex; gap: 8px; }
+    .actions button { padding: 6px 12px; font-size: 12px; }
+    .hidden { display: none; }
+    .alerta { background: #fff3cd; border-left: 4px solid #ffc107; padding: 12px; border-radius: 8px; margin-bottom: 15px; }
+    @media (max-width: 768px) { 
         table { font-size: 13px; }
         th, td { padding: 8px 4px; }
-        header { flex-direction: column; align-items: stretch; }
     }
 </style>
 </head>
 <body>
-<div id="loginOverlay" class="login-overlay">
-    <div class="login-box">
-        <h2>🔒 Controle de Estoque</h2>
-        <div id="loginForm">
-            <p>Digite sua senha para acessar</p>
-            <input type="password" id="senhaLogin" placeholder="Senha">
-            <button class="btn btn-primary" style="width:100%; margin-top:10px;" onclick="fazerLogin()">Entrar</button>
-            <p style="margin-top:15px; font-size:12px; color:#ff3b30;" id="erroLogin"></p>
-        </div>
-        <div id="criarSenhaForm" class="hidden">
-            <p>Primeiro acesso. Crie uma senha de admin:</p>
-            <input type="password" id="novaSenha" placeholder="Nova senha - mín 4 caracteres">
-            <input type="password" id="confirmaSenha" placeholder="Confirmar senha">
-            <button class="btn btn-success" style="width:100%; margin-top:10px;" onclick="criarSenha()">Criar Senha e Entrar</button>
-        </div>
-    </div>
-</div>
-
-<div class="container" id="app" style="display:none;">
+<div class="container">
     <header>
-        <div>
-            <h1>📦 Controle de Estoque</h1>
-            <p class="user-info">Usuário: Admin | <a href="#" onclick="abrirAlterarSenha();return false;" style="color:#007aff;">Alterar senha</a></p>
-            <span id="syncStatus" class="sync-status offline">Modo Local</span>
-        </div>
-        <div class="header-actions">
-            <nav>
-                <button onclick="showTab('dashboard')" class="active" id="btn-dashboard">Dashboard</button>
-                <button onclick="showTab('produtos')" id="btn-produtos">Produtos</button>
-                <button onclick="showTab('movimentar')" id="btn-movimentar">Entrada/Saída</button>
-                <button onclick="showTab('relatorios')" id="btn-relatorios">Relatórios</button>
-                <button onclick="showTab('config')" id="btn-config">Config</button>
-            </nav>
-            <button class="btn btn-secondary" onclick="logout()">Sair</button>
-        </div>
+        <h1>📦 Controle de Estoque</h1>
+        <nav>
+            <button onclick="showTab('dashboard')" class="active" id="btn-dashboard">Dashboard</button>
+            <button onclick="showTab('produtos')" id="btn-produtos">Produtos</button>
+            <button onclick="showTab('movimentar')" id="btn-movimentar">Entrada/Saída</button>
+            <button onclick="showTab('historico')" id="btn-historico">Histórico</button>
+        </nav>
     </header>
 
+    <!-- DASHBOARD -->
     <div id="dashboard" class="tab">
         <div class="grid" id="metrics"></div>
         <div class="card">
@@ -105,28 +66,35 @@
             <div id="alertas"></div>
         </div>
         <div class="card">
-            <h2>📊 Entrada x Saída - Últimos 6 Meses</h2>
-            <div class="chart-container"><canvas id="chartMovimentacoes"></canvas></div>
+            <h2>📊 Top 5 Produtos por Valor</h2>
+            <div id="grafico"></div>
         </div>
     </div>
 
+    <!-- PRODUTOS -->
     <div id="produtos" class="tab hidden">
         <div class="card">
             <h2>Cadastrar Produto</h2>
             <div class="form-grid">
-                <input type="text" id="codigo" placeholder="Código*">
-                <input type="text" id="nome" placeholder="Descrição*">
-                <input type="number" id="qtd" placeholder="Quantidade Inicial" min="0" value="0">
+                <input type="text" id="codigo" placeholder="Código*" required>
+                <input type="text" id="nome" placeholder="Nome do Produto*" required>
+                <input type="text" id="categoria" placeholder="Categoria">
+                <select id="unidade">
+                    <option>UN</option><option>CX</option><option>KG</option>
+                    <option>L</option><option>M</option><option>PCT</option>
+                </select>
+                <input type="number" id="qtd" placeholder="Qtd Inicial" min="0" value="0">
                 <input type="number" id="minimo" placeholder="Estoque Mínimo" min="0" value="0">
+                <input type="number" id="preco" placeholder="Preço Unit R$" min="0" step="0.01">
+                <input type="text" id="local" placeholder="Localização">
             </div>
             <button class="btn btn-primary" onclick="addProduto()">Cadastrar Produto</button>
         </div>
         <div class="card">
             <h2>Lista de Produtos</h2>
-            <div style="margin-bottom:15px; display:flex; gap:10px; flex-wrap:wrap;">
-                <input type="text" id="busca" placeholder="Buscar..." onkeyup="renderProdutos()" style="flex:1; min-width:200px;">
+            <div style="margin-bottom:15px;">
+                <input type="text" id="busca" placeholder="Buscar produto..." onkeyup="renderProdutos()">
                 <button class="btn btn-success" onclick="exportarCSV()">Exportar CSV</button>
-                <button class="btn btn-primary" onclick="gerarPDF()">Gerar PDF</button>
             </div>
             <div style="overflow-x:auto;">
                 <table id="tabela-produtos"></table>
@@ -134,6 +102,7 @@
         </div>
     </div>
 
+    <!-- MOVIMENTAR -->
     <div id="movimentar" class="tab hidden">
         <div class="card">
             <h2>Registrar Movimentação</h2>
@@ -147,180 +116,34 @@
                 <input type="text" id="mov-motivo" placeholder="Motivo/Obs">
             </div>
             <p id="saldo-atual" style="margin:15px 0; font-weight:600;"></p>
-            <button class="btn btn-success" onclick="registrarMov()">Registrar</button>
-        </div>
-        <div class="card">
-            <h2>Últimas Movimentações</h2>
-            <div style="overflow-x:auto;">
-                <table id="tabela-historico-recente"></table>
-            </div>
+            <button class="btn btn-success" onclick="registrarMov()">Registrar Movimentação</button>
         </div>
     </div>
 
-    <div id="relatorios" class="tab hidden">
+    <!-- HISTÓRICO -->
+    <div id="historico" class="tab hidden">
         <div class="card">
-            <h2>Relatórios em PDF</h2>
-            <div style="display:flex; gap:10px; margin-bottom:20px; flex-wrap:wrap;">
-                <button class="btn btn-primary" onclick="relatorioCompleto()">📄 Relatório Completo</button>
-                <button class="btn btn-primary" onclick="relatorioBaixo()">⚠️ Produtos em Baixa</button>
-                <button class="btn btn-primary" onclick="relatorioMovimentacoes()">📊 Movimentações</button>
-            </div>
-            <h3>Kardex por Produto</h3>
-            <select id="filtro-rel-produto" onchange="renderRelatorio()" style="max-width:300px; margin:15px 0;">
-                <option value="">Selecione um produto</option>
+            <h2>Histórico de Movimentações</h2>
+            <select id="filtro-produto" onchange="renderHistorico()" style="margin-bottom:15px; max-width:300px;">
+                <option value="">Todos os produtos</option>
             </select>
             <div style="overflow-x:auto;">
-                <table id="tabela-relatorio"></table>
+                <table id="tabela-historico"></table>
             </div>
         </div>
-    </div>
-
-    <div id="config" class="tab hidden">
-        <div class="card">
-            <h2>⚙️ Configurações</h2>
-            <div class="config-card">
-                <h3 style="margin-bottom:10px;">🔥 Firebase - Sincronização em Nuvem</h3>
-                <p style="font-size:13px; color:#6e6e73; margin-bottom:15px;">
-                    Cole sua config do Firebase pra sincronizar entre dispositivos. Deixe vazio pra usar só local.
-                </p>
-                <textarea id="firebaseConfig" rows="6" placeholder='{"apiKey":"...","authDomain":"...","projectId":"..."}' style="font-family:monospace; font-size:12px;"></textarea>
-                <button class="btn btn-success" onclick="salvarFirebase()" style="margin-top:10px;">Conectar Firebase</button>
-                <button class="btn btn-danger" onclick="desconectarFirebase()" style="margin-top:10px;">Desconectar</button>
-            </div>
-            <div class="config-card">
-                <h3 style="margin-bottom:10px;">🔐 Alterar Senha</h3>
-                <input type="password" id="senhaAtual" placeholder="Senha atual" style="margin-bottom:10px;">
-                <input type="password" id="novaSenhaConfig" placeholder="Nova senha" style="margin-bottom:10px;">
-                <button class="btn btn-primary" onclick="alterarSenha()">Alterar Senha</button>
-            </div>
-            <div class="config-card">
-                <h3 style="margin-bottom:10px;">💾 Backup e Restore</h3>
-                <button class="btn btn-success" onclick="backupDados()">Baixar Backup JSON</button>
-                <input type="file" id="restoreFile" accept=".json" style="margin-top:10px;" onchange="restoreDados(event)">
-            </div>
-        </div>
-    </div>
-</div>
-
-<div id="modalSenha" class="login-overlay hidden">
-    <div class="login-box">
-        <h2>Alterar Senha</h2>
-        <input type="password" id="senhaAtualModal" placeholder="Senha atual">
-        <input type="password" id="novaSenhaModal" placeholder="Nova senha">
-        <input type="password" id="confirmaSenhaModal" placeholder="Confirmar nova senha">
-        <button class="btn btn-primary" style="width:100%; margin-top:10px;" onclick="salvarNovaSenha()">Salvar</button>
-        <button class="btn btn-secondary" style="width:100%; margin-top:10px;" onclick="fecharModalSenha()">Cancelar</button>
     </div>
 </div>
 
 <script>
-let firebaseApp = null;
-let db = { produtos: [], movimentacoes: [] };
-let chartMov;
-let dbFirestore, firestoreFns;
-
-function hash(str) {
-    let h = 0; for (let i = 0; i < str.length; i++) h = Math.imul(31, h) + str.charCodeAt(i) | 0;
-    return h.toString(36);
-}
-
-function checkLogin() {
-    const senhaSalva = localStorage.getItem('senha_admin');
-    const logado = sessionStorage.getItem('logado');
-    if (!senhaSalva) {
-        document.getElementById('loginForm').classList.add('hidden');
-        document.getElementById('criarSenhaForm').classList.remove('hidden');
-        return;
-    }
-    if (logado === 'true') {
-        document.getElementById('loginOverlay').classList.add('hidden');
-        document.getElementById('app').style.display = 'block';
-        initApp();
-    }
-}
-
-function fazerLogin() {
-    const senha = document.getElementById('senhaLogin').value;
-    const senhaSalva = localStorage.getItem('senha_admin');
-    if (hash(senha) === senhaSalva) {
-        sessionStorage.setItem('logado', 'true');
-        document.getElementById('loginOverlay').classList.add('hidden');
-        document.getElementById('app').style.display = 'block';
-        initApp();
-    } else {
-        document.getElementById('erroLogin').textContent = 'Senha incorreta!';
-        setTimeout(() => document.getElementById('erroLogin').textContent = '', 3000);
-    }
-}
-
-function criarSenha() {
-    const s1 = document.getElementById('novaSenha').value;
-    const s2 = document.getElementById('confirmaSenha').value;
-    if (s1.length < 4) return alert('Senha deve ter no mínimo 4 caracteres');
-    if (s1!== s2) return alert('Senhas não coincidem');
-    localStorage.setItem('senha_admin', hash(s1));
-    sessionStorage.setItem('logado', 'true');
-    document.getElementById('loginOverlay').classList.add('hidden');
-    document.getElementById('app').style.display = 'block';
-    initApp();
-}
-
-function logout() {
-    sessionStorage.removeItem('logado');
-    location.reload();
-}
-
-function abrirAlterarSenha() {
-    document.getElementById('modalSenha').classList.remove('hidden');
-}
-
-function fecharModalSenha() {
-    document.getElementById('modalSenha').classList.add('hidden');
-    document.getElementById('senhaAtualModal').value = '';
-    document.getElementById('novaSenhaModal').value = '';
-    document.getElementById('confirmaSenhaModal').value = '';
-}
-
-function salvarNovaSenha() {
-    const atual = document.getElementById('senhaAtualModal').value;
-    const nova = document.getElementById('novaSenhaModal').value;
-    const confirma = document.getElementById('confirmaSenhaModal').value;
-    const senhaSalva = localStorage.getItem('senha_admin');
-    if (hash(atual)!== senhaSalva) return alert('Senha atual incorreta');
-    if (nova.length < 4) return alert('Nova senha muito curta');
-    if (nova!== confirma) return alert('Senhas não coincidem');
-    localStorage.setItem('senha_admin', hash(nova));
-    alert('Senha alterada com sucesso!');
-    fecharModalSenha();
-}
-
-function alterarSenha() {
-    const atual = document.getElementById('senhaAtual').value;
-    const nova = document.getElementById('novaSenhaConfig').value;
-    const senhaSalva = localStorage.getItem('senha_admin');
-    if (hash(atual)!== senhaSalva) return alert('Senha atual incorreta');
-    if (nova.length < 4) return alert('Nova senha muito curta');
-    localStorage.setItem('senha_admin', hash(nova));
-    alert('Senha alterada com sucesso!');
-    document.getElementById('senhaAtual').value = '';
-    document.getElementById('novaSenhaConfig').value = '';
-}
-
-function initApp() {
-    loadDB();
-    renderDashboard();
-    initFirebase();
-}
-
-function loadDB() {
-    db.produtos = JSON.parse(localStorage.getItem('produtos') || '[]');
-    db.movimentacoes = JSON.parse(localStorage.getItem('movimentacoes') || '[]');
-}
+// Banco de dados localStorage
+let db = {
+    produtos: JSON.parse(localStorage.getItem('produtos') || '[]'),
+    movimentacoes: JSON.parse(localStorage.getItem('movimentacoes') || '[]')
+};
 
 function saveDB() {
     localStorage.setItem('produtos', JSON.stringify(db.produtos));
     localStorage.setItem('movimentacoes', JSON.stringify(db.movimentacoes));
-    if (firebaseApp) syncToFirebase();
 }
 
 function showTab(tab) {
@@ -328,11 +151,11 @@ function showTab(tab) {
     document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
     document.getElementById(tab).classList.remove('hidden');
     document.getElementById('btn-' + tab).classList.add('active');
+
     if (tab === 'dashboard') renderDashboard();
     if (tab === 'produtos') renderProdutos();
     if (tab === 'movimentar') renderMovimentar();
-    if (tab === 'relatorios') renderRelatorio();
-    if (tab === 'config') loadFirebaseConfig();
+    if (tab === 'historico') renderHistorico();
 }
 
 function addProduto() {
@@ -340,24 +163,40 @@ function addProduto() {
         id: Date.now(),
         codigo: document.getElementById('codigo').value.trim(),
         nome: document.getElementById('nome').value.trim(),
+        categoria: document.getElementById('categoria').value.trim(),
+        unidade: document.getElementById('unidade').value,
         qtd: parseInt(document.getElementById('qtd').value) || 0,
         minimo: parseInt(document.getElementById('minimo').value) || 0,
+        preco: parseFloat(document.getElementById('preco').value) || 0,
+        local: document.getElementById('local').value.trim(),
         criado: new Date().toLocaleString('pt-BR')
     };
-    if (!p.codigo ||!p.nome) return alert('Preencha Código e Descrição!');
-    if (db.produtos.find(x => x.codigo === p.codigo)) return alert('Código já existe!');
+
+    if (!p.codigo || !p.nome) {
+        alert('Preencha Código e Nome!');
+        return;
+    }
+
+    if (db.produtos.find(x => x.codigo === p.codigo)) {
+        alert('Código já existe!');
+        return;
+    }
+
     db.produtos.push(p);
     saveDB();
+
+    // Limpar form
     document.querySelectorAll('#produtos input').forEach(i => i.value = '');
     document.getElementById('qtd').value = '0';
     document.getElementById('minimo').value = '0';
+
     alert('Produto cadastrado!');
     renderProdutos();
 }
 
 function deleteProduto(id) {
-    if (confirm('Excluir este produto?')) {
-        db.produtos = db.produtos.filter(p => p.id!== id);
+    if (confirm('Excluir este produto? O histórico será mantido.')) {
+        db.produtos = db.produtos.filter(p => p.id !== id);
         saveDB();
         renderProdutos();
         renderDashboard();
@@ -369,25 +208,35 @@ function registrarMov() {
     const tipo = document.getElementById('mov-tipo').value;
     const qtd = parseInt(document.getElementById('mov-qtd').value);
     const motivo = document.getElementById('mov-motivo').value;
-    if (!produtoId ||!qtd) return alert('Selecione produto e quantidade');
+
+    if (!produtoId || !qtd) return alert('Selecione produto e quantidade');
+
     const produto = db.produtos.find(p => p.id === produtoId);
-    if (tipo === 'saida' && produto.qtd < qtd) return alert('Estoque insuficiente!');
-    produto.qtd += tipo === 'entrada'? qtd : -qtd;
+
+    if (tipo === 'saida' && produto.qtd < qtd) {
+        return alert('Estoque insuficiente!');
+    }
+
+    produto.qtd += tipo === 'entrada' ? qtd : -qtd;
+
     db.movimentacoes.unshift({
         id: Date.now(),
         produtoId: produtoId,
         tipo: tipo,
         quantidade: qtd,
         motivo: motivo,
-        data: new Date().toLocaleString('pt-BR'),
-        timestamp: Date.now()
+        data: new Date().toLocaleString('pt-BR')
     });
+
     saveDB();
-    if (produto.qtd <= produto.minimo) alert(`⚠️ ${produto.nome} atingiu estoque mínimo!`);
+
+    if (produto.qtd <= produto.minimo) {
+        alert(`⚠️ Atenção: ${produto.nome} atingiu estoque mínimo!`);
+    }
+
     document.getElementById('mov-qtd').value = '1';
     document.getElementById('mov-motivo').value = '';
     updateSaldo();
-    renderMovimentar();
     alert('Movimentação registrada!');
 }
 
@@ -396,88 +245,96 @@ function updateSaldo() {
     const p = db.produtos.find(x => x.id === id);
     if (p) {
         document.getElementById('saldo-atual').innerHTML =
-            `Estoque atual: <strong>${p.qtd}</strong> | Mínimo: ${p.minimo}`;
+            `Estoque atual: <strong>${p.qtd} ${p.unidade}</strong> | Mínimo: ${p.minimo} | Local: ${p.local || '-'}`;
     }
 }
 
 function renderDashboard() {
     const total = db.produtos.length;
+    const valorTotal = db.produtos.reduce((sum, p) => sum + (p.qtd * p.preco), 0);
     const baixo = db.produtos.filter(p => p.qtd <= p.minimo).length;
+    const cats = new Set(db.produtos.map(p => p.categoria).filter(Boolean)).size;
+
     document.getElementById('metrics').innerHTML = `
         <div class="metric"><h3>Total de Produtos</h3><p>${total}</p></div>
-        <div class="metric ${baixo > 0? 'alert' : ''}"><h3>Abaixo do Mínimo</h3><p>${baixo}</p></div>
+        <div class="metric"><h3>Valor em Estoque</h3><p>R$ ${valorTotal.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</p></div>
+        <div class="metric ${baixo > 0 ? 'alert' : ''}"><h3>Abaixo do Mínimo</h3><p>${baixo}</p></div>
+        <div class="metric"><h3>Categorias</h3><p>${cats}</p></div>
     `;
+
     const alertasProdutos = db.produtos.filter(p => p.qtd <= p.minimo);
-    document.getElementById('alertas').innerHTML = alertasProdutos.length > 0? `
-        <div class="alerta">⚠️ ${alertasProdutos.length} produto(s) com estoque baixo</div>
+    if (alertasProdutos.length > 0) {
+        document.getElementById('alertas').innerHTML = `
+            <div class="alerta">⚠️ ${alertasProdutos.length} produto(s) com estoque baixo</div>
+            <table>
+                <thead><tr><th>Código</th><th>Nome</th><th>Atual</th><th>Mínimo</th><th>Local</th></tr></thead>
+                <tbody>
+                    ${alertasProdutos.map(p => `
+                        <tr>
+                            <td>${p.codigo}</td>
+                            <td>${p.nome}</td>
+                            <td><span class="badge danger">${p.qtd}</span></td>
+                            <td>${p.minimo}</td>
+                            <td>${p.local || '-'}</td>
+                        </tr>
+                    `).join('')}
+                </tbody>
+            </table>
+        `;
+    } else {
+        document.getElementById('alertas').innerHTML = '<p style="color:#0a5;">✓ Todos os produtos acima do mínimo</p>';
+    }
+
+    const top5 = db.produtos
+        .map(p => ({ ...p, valor: p.qtd * p.preco }))
+        .sort((a, b) => b.valor - a.valor)
+        .slice(0, 5);
+
+    document.getElementById('grafico').innerHTML = `
         <table>
-            <thead><tr><th>Código</th><th>Descrição</th><th>Atual</th><th>Mínimo</th></tr></thead>
+            <thead><tr><th>Produto</th><th>Qtd</th><th>Valor Unit</th><th>Valor Total</th></tr></thead>
             <tbody>
-                ${alertasProdutos.map(p => `
+                ${top5.map(p => `
                     <tr>
-                        <td>${p.codigo}</td>
                         <td>${p.nome}</td>
-                        <td><span class="badge danger">${p.qtd}</span></td>
-                        <td>${p.minimo}</td>
+                        <td>${p.qtd}</td>
+                        <td>R$ ${p.preco.toFixed(2)}</td>
+                        <td><strong>R$ ${p.valor.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</strong></td>
                     </tr>
                 `).join('')}
             </tbody>
         </table>
-    ` : '<p style="color:#0a5;">✓ Todos os produtos acima do mínimo</p>';
-    renderCharts();
-}
-
-function renderCharts() {
-    const meses = [], entradas = [], saidas = [];
-    for (let i = 5; i >= 0; i--) {
-        const d = new Date();
-        d.setMonth(d.getMonth() - i);
-        const mesAno = d.toLocaleDateString('pt-BR', { month: 'short', year: '2-digit' });
-        meses.push(mesAno);
-        const inicioMes = new Date(d.getFullYear(), d.getMonth(), 1).getTime();
-        const fimMes = new Date(d.getFullYear(), d.getMonth() + 1, 0).getTime();
-        const movsMes = db.movimentacoes.filter(m => {
-            const t = m.timestamp || new Date(m.data.split(',')[0].split('/').reverse().join('-')).getTime();
-            return t >= inicioMes && t <= fimMes;
-        });
-        entradas.push(movsMes.filter(m => m.tipo === 'entrada').reduce((s, m) => s + m.quantidade, 0));
-        saidas.push(movsMes.filter(m => m.tipo === 'saida').reduce((s, m) => s + m.quantidade, 0));
-    }
-    if (chartMov) chartMov.destroy();
-    chartMov = new Chart(document.getElementById('chartMovimentacoes'), {
-        type: 'line',
-        data: {
-            labels: meses,
-            datasets: [
-                { label: 'Entradas', data: entradas, borderColor: '#34c759', backgroundColor: 'rgba(52,199,89,0.1)', tension: 0.4 },
-                { label: 'Saídas', data: saidas, borderColor: '#ff3b30', backgroundColor: 'rgba(255,59,48,0.1)', tension: 0.4 }
-            ]
-        },
-        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } }
-    });
+    `;
 }
 
 function renderProdutos() {
     const busca = document.getElementById('busca').value.toLowerCase();
     const filtrados = db.produtos.filter(p =>
         p.nome.toLowerCase().includes(busca) ||
-        p.codigo.toLowerCase().includes(busca)
+        p.codigo.toLowerCase().includes(busca) ||
+        p.categoria.toLowerCase().includes(busca)
     );
+
     const html = `
         <thead>
             <tr>
-                <th>Código</th><th>Descrição</th><th>Quantidade</th><th>Mínimo</th><th>Ações</th>
+                <th>Código</th><th>Nome</th><th>Cat.</th><th>Estoque</th>
+                <th>Mín</th><th>Preço</th><th>Total</th><th>Local</th><th>Ações</th>
             </tr>
         </thead>
         <tbody>
             ${filtrados.map(p => {
-        const status = p.qtd === 0? 'danger' : p.qtd <= p.minimo? 'warn' : 'ok';
+        const status = p.qtd === 0 ? 'danger' : p.qtd <= p.minimo ? 'warn' : 'ok';
         return `
                     <tr>
                         <td>${p.codigo}</td>
                         <td><strong>${p.nome}</strong></td>
-                        <td><span class="badge ${status}">${p.qtd}</span></td>
+                        <td>${p.categoria || '-'}</td>
+                        <td><span class="badge ${status}">${p.qtd} ${p.unidade}</span></td>
                         <td>${p.minimo}</td>
+                        <td>R$ ${p.preco.toFixed(2)}</td>
+                        <td>R$ ${(p.qtd * p.preco).toFixed(2)}</td>
+                        <td>${p.local || '-'}</td>
                         <td class="actions">
                             <button class="btn btn-danger" onclick="deleteProduto(${p.id})">Excluir</button>
                         </td>
@@ -495,17 +352,32 @@ function renderMovimentar() {
         `<option value="${p.id}">${p.codigo} - ${p.nome}</option>`
     ).join('');
     if (db.produtos.length > 0) updateSaldo();
-    const recentes = db.movimentacoes.slice(0, 10);
-    document.getElementById('tabela-historico-recente').innerHTML = `
+}
+
+function renderHistorico() {
+    const filtroId = document.getElementById('filtro-produto').value;
+
+    // Popular filtro
+    const filtroSelect = document.getElementById('filtro-produto');
+    filtroSelect.innerHTML = '<option value="">Todos os produtos</option>' +
+        db.produtos.map(p => `<option value="${p.id}">${p.nome}</option>`).join('');
+    filtroSelect.value = filtroId;
+
+    let movs = db.movimentacoes;
+    if (filtroId) {
+        movs = movs.filter(m => m.produtoId == filtroId);
+    }
+
+    const html = `
         <thead><tr><th>Data</th><th>Produto</th><th>Tipo</th><th>Qtd</th><th>Motivo</th></tr></thead>
         <tbody>
-            ${recentes.map(m => {
+            ${movs.slice(0, 100).map(m => {
         const p = db.produtos.find(x => x.id === m.produtoId);
         return `
                     <tr>
                         <td>${m.data}</td>
-                        <td>${p? p.nome : 'Excluído'}</td>
-                        <td><span class="badge ${m.tipo === 'entrada'? 'ok' : 'warn'}">${m.tipo}</span></td>
+                        <td>${p ? p.nome : 'Excluído'}</td>
+                        <td><span class="badge ${m.tipo === 'entrada' ? 'ok' : 'warn'}">${m.tipo}</span></td>
                         <td>${m.quantidade}</td>
                         <td>${m.motivo || '-'}</td>
                     </tr>
@@ -513,37 +385,18 @@ function renderMovimentar() {
     }).join('')}
         </tbody>
     `;
-}
-
-function renderRelatorio() {
-    const filtroId = document.getElementById('filtro-rel-produto').value;
-    document.getElementById('filtro-rel-produto').innerHTML = '<option value="">Selecione um produto</option>' +
-        db.produtos.map(p => `<option value="${p.id}">${p.nome}</option>`).join('');
-    document.getElementById('filtro-rel-produto').value = filtroId;
-    if (!filtroId) {
-        document.getElementById('tabela-relatorio').innerHTML = '';
-        return;
-    }
-    const movs = db.movimentacoes.filter(m => m.produtoId == filtroId);
-    document.getElementById('tabela-relatorio').innerHTML = `
-        <thead><tr><th>Data</th><th>Tipo</th><th>Quantidade</th><th>Motivo</th></tr></thead>
-        <tbody>
-            ${movs.map(m => `
-                <tr>
-                    <td>${m.data}</td>
-                    <td><span class="badge ${m.tipo === 'entrada'? 'ok' : 'warn'}">${m.tipo}</span></td>
-                    <td>${m.quantidade}</td><td>${m.motivo || '-'}</td>
-                </tr>
-            `).join('')}
-        </tbody>
-    `;
+    document.getElementById('tabela-historico').innerHTML = html;
 }
 
 function exportarCSV() {
     const csv = [
-        ['Código', 'Descrição', 'Quantidade', 'Mínimo'],
-    ...db.produtos.map(p => [p.codigo, p.nome, p.qtd, p.minimo])
+        ['Código', 'Nome', 'Categoria', 'Estoque', 'Mínimo', 'Preço', 'Total', 'Local'],
+        ...db.produtos.map(p => [
+            p.codigo, p.nome, p.categoria, p.qtd, p.minimo,
+            p.preco, (p.qtd * p.preco).toFixed(2), p.local
+        ])
     ].map(row => row.join(',')).join('\n');
+
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement('a');
     link.href = URL.createObjectURL(blob);
@@ -551,96 +404,8 @@ function exportarCSV() {
     link.click();
 }
 
-function gerarPDF() {
-    const { jsPDF } = window.jspdf;
-    const doc = new jsPDF();
-    doc.setFontSize(18);
-    doc.text('Relatório de Estoque', 14, 20);
-    doc.setFontSize(10);
-    doc.text(`Gerado em: ${new Date().toLocaleString('pt-BR')}`, 14, 28);
-    const data = db.produtos.map(p => [p.codigo, p.nome, p.qtd, p.minimo]);
-    doc.autoTable({
-        head: [['Código', 'Descrição', 'Qtd', 'Mínimo']],
-        body: data,
-        startY: 35,
-        styles: { fontSize: 10 },
-        headStyles: { fillColor: [0, 122, 255] }
-    });
-    doc.save(`estoque_${new Date().toISOString().split('T')[0]}.pdf`);
-}
-
-function relatorioCompleto() {
-    const { jsPDF } = window.jspdf;
-    const doc = new jsPDF();
-    doc.text('Relatório Completo de Estoque', 14, 20);
-    doc.autoTable({
-        head: [['Código', 'Descrição', 'Quantidade', 'Mínimo']],
-        body: db.produtos.map(p => [p.codigo, p.nome, p.qtd, p.minimo]),
-        startY: 30
-    });
-    doc.save('relatorio_completo.pdf');
-}
-
-function relatorioBaixo() {
-    const { jsPDF } = window.jspdf;
-    const doc = new jsPDF();
-    const baixos = db.produtos.filter(p => p.qtd <= p.minimo);
-    doc.text('Produtos com Estoque Baixo', 14, 20);
-    doc.autoTable({
-        head: [['Código', 'Descrição', 'Atual', 'Mínimo']],
-        body: baixos.map(p => [p.codigo, p.nome, p.qtd, p.minimo]),
-        startY: 30
-    });
-    doc.save('estoque_baixo.pdf');
-}
-
-function relatorioMovimentacoes() {
-    const { jsPDF } = window.jspdf;
-    const doc = new jsPDF();
-    doc.text('Relatório de Movimentações', 14, 20);
-    doc.autoTable({
-        head: [['Data', 'Produto', 'Tipo', 'Qtd', 'Motivo']],
-        body: db.movimentacoes.slice(0, 100).map(m => {
-            const p = db.produtos.find(x => x.id === m.produtoId);
-            return [m.data, p? p.nome : 'Excluído', m.tipo, m.quantidade, m.motivo || '-'];
-        }),
-        startY: 30
-    });
-    doc.save('movimentacoes.pdf');
-}
-
-async function salvarFirebase() {
-    const configStr = document.getElementById('firebaseConfig').value;
-    if (!configStr) return alert('Cole a config do Firebase');
-    try {
-        JSON.parse(configStr);
-        localStorage.setItem('firebase_config', configStr);
-        await initFirebase();
-        alert('Firebase conectado! Dados serão sincronizados.');
-    } catch (e) {
-        alert('Config inválida. Cole o JSON completo do Firebase.');
-    }
-}
-
-async function initFirebase() {
-    const configStr = localStorage.getItem('firebase_config');
-    if (!configStr) return;
-    try {
-        const config = JSON.parse(configStr);
-        const { initializeApp } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js');
-        const { getFirestore, doc, setDoc, getDoc, onSnapshot } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
-        firebaseApp = initializeApp(config);
-        dbFirestore = getFirestore(firebaseApp);
-        firestoreFns = { doc, setDoc, getDoc, onSnapshot };
-        document.getElementById('syncStatus').textContent = 'Conectado ao Firebase';
-        document.getElementById('syncStatus').className = 'sync-status online';
-        await loadFromFirebase();
-        const docRef = firestoreFns.doc(dbFirestore, 'estoque', 'dados');
-        firestoreFns.onSnapshot(docRef, (snap) => {
-            if (snap.exists()) {
-                const data = snap.data();
-                const lastLocal = parseInt(localStorage.getItem('lastFirebaseUpdate') || '0');
-                if (data.lastUpdate > lastLocal) {
-                    db = { produtos: data.produtos || [], movimentacoes: data.movimentacoes || [] };
-                    saveDB();
-                    localStorage.setItem('lastFirebaseUpdate',
+// Inicializar
+renderDashboard();
+</script>
+</body>
+</html>
