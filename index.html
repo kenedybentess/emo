@@ -7,59 +7,59 @@
 <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f5f5f7; color: #1d1d1f; }
-   .login-screen { display: flex; align-items: center; justify-content: center; min-height: 100vh; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
-   .login-box { background: white; padding: 40px; border-radius: 16px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); width: 90%; max-width: 400px; }
-   .login-box h1 { text-align: center; margin-bottom: 20px; font-size: 24px; }
-   .login-tabs { display: flex; gap: 10px; margin-bottom: 20px; }
-   .login-tabs button { flex: 1; padding: 10px; border: none; border-radius: 8px; background: #e8e8ed; cursor: pointer; font-weight: 600; }
-   .login-tabs button.active { background: #007aff; color: white; }
-   .login-box input,.login-box select { width: 100%; padding: 12px; margin-bottom: 15px; border: 1px solid #d2d2d7; border-radius: 8px; font-size: 16px; }
-   .login-box button.submit { width: 100%; padding: 12px; border: none; border-radius: 8px; background: #007aff; color: white; font-weight: 600; font-size: 16px; cursor: pointer; margin-bottom: 10px; }
-   .login-error { color: #ff3b30; text-align: center; margin-top: 10px; font-size: 14px; }
-   .login-success { color: #34c759; text-align: center; margin-top: 10px; font-size: 14px; }
-   .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+ .login-screen { display: flex; align-items: center; justify-content: center; min-height: 100vh; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+ .login-box { background: white; padding: 40px; border-radius: 16px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); width: 90%; max-width: 400px; }
+ .login-box h1 { text-align: center; margin-bottom: 20px; font-size: 24px; }
+ .login-tabs { display: flex; gap: 10px; margin-bottom: 20px; }
+ .login-tabs button { flex: 1; padding: 10px; border: none; border-radius: 8px; background: #e8e8ed; cursor: pointer; font-weight: 600; }
+ .login-tabs button.active { background: #007aff; color: white; }
+ .login-box input,.login-box select { width: 100%; padding: 12px; margin-bottom: 15px; border: 1px solid #d2d2d7; border-radius: 8px; font-size: 16px; }
+ .login-box button.submit { width: 100%; padding: 12px; border: none; border-radius: 8px; background: #007aff; color: white; font-weight: 600; font-size: 16px; cursor: pointer; margin-bottom: 10px; }
+ .login-error { color: #ff3b30; text-align: center; margin-top: 10px; font-size: 14px; }
+ .login-success { color: #34c759; text-align: center; margin-top: 10px; font-size: 14px; }
+ .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
     header { background: #fff; padding: 20px; border-radius: 12px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; }
-   .header-left h1 { font-size: 28px; margin-bottom: 10px; }
-   .user-info { display: flex; align-items: center; gap: 15px; }
-   .user-badge { background: #e8e8ed; padding: 6px 12px; border-radius: 6px; font-size: 13px; font-weight: 600; }
+ .header-left h1 { font-size: 28px; margin-bottom: 10px; }
+ .user-info { display: flex; align-items: center; gap: 15px; }
+ .user-badge { background: #e8e8ed; padding: 6px 12px; border-radius: 6px; font-size: 13px; font-weight: 600; }
     nav { display: flex; gap: 10px; flex-wrap: wrap; }
     nav button { padding: 10px 20px; border: none; border-radius: 8px; background: #e8e8ed; cursor: pointer; font-size: 14px; font-weight: 500; }
     nav button.active { background: #007aff; color: white; }
-   .card { background: white; padding: 20px; border-radius: 12px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
-   .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 20px; }
-   .metric { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px; border-radius: 12px; }
-   .metric h3 { font-size: 14px; opacity: 0.9; margin-bottom: 8px; }
-   .metric p { font-size: 32px; font-weight: 700; }
-   .metric.alert { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); }
+ .card { background: white; padding: 20px; border-radius: 12px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+ .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 20px; }
+ .metric { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px; border-radius: 12px; }
+ .metric h3 { font-size: 14px; opacity: 0.9; margin-bottom: 8px; }
+ .metric p { font-size: 32px; font-weight: 700; }
+ .metric.alert { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); }
     table { width: 100%; border-collapse: collapse; }
     th, td { text-align: left; padding: 12px; border-bottom: 1px solid #e8e8ed; }
     th { font-weight: 600; color: #6e6e73; font-size: 13px; text-transform: uppercase; }
-   .badge { display: inline-block; padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: 600; }
-   .badge.ok { background: #d1f4e0; color: #0a5; }
-   .badge.warn { background: #ffe4b3; color: #a60; }
-   .badge.danger { background: #ffd4d4; color: #c00; }
-   .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 15px; }
+ .badge { display: inline-block; padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: 600; }
+ .badge.ok { background: #d1f4e0; color: #0a5; }
+ .badge.warn { background: #ffe4b3; color: #a60; }
+ .badge.danger { background: #ffd4d4; color: #c00; }
+ .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 15px; }
     input, select, textarea { width: 100%; padding: 10px; border: 1px solid #d2d2d7; border-radius: 8px; font-size: 14px; }
-   .btn { padding: 10px 24px; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 14px; }
-   .btn-primary { background: #007aff; color: white; }
-   .btn-success { background: #34c759; color: white; }
-   .btn-danger { background: #ff3b30; color: white; }
-   .btn-warning { background: #ff9500; color: white; }
-   .btn-logout { background: #8e8e93; color: white; }
-   .btn-small { padding: 6px 12px; font-size: 12px; }
-   .actions { display: flex; gap: 8px; }
-   .hidden { display: none!important; }
-   .alerta { background: #fff3cd; border-left: 4px solid #ffc107; padding: 12px; border-radius: 8px; margin-bottom: 15px; }
-   .sync-status { position: fixed; bottom: 20px; right: 20px; background: #34c759; color: white; padding: 10px 16px; border-radius: 8px; font-size: 13px; font-weight: 600; z-index: 999; }
-   .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000; overflow-y: auto; }
-   .modal-content { background: white; padding: 30px; border-radius: 16px; width: 90%; max-width: 600px; margin: 20px; max-height: 90vh; overflow-y: auto; }
-   .modal-content h2 { margin-bottom: 20px; }
+ .btn { padding: 10px 24px; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 14px; }
+ .btn-primary { background: #007aff; color: white; }
+ .btn-success { background: #34c759; color: white; }
+ .btn-danger { background: #ff3b30; color: white; }
+ .btn-warning { background: #ff9500; color: white; }
+ .btn-logout { background: #8e8e93; color: white; }
+ .btn-small { padding: 6px 12px; font-size: 12px; }
+ .actions { display: flex; gap: 8px; }
+ .hidden { display: none!important; }
+ .alerta { background: #fff3cd; border-left: 4px solid #ffc107; padding: 12px; border-radius: 8px; margin-bottom: 15px; }
+ .sync-status { position: fixed; bottom: 20px; right: 20px; background: #34c759; color: white; padding: 10px 16px; border-radius: 8px; font-size: 13px; font-weight: 600; z-index: 999; }
+ .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000; overflow-y: auto; }
+ .modal-content { background: white; padding: 30px; border-radius: 16px; width: 90%; max-width: 600px; margin: 20px; max-height: 90vh; overflow-y: auto; }
+ .modal-content h2 { margin-bottom: 20px; }
     label { display: block; margin-bottom: 5px; font-size: 13px; font-weight: 600; color: #6e6e73; }
-   .variacao-item { background: #f5f5f7; padding: 12px; border-radius: 8px; margin-bottom: 10px; display: flex; gap: 10px; align-items: end; }
-   .variacao-item input { margin-bottom: 0; }
-   .expand-btn { background: none; border: none; cursor: pointer; font-size: 18px; padding: 0 5px; }
-   .sub-row { background: #fafafa; }
-   .sub-row td { padding-left: 40px; }
+ .variacao-item { background: #f5f5f7; padding: 12px; border-radius: 8px; margin-bottom: 10px; display: flex; gap: 10px; align-items: end; }
+ .variacao-item input { margin-bottom: 0; }
+ .expand-btn { background: none; border: none; cursor: pointer; font-size: 18px; padding: 0 5px; }
+ .sub-row { background: #fafafa; }
+ .sub-row td { padding-left: 40px; }
 </style>
 </head>
 <body>
@@ -83,7 +83,7 @@
             <input type="password" id="cadastroPass" placeholder="Senha (min 6 caracteres)" autocomplete="new-password">
             <input type="password" id="cadastroPass2" placeholder="Confirmar senha" autocomplete="new-password" onkeypress="if(event.key==='Enter') fazerCadastro()">
             <button class="submit" onclick="fazerCadastro()">Criar Conta</button>
-            <p style="font-size:12px; color:#6e6e73; text-align:center; margin-top:10px;">Novos usuários entram como "Usuário Comum"</p>
+            <p style="font-size:12px; color:#6e6e73; text-align:center; margin-top:10px;">Primeiro cadastro vira Admin automaticamente</p>
         </div>
 
         <div id="loginError" class="login-error"></div>
@@ -177,8 +177,8 @@
 
     <div id="usuarios" class="tab hidden">
         <div class="card admin-only">
-            <h2>Promover Usuário Existente</h2>
-            <p style="font-size:13px; color:#6e6e73; margin-bottom:15px;">Novos usuários se cadastram sozinhos na tela de login. Aqui tu só muda o nível.</p>
+            <h2>Gerenciar Usuários</h2>
+            <p style="font-size:13px; color:#6e6e73; margin-bottom:15px;">Novos usuários se cadastram na tela de login. Aqui tu só muda o nível.</p>
         </div>
         <div class="card">
             <h2>Usuários Cadastrados</h2>
@@ -258,16 +258,20 @@ onAuthStateChanged(auth, async (user) => {
     if (user) {
         const userRef = ref(db, `usuarios/${user.uid}`);
         const snapshot = await get(userRef);
-        const dados = snapshot.val();
+        let dados = snapshot.val();
 
-        // Se não existe no Database, cria como user
         if (!dados) {
+            const usuariosRef = ref(db, 'usuarios');
+            const todosSnapshot = await get(usuariosRef);
+            const totalUsuarios = todosSnapshot.exists()? Object.keys(todosSnapshot.val()).length : 0;
+            const nivel = totalUsuarios === 0? 'admin' : 'user';
+
             await set(ref(db, `usuarios/${user.uid}`), {
                 email: user.email,
-                nivel: 'user',
+                nivel: nivel,
                 dataCriacao: new Date().toLocaleString('pt-BR')
             });
-            nivelUsuario = 'user';
+            nivelUsuario = nivel;
         } else {
             nivelUsuario = dados.nivel || 'user';
         }
@@ -337,12 +341,7 @@ window.fazerCadastro = async () => {
     }
 
     try {
-        const cred = await createUserWithEmailAndPassword(auth, email, pass);
-        await set(ref(db, `usuarios/${cred.user.uid}`), {
-            email,
-            nivel: 'user',
-            dataCriacao: new Date().toLocaleString('pt-BR')
-        });
+        await createUserWithEmailAndPassword(auth, email, pass);
         success.textContent = 'Conta criada! Fazendo login...';
         document.getElementById('cadastroEmail').value = '';
         document.getElementById('cadastroPass').value = '';
@@ -353,7 +352,7 @@ window.fazerCadastro = async () => {
         } else if (e.code === 'auth/invalid-email') {
             error.textContent = 'Email inválido';
         } else {
-            error.textContent = 'Erro ao criar conta';
+            error.textContent = 'Erro ao criar conta: ' + e.message;
         }
     }
 };
@@ -608,4 +607,24 @@ function escutarDados() {
         produtosCache = Object.entries(data).map(([id, val]) => ({ id,...val }));
         renderProdutos();
         renderDashboard();
-        renderMov
+        renderMovimentar();
+        mostrarSync();
+    });
+    onValue(ref(db, 'movimentacoes'), (snapshot) => {
+        const data = snapshot.val() || {};
+        movimentacoesCache = Object.entries(data).map(([id, val]) => ({ id,...val }))
+      .sort((a, b) => b.timestamp - a.timestamp);
+        renderHistorico();
+    });
+    onValue(ref(db, 'usuarios'), (snapshot) => {
+        const data = snapshot.val() || {};
+        usuariosCache = Object.entries(data).map(([id, val]) => ({ id,...val }));
+        renderUsuarios();
+    });
+}
+
+function mostrarSync() {
+    const el = document.getElementById('syncStatus');
+    el.classList.remove('hidden');
+    setTimeout(() => el.classList.add('hidden'), 2000);
+}
