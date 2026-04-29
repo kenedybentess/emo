@@ -4,50 +4,54 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Controle de Estoque Online</title>
+<script src="https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js"></script>
 <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f5f5f7; color: #1d1d1f; }
-  .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+.container { max-width: 1200px; margin: 0 auto; padding: 20px; }
     header { background: #fff; padding: 20px; border-radius: 12px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; }
-  .header-left h1 { font-size: 28px; margin-bottom: 10px; }
+.header-left h1 { font-size: 28px; margin-bottom: 10px; }
     nav { display: flex; gap: 10px; flex-wrap: wrap; }
     nav button { padding: 10px 20px; border: none; border-radius: 8px; background: #e8e8ed; cursor: pointer; font-size: 14px; font-weight: 500; }
     nav button.active { background: #007aff; color: white; }
-  .card { background: white; padding: 20px; border-radius: 12px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
-  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 20px; }
-  .metric { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px; border-radius: 12px; }
-  .metric h3 { font-size: 14px; opacity: 0.9; margin-bottom: 8px; }
-  .metric p { font-size: 32px; font-weight: 700; }
-  .metric.alert { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); }
+.card { background: white; padding: 20px; border-radius: 12px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+.grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 20px; }
+.metric { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px; border-radius: 12px; }
+.metric h3 { font-size: 14px; opacity: 0.9; margin-bottom: 8px; }
+.metric p { font-size: 32px; font-weight: 700; }
+.metric.alert { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); }
     table { width: 100%; border-collapse: collapse; }
     th, td { text-align: left; padding: 12px; border-bottom: 1px solid #e8e8ed; }
     th { font-weight: 600; color: #6e6e73; font-size: 13px; text-transform: uppercase; }
-  .badge { display: inline-block; padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: 600; }
-  .badge.ok { background: #d1f4e0; color: #0a5; }
-  .badge.warn { background: #ffe4b3; color: #a60; }
-  .badge.danger { background: #ffd4d4; color: #c00; }
-  .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 15px; }
+.badge { display: inline-block; padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: 600; }
+.badge.ok { background: #d1f4e0; color: #0a5; }
+.badge.warn { background: #ffe4b3; color: #a60; }
+.badge.danger { background: #ffd4d4; color: #c00; }
+.form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 15px; }
     input, select, textarea { width: 100%; padding: 10px; border: 1px solid #d2d2d7; border-radius: 8px; font-size: 14px; }
-  .btn { padding: 10px 24px; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 14px; }
-  .btn-primary { background: #007aff; color: white; }
-  .btn-success { background: #34c759; color: white; }
-  .btn-danger { background: #ff3b30; color: white; }
-  .btn-warning { background: #ff9500; color: white; }
-  .btn-small { padding: 6px 12px; font-size: 12px; }
-  .actions { display: flex; gap: 8px; }
-  .hidden { display: none!important; }
-  .alerta { background: #fff3cd; border-left: 4px solid #ffc107; padding: 12px; border-radius: 8px; margin-bottom: 15px; }
-  .sync-status { position: fixed; bottom: 20px; right: 20px; background: #34c759; color: white; padding: 10px 16px; border-radius: 8px; font-size: 13px; font-weight: 600; z-index: 999; }
-  .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000; overflow-y: auto; }
-  .modal-content { background: white; padding: 30px; border-radius: 16px; width: 90%; max-width: 600px; margin: 20px; max-height: 90vh; overflow-y: auto; }
-  .modal-content h2 { margin-bottom: 20px; }
+.btn { padding: 10px 24px; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 14px; }
+.btn-primary { background: #007aff; color: white; }
+.btn-success { background: #34c759; color: white; }
+.btn-danger { background: #ff3b30; color: white; }
+.btn-warning { background: #ff9500; color: white; }
+.btn-small { padding: 6px 12px; font-size: 12px; }
+.actions { display: flex; gap: 8px; }
+.hidden { display: none!important; }
+.alerta { background: #fff3cd; border-left: 4px solid #ffc107; padding: 12px; border-radius: 8px; margin-bottom: 15px; }
+.sync-status { position: fixed; bottom: 20px; right: 20px; background: #34c759; color: white; padding: 10px 16px; border-radius: 8px; font-size: 13px; font-weight: 600; z-index: 999; }
+.modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000; overflow-y: auto; }
+.modal-content { background: white; padding: 30px; border-radius: 16px; width: 90%; max-width: 700px; margin: 20px; max-height: 90vh; overflow-y: auto; }
+.modal-content h2 { margin-bottom: 20px; }
     label { display: block; margin-bottom: 5px; font-size: 13px; font-weight: 600; color: #6e6e73; }
-  .variacao-item { background: #f5f5f7; padding: 12px; border-radius: 8px; margin-bottom: 10px; display: flex; gap: 10px; align-items: end; }
-  .variacao-item input { margin-bottom: 0; }
-  .expand-btn { background: none; border: none; cursor: pointer; font-size: 18px; padding: 0 5px; }
-  .sub-row { background: #fafafa; }
-  .sub-row td { padding-left: 40px; }
-  .aviso-sem-login { background: #ff9500; color: white; padding: 10px; text-align: center; font-weight: 600; }
+.variacao-item { background: #f5f5f7; padding: 12px; border-radius: 8px; margin-bottom: 10px; }
+.variacao-item.grid-item { display: grid; grid-template-columns: 1fr 2fr 100px 60px; gap: 10px; align-items: end; }
+.variacao-item input { margin-bottom: 0; }
+.expand-btn { background: none; border: none; cursor: pointer; font-size: 18px; padding: 0 5px; }
+.sub-row { background: #fafafa; }
+.sub-row td { padding-left: 40px; }
+.aviso-sem-login { background: #ff9500; color: white; padding: 10px; text-align: center; font-weight: 600; }
+.import-area { background: #f5f5f7; padding: 15px; border-radius: 8px; margin: 15px 0; }
+.file-input { padding: 10px; background: white; border: 2px dashed #d2d2d7; border-radius: 8px; cursor: pointer; text-align: center; }
 </style>
 </head>
 <body>
@@ -79,14 +83,27 @@
         <div class="card">
             <h2>Cadastrar Produto Pai</h2>
             <label>Nome do Produto*</label>
-            <input type="text" id="nomeProduto" placeholder="Ex: Camiseta Polo Azul" style="margin-bottom:15px;">
-            <label>Descrição</label>
-            <textarea id="descProduto" placeholder="Detalhes do produto" rows="2" style="margin-bottom:15px;"></textarea>
-            <label>Estoque Mínimo Total</label>
-            <input type="number" id="minimoProduto" placeholder="Mínimo" min="0" value="0" style="margin-bottom:15px;">
-            <h3 style="margin: 20px 0 10px;">Códigos / SKUs</h3>
+            <input type="text" id="nomeProduto" placeholder="Ex: Motor EL250" style="margin-bottom:15px;">
+            <label>Descrição Geral</label>
+            <textarea id="descProduto" placeholder="Descrição do conjunto" rows="2" style="margin-bottom:15px;"></textarea>
+            <div class="form-grid">
+                <div>
+                    <label>Estoque Mínimo Total</label>
+                    <input type="number" id="minimoProduto" placeholder="Mínimo" min="0" value="0">
+                </div>
+                <div>
+                    <label>Qtd. do Código Pai (multiplicador)</label>
+                    <input type="number" id="qtdPaiMultiplicador" placeholder="Ex: 1" min="1" value="1">
+                </div>
+            </div>
+
+            <div style="display:flex; gap:10px; align-items:center; margin:20px 0 10px;">
+                <h3 style="margin:0;">Componentes / SKUs</h3>
+                <button class="btn btn-warning btn-small" onclick="abrirImportar()">📥 Importar Excel</button>
+            </div>
+
             <div id="variacoesList"></div>
-            <button class="btn btn-success btn-small" onclick="addVariacaoCampo()" style="margin-bottom:15px;">+ Adicionar Código</button>
+            <button class="btn btn-success btn-small" onclick="addVariacaoCampo()" style="margin-bottom:15px;">+ Adicionar Componente Manual</button>
             <br>
             <button class="btn btn-primary" onclick="addProduto()">Cadastrar Produto</button>
         </div>
@@ -134,6 +151,23 @@
     </div>
 </div>
 
+<div id="modalImportar" class="modal hidden">
+    <div class="modal-content">
+        <h2>Importar Lista Técnica Excel</h2>
+        <div class="import-area">
+            <p style="font-size:13px; color:#6e6e73; margin-bottom:10px;">
+                Selecione o arquivo <strong>LISTA_TÉCNICA_EL250_46EL250USC01.xlsx</strong><br>
+                Colunas usadas: <code>Nº componente</code>, <code>Texto breve objeto</code>, <code>Qtd.componente (UMC)</code><br>
+                A quantidade será: <code>Qtd.componente (UMC)</code> × Qtd. do Código Pai
+            </p>
+            <input type="file" id="arquivoExcel" accept=".xlsx,.xls" class="file-input">
+            <div id="previewImport" style="margin-top:15px;"></div>
+        </div>
+        <button class="btn btn-success" onclick="processarExcel()" style="width:100%;margin-bottom:10px;">Importar Componentes</button>
+        <button class="btn btn-danger" onclick="fecharImportar()" style="width:100%;">Cancelar</button>
+    </div>
+</div>
+
 <div id="modalEditarProduto" class="modal hidden">
     <div class="modal-content">
         <h2>Editar Produto</h2>
@@ -142,11 +176,21 @@
         <input type="text" id="editNomeProduto" placeholder="Nome" style="margin-bottom:15px;">
         <label>Descrição</label>
         <textarea id="editDescProduto" placeholder="Descrição" rows="2" style="margin-bottom:15px;"></textarea>
-        <label>Estoque Mínimo Total</label>
-        <input type="number" id="editMinimoProduto" placeholder="Mínimo" min="0" style="margin-bottom:15px;">
-        <h3 style="margin: 20px 0 10px;">Códigos / SKUs</h3>
+        <div class="form-grid">
+            <div>
+                <label>Estoque Mínimo Total</label>
+                <input type="number" id="editMinimoProduto" placeholder="Mínimo" min="0">
+            </div>
+            <div>
+                <label>Qtd. do Código Pai (multiplicador)</label>
+                <input type="number" id="editQtdPaiMultiplicador" placeholder="Ex: 1" min="1" value="1">
+            </div>
+        <div style="display:flex; gap:10px; align-items:center; margin:20px 0 10px;">
+            <h3 style="margin:0;">Componentes / SKUs</h3>
+            <button class="btn btn-warning btn-small" onclick="abrirImportarEdit()">📥 Importar Excel</button>
+        </div>
         <div id="editVariacoesList"></div>
-        <button class="btn btn-success btn-small" onclick="addVariacaoEdit()" style="margin-bottom:15px;">+ Adicionar Código</button>
+        <button class="btn btn-success btn-small" onclick="addVariacaoEdit()" style="margin-bottom:15px;">+ Adicionar Componente Manual</button>
         <br>
         <button class="btn btn-success" onclick="salvarEdicaoProduto()" style="width:100%;margin-bottom:10px;">Salvar Alterações</button>
         <button class="btn btn-danger" onclick="fecharModalProduto()" style="width:100%;">Cancelar</button>
@@ -177,22 +221,98 @@ let movimentacoesCache = [];
 let variacoesTemp = [];
 let variacoesEditTemp = [];
 let produtosExpandidos = {};
+let importandoParaEdit = false;
+let dadosExcelImportados = [];
+
+window.abrirImportar = () => {
+    importandoParaEdit = false;
+    document.getElementById('arquivoExcel').value = '';
+    document.getElementById('previewImport').innerHTML = '';
+    document.getElementById('modalImportar').classList.remove('hidden');
+};
+
+window.abrirImportarEdit = () => {
+    importandoParaEdit = true;
+    document.getElementById('arquivoExcel').value = '';
+    document.getElementById('previewImport').innerHTML = '';
+    document.getElementById('modalImportar').classList.remove('hidden');
+};
+
+window.fecharImportar = () => {
+    document.getElementById('modalImportar').classList.add('hidden');
+    dadosExcelImportados = [];
+};
+
+document.getElementById('arquivoExcel').addEventListener('change', async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (evt) => {
+        const data = new Uint8Array(evt.target.result);
+        const workbook = XLSX.read(data, { type: 'array' });
+        const sheet = workbook.Sheets[workbook.SheetNames[0]];
+        const json = XLSX.utils.sheet_to_json(sheet);
+
+        dadosExcelImportados = json.map(row => ({
+            codigo: row['Nº componente'] || row['Nº Componente'] || '',
+            descricao: row['Texto breve objeto'] || row['Texto Breve Objeto'] || '',
+            qtd: parseFloat(row['Qtd.componente (UMC)'] || row['Qtd.componente'] || 0)
+        })).filter(item => item.codigo);
+
+        document.getElementById('previewImport').innerHTML = `
+            <p style="color:#34c759; font-weight:600;">✓ ${dadosExcelImportados.length} componentes encontrados</p>
+            <div style="max-height:200px; overflow-y:auto; font-size:12px; margin-top:10px;">
+                ${dadosExcelImportados.slice(0,5).map(i => `${i.codigo} - ${i.descricao} - Qtd: ${i.qtd}`).join('<br>')}
+                ${dadosExcelImportados.length > 5? '<br>...' : ''}
+            </div>
+        `;
+    };
+    reader.readAsArrayBuffer(file);
+});
+
+window.processarExcel = () => {
+    if (dadosExcelImportados.length === 0) return alert('Selecione um arquivo Excel primeiro');
+
+    const multiplicador = parseInt(document.getElementById(importandoParaEdit? 'editQtdPaiMultiplicador' : 'qtdPaiMultiplicador').value) || 1;
+
+    const novasVariacoes = dadosExcelImportados.map(item => ({
+        tempId: Date.now() + Math.random(),
+        codigo: item.codigo,
+        descricao: item.descricao,
+        qtd: Math.round(item.qtd * multiplicador)
+    }));
+
+    if (importandoParaEdit) {
+        variacoesEditTemp = [...variacoesEditTemp,...novasVariacoes];
+        renderVariacoesEdit();
+    } else {
+        variacoesTemp = [...variacoesTemp,...novasVariacoes];
+        renderVariacoes();
+    }
+
+    fecharImportar();
+    alert(`${novasVariacoes.length} componentes importados! Multiplicados por ${multiplicador}`);
+};
 
 window.addVariacaoCampo = () => {
     const id = Date.now();
-    variacoesTemp.push({ tempId: id, codigo: '', qtd: 0 });
+    variacoesTemp.push({ tempId: id, codigo: '', descricao: '', qtd: 0 });
     renderVariacoes();
 };
 
 function renderVariacoes() {
     const html = variacoesTemp.map(v => `
         <div class="variacao-item">
-            <input type="text" placeholder="Código ex: P-001" value="${v.codigo}" onchange="updateVariacao('${v.tempId}', 'codigo', this.value)">
-            <input type="number" placeholder="Qtd" value="${v.qtd}" min="0" onchange="updateVariacao('${v.tempId}', 'qtd', this.value)">
-            <button class="btn btn-danger btn-small" onclick="removeVariacao('${v.tempId}')">X</button>
+            <div class="grid-item">
+                <input type="text" placeholder="Nº componente" value="${v.codigo}" onchange="updateVariacao('${v.tempId}', 'codigo', this.value)">
+                <input type="text" placeholder="Descrição do produto" value="${v.descricao || ''}" onchange="updateVariacao('${v.tempId}', 'descricao', this.value)">
+                <input type="number" placeholder="Qtd" value="${v.qtd}" min="0" onchange="updateVariacao('${v.tempId}', 'qtd', this.value)">
+                <button class="btn btn-danger btn-small" onclick="removeVariacao('${v.tempId}')">X</button>
+            </div>
         </div>
     `).join('');
-    document.getElementById('variacoesList').innerHTML = html || '<p style="color:#8e8e93;">Adicione pelo menos 1 código</p>';
+    document.getElementById('variacoesList').innerHTML = html || '<p style="color:#8e8e93;">Adicione componentes ou importe do Excel</p>';
 }
 
 window.updateVariacao = (tempId, campo, valor) => {
@@ -209,10 +329,11 @@ window.addProduto = async () => {
     const nome = document.getElementById('nomeProduto').value.trim();
     const desc = document.getElementById('descProduto').value.trim();
     const minimo = parseInt(document.getElementById('minimoProduto').value) || 0;
+    const qtdPai = parseInt(document.getElementById('qtdPaiMultiplicador').value) || 1;
     if (!nome) return alert('Preencha o Nome do Produto!');
-    if (variacoesTemp.length === 0) return alert('Adicione pelo menos 1 código!');
+    if (variacoesTemp.length === 0) return alert('Adicione pelo menos 1 componente!');
     const codigos = variacoesTemp.map(v => v.codigo.trim()).filter(c => c);
-    if (codigos.length === 0) return alert('Preencha os códigos das variações!');
+    if (codigos.length === 0) return alert('Preencha os códigos dos componentes!');
     for (const p of produtosCache) {
         for (const v of p.variacoes || []) {
             if (codigos.includes(v.codigo)) {
@@ -224,9 +345,11 @@ window.addProduto = async () => {
         nome,
         descricao: desc,
         minimo,
+        qtdPai: qtdPai,
         criado: new Date().toLocaleString('pt-BR'),
         variacoes: variacoesTemp.filter(v => v.codigo.trim()).map(v => ({
             codigo: v.codigo.trim(),
+            descricao: v.descricao || '',
             qtd: parseInt(v.qtd) || 0
         }))
     };
@@ -234,6 +357,7 @@ window.addProduto = async () => {
     document.getElementById('nomeProduto').value = '';
     document.getElementById('descProduto').value = '';
     document.getElementById('minimoProduto').value = '0';
+    document.getElementById('qtdPaiMultiplicador').value = '1';
     variacoesTemp = [];
     renderVariacoes();
     alert('Produto cadastrado!');
@@ -246,6 +370,7 @@ window.abrirEditarProduto = (prodId) => {
     document.getElementById('editNomeProduto').value = p.nome;
     document.getElementById('editDescProduto').value = p.descricao || '';
     document.getElementById('editMinimoProduto').value = p.minimo || 0;
+    document.getElementById('editQtdPaiMultiplicador').value = p.qtdPai || 1;
     variacoesEditTemp = (p.variacoes || []).map(v => ({...v, tempId: Date.now() + Math.random() }));
     renderVariacoesEdit();
     document.getElementById('modalEditarProduto').classList.remove('hidden');
@@ -258,19 +383,22 @@ window.fecharModalProduto = () => {
 
 window.addVariacaoEdit = () => {
     const id = Date.now() + Math.random();
-    variacoesEditTemp.push({ tempId: id, codigo: '', qtd: 0 });
+    variacoesEditTemp.push({ tempId: id, codigo: '', descricao: '', qtd: 0 });
     renderVariacoesEdit();
 };
 
 function renderVariacoesEdit() {
     const html = variacoesEditTemp.map(v => `
         <div class="variacao-item">
-            <input type="text" placeholder="Código ex: P-001" value="${v.codigo}" onchange="updateVariacaoEdit('${v.tempId}', 'codigo', this.value)">
-            <input type="number" placeholder="Qtd" value="${v.qtd}" min="0" onchange="updateVariacaoEdit('${v.tempId}', 'qtd', this.value)">
-            <button class="btn btn-danger btn-small" onclick="removeVariacaoEdit('${v.tempId}')">X</button>
+            <div class="grid-item">
+                <input type="text" placeholder="Nº componente" value="${v.codigo}" onchange="updateVariacaoEdit('${v.tempId}', 'codigo', this.value)">
+                <input type="text" placeholder="Descrição do produto" value="${v.descricao || ''}" onchange="updateVariacaoEdit('${v.tempId}', 'descricao', this.value)">
+                <input type="number" placeholder="Qtd" value="${v.qtd}" min="0" onchange="updateVariacaoEdit('${v.tempId}', 'qtd', this.value)">
+                <button class="btn btn-danger btn-small" onclick="removeVariacaoEdit('${v.tempId}')">X</button>
+            </div>
         </div>
     `).join('');
-    document.getElementById('editVariacoesList').innerHTML = html || '<p style="color:#8e8e93;">Adicione pelo menos 1 código</p>';
+    document.getElementById('editVariacoesList').innerHTML = html || '<p style="color:#8e8e93;">Adicione componentes ou importe do Excel</p>';
 }
 
 window.updateVariacaoEdit = (tempId, campo, valor) => {
@@ -288,10 +416,11 @@ window.salvarEdicaoProduto = async () => {
     const nome = document.getElementById('editNomeProduto').value.trim();
     const desc = document.getElementById('editDescProduto').value.trim();
     const minimo = parseInt(document.getElementById('editMinimoProduto').value) || 0;
+    const qtdPai = parseInt(document.getElementById('editQtdPaiMultiplicador').value) || 1;
     if (!nome) return alert('Preencha o Nome do Produto!');
-    if (variacoesEditTemp.length === 0) return alert('Adicione pelo menos 1 código!');
+    if (variacoesEditTemp.length === 0) return alert('Adicione pelo menos 1 componente!');
     const codigos = variacoesEditTemp.map(v => v.codigo.trim()).filter(c => c);
-    if (codigos.length === 0) return alert('Preencha os códigos das variações!');
+    if (codigos.length === 0) return alert('Preencha os códigos dos componentes!');
     for (const p of produtosCache) {
         if (p.id === prodId) continue;
         for (const v of p.variacoes || []) {
@@ -304,8 +433,10 @@ window.salvarEdicaoProduto = async () => {
         nome,
         descricao: desc,
         minimo,
+        qtdPai,
         variacoes: variacoesEditTemp.filter(v => v.codigo.trim()).map(v => ({
             codigo: v.codigo.trim(),
+            descricao: v.descricao || '',
             qtd: parseInt(v.qtd) || 0
         }))
     });
@@ -314,7 +445,7 @@ window.salvarEdicaoProduto = async () => {
 };
 
 window.deleteProduto = async (id) => {
-    if (confirm('Excluir este produto e todas suas variações?')) {
+    if (confirm('Excluir este produto e todos seus componentes?')) {
         await remove(ref(db, `produtos/${id}`));
     }
 };
@@ -329,7 +460,7 @@ window.registrarMov = async () => {
     const variacaoCodigo = document.getElementById('mov-variacao').value;
     const tipo = document.getElementById('mov-tipo').value;
     const qtd = parseInt(document.getElementById('mov-qtd').value);
-    if (!produtoId ||!variacaoCodigo ||!qtd) return alert('Selecione produto, variação e quantidade');
+    if (!produtoId ||!variacaoCodigo ||!qtd) return alert('Selecione produto, componente e quantidade');
     const produto = produtosCache.find(p => p.id === produtoId);
     const variacao = produto.variacoes.find(v => v.codigo === variacaoCodigo);
     if (tipo === 'saida' && variacao.qtd < qtd) return alert('Estoque insuficiente!');
@@ -359,7 +490,7 @@ window.updateVariacoesMov = () => {
     const select = document.getElementById('mov-variacao');
     if (produto && produto.variacoes) {
         select.innerHTML = produto.variacoes.map(v =>
-            `<option value="${v.codigo}">${v.codigo} - Estoque: ${v.qtd}</option>`
+            `<option value="${v.codigo}">${v.codigo} - ${v.descricao || ''} - Est: ${v.qtd}</option>`
         ).join('');
         updateSaldo();
     }
@@ -374,7 +505,7 @@ window.updateSaldo = () => {
         const total = p.variacoes.reduce((sum, x) => sum + x.qtd, 0);
         if (v) {
             document.getElementById('saldo-atual').innerHTML =
-                `Variação: <strong>${v.qtd}</strong> | Total do produto: <strong>${total}</strong> | Mínimo: ${p.minimo}`;
+                `Componente: <strong>${v.qtd}</strong> | Total: <strong>${total}</strong> | Mínimo: ${p.minimo}`;
         }
     }
 };
@@ -395,7 +526,7 @@ window.updateFiltrosHistorico = () => {
         produtosCache.map(p => `<option value="${p.id}">${p.nome}</option>`).join('');
     if (prodId) {
         const prod = produtosCache.find(p => p.id === prodId);
-        selectVar.innerHTML = '<option value="">Todas as variações</option>' +
+        selectVar.innerHTML = '<option value="">Todos os componentes</option>' +
             (prod?.variacoes || []).map(v => `<option value="${v.codigo}">${v.codigo}</option>`).join('');
     }
     renderHistorico();
@@ -413,7 +544,7 @@ function escutarDados() {
     onValue(ref(db, 'movimentacoes'), (snapshot) => {
         const data = snapshot.val() || {};
         movimentacoesCache = Object.entries(data).map(([id, val]) => ({ id,...val }))
-      .sort((a, b) => b.timestamp - a.timestamp);
+     .sort((a, b) => b.timestamp - a.timestamp);
         renderHistorico();
     });
 }
@@ -434,7 +565,7 @@ function renderDashboard() {
     }).length;
     document.getElementById('metrics').innerHTML = `
         <div class="metric"><h3>Produtos Pai</h3><p>${totalProdutos}</p></div>
-        <div class="metric"><h3>Total de SKUs</h3><p>${totalVariacoes}</p></div>
+        <div class="metric"><h3>Total Componentes</h3><p>${totalVariacoes}</p></div>
         <div class="metric"><h3>Itens em Estoque</h3><p>${totalEstoque}</p></div>
         <div class="metric ${baixo > 0? 'alert' : ''}"><h3>Abaixo do Mínimo</h3><p>${baixo}</p></div>
     `;
@@ -469,83 +600,9 @@ function renderProdutos() {
     const busca = document.getElementById('busca').value.toLowerCase();
     const filtrados = produtosCache.filter(p =>
         p.nome.toLowerCase().includes(busca) ||
-        (p.variacoes || []).some(v => v.codigo.toLowerCase().includes(busca))
+        (p.variacoes || []).some(v => v.codigo.toLowerCase().includes(busca) || (v.descricao || '').toLowerCase().includes(busca))
     );
-    let html = `<thead><tr><th style="width:40px;"></th><th>Produto</th><th>Códigos</th><th>Estoque Total</th><th>Mínimo</th><th>Ações</th></tr></thead><tbody>`;
+    let html = `<thead><tr><th style="width:40px;"></th><th>Produto</th><th>Componentes</th><th>Estoque Total</th><th>Mínimo</th><th>Ações</th></tr></thead><tbody>`;
 
     filtrados.forEach(p => {
         const total = (p.variacoes || []).reduce((sum, v) => sum + v.qtd, 0);
-        const status = total === 0? 'danger' : total <= p.minimo? 'warn' : 'ok';
-        const expandido = produtosExpandidos[p.id];
-        html += `
-            <tr>
-                <td><button class="expand-btn" onclick="toggleProduto('${p.id}')">${expandido? '▼' : '▶'}</button></td>
-                <td><strong>${p.nome}</strong><br><span style="font-size:12px;color:#6e6e73;">${p.descricao || ''}</span></td>
-                <td>${(p.variacoes || []).length} SKUs</td>
-                <td><span class="badge ${status}">${total}</span></td>
-                <td>${p.minimo}</td>
-                <td class="actions">
-                    <button class="btn btn-warning btn-small" onclick="abrirEditarProduto('${p.id}')">Editar</button>
-                    <button class="btn btn-danger btn-small" onclick="deleteProduto('${p.id}')">Excluir</button>
-                </td>
-            </tr>
-        `;
-        if (expandido) {
-            (p.variacoes || []).forEach(v => {
-                const vStatus = v.qtd === 0? 'danger' : 'ok';
-                html += `
-                    <tr class="sub-row">
-                        <td></td>
-                        <td colspan="2">└ ${v.codigo}</td>
-                        <td><span class="badge ${vStatus}">${v.qtd}</span></td>
-                        <td colspan="2"></td>
-                    </tr>
-                `;
-            });
-        }
-    });
-    html += '</tbody>';
-    document.getElementById('tabela-produtos').innerHTML = html;
-}
-
-function renderMovimentar() {
-    const select = document.getElementById('mov-produto');
-    select.innerHTML = produtosCache.map(p =>
-        `<option value="${p.id}">${p.nome}</option>`
-    ).join('');
-    if (produtosCache.length > 0) updateVariacoesMov();
-}
-
-function renderHistorico() {
-    const filtroId = document.getElementById('filtro-produto').value;
-    const filtroVar = document.getElementById('filtro-variacao').value;
-    let movs = movimentacoesCache;
-    if (filtroId) movs = movs.filter(m => m.produtoId == filtroId);
-    if (filtroVar) movs = movs.filter(m => m.variacaoCodigo == filtroVar);
-    const html = `
-        <thead><tr><th>Data</th><th>Produto</th><th>Código</th><th>Tipo</th><th>Qtd</th><th>Usuário</th></tr></thead>
-        <tbody>
-            ${movs.slice(0, 100).map(m => {
-                const p = produtosCache.find(x => x.id === m.produtoId);
-                return `
-                    <tr>
-                        <td>${m.data}</td>
-                        <td>${p? p.nome : 'Excluído'}</td>
-                        <td>${m.variacaoCodigo}</td>
-                        <td><span class="badge ${m.tipo === 'entrada'? 'ok' : 'warn'}">${m.tipo}</span></td>
-                        <td>${m.quantidade}</td>
-                        <td>${m.usuario || '-'}</td>
-                    </tr>
-                `;
-            }).join('')}
-        </tbody>
-    `;
-    document.getElementById('tabela-historico').innerHTML = html;
-}
-
-// Inicia
-addVariacaoCampo();
-escutarDados();
-</script>
-</body>
-</html>
