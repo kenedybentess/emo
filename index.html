@@ -7,92 +7,54 @@
 <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f5f5f7; color: #1d1d1f; }
-.login-screen { display: flex; align-items: center; justify-content: center; min-height: 100vh; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
-.login-box { background: white; padding: 40px; border-radius: 16px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); width: 90%; max-width: 400px; }
-.login-box h1 { text-align: center; margin-bottom: 20px; font-size: 24px; }
-.login-tabs { display: flex; gap: 10px; margin-bottom: 20px; }
-.login-tabs button { flex: 1; padding: 10px; border: none; border-radius: 8px; background: #e8e8ed; cursor: pointer; font-weight: 600; }
-.login-tabs button.active { background: #007aff; color: white; }
-.login-box input { width: 100%; padding: 12px; margin-bottom: 15px; border: 1px solid #d2d2d7; border-radius: 8px; font-size: 16px; }
-.login-box button.submit { width: 100%; padding: 12px; border: none; border-radius: 8px; background: #007aff; color: white; font-weight: 600; font-size: 16px; cursor: pointer; margin-bottom: 10px; }
-.login-box button.submit:disabled { background: #c7c7cc; cursor: not-allowed; }
-.login-error { color: #ff3b30; text-align: center; margin-top: 10px; font-size: 14px; min-height: 20px; }
-.login-success { color: #34c759; text-align: center; margin-top: 10px; font-size: 14px; min-height: 20px; }
-.container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+  .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
     header { background: #fff; padding: 20px; border-radius: 12px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; }
-.header-left h1 { font-size: 28px; margin-bottom: 10px; }
-.user-info { display: flex; align-items: center; gap: 15px; }
-.user-badge { background: #e8e8ed; padding: 6px 12px; border-radius: 6px; font-size: 13px; font-weight: 600; }
+  .header-left h1 { font-size: 28px; margin-bottom: 10px; }
     nav { display: flex; gap: 10px; flex-wrap: wrap; }
     nav button { padding: 10px 20px; border: none; border-radius: 8px; background: #e8e8ed; cursor: pointer; font-size: 14px; font-weight: 500; }
     nav button.active { background: #007aff; color: white; }
-.card { background: white; padding: 20px; border-radius: 12px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
-.grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 20px; }
-.metric { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px; border-radius: 12px; }
-.metric h3 { font-size: 14px; opacity: 0.9; margin-bottom: 8px; }
-.metric p { font-size: 32px; font-weight: 700; }
-.metric.alert { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); }
+  .card { background: white; padding: 20px; border-radius: 12px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 20px; }
+  .metric { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px; border-radius: 12px; }
+  .metric h3 { font-size: 14px; opacity: 0.9; margin-bottom: 8px; }
+  .metric p { font-size: 32px; font-weight: 700; }
+  .metric.alert { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); }
     table { width: 100%; border-collapse: collapse; }
     th, td { text-align: left; padding: 12px; border-bottom: 1px solid #e8e8ed; }
     th { font-weight: 600; color: #6e6e73; font-size: 13px; text-transform: uppercase; }
-.badge { display: inline-block; padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: 600; }
-.badge.ok { background: #d1f4e0; color: #0a5; }
-.badge.warn { background: #ffe4b3; color: #a60; }
-.badge.danger { background: #ffd4d4; color: #c00; }
-.form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 15px; }
+  .badge { display: inline-block; padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: 600; }
+  .badge.ok { background: #d1f4e0; color: #0a5; }
+  .badge.warn { background: #ffe4b3; color: #a60; }
+  .badge.danger { background: #ffd4d4; color: #c00; }
+  .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 15px; }
     input, select, textarea { width: 100%; padding: 10px; border: 1px solid #d2d2d7; border-radius: 8px; font-size: 14px; }
-.btn { padding: 10px 24px; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 14px; }
-.btn-primary { background: #007aff; color: white; }
-.btn-success { background: #34c759; color: white; }
-.btn-danger { background: #ff3b30; color: white; }
-.btn-warning { background: #ff9500; color: white; }
-.btn-logout { background: #8e8e93; color: white; }
-.btn-small { padding: 6px 12px; font-size: 12px; }
-.actions { display: flex; gap: 8px; }
-.hidden { display: none!important; }
-.alerta { background: #fff3cd; border-left: 4px solid #ffc107; padding: 12px; border-radius: 8px; margin-bottom: 15px; }
-.sync-status { position: fixed; bottom: 20px; right: 20px; background: #34c759; color: white; padding: 10px 16px; border-radius: 8px; font-size: 13px; font-weight: 600; z-index: 999; }
-.modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000; overflow-y: auto; }
-.modal-content { background: white; padding: 30px; border-radius: 16px; width: 90%; max-width: 600px; margin: 20px; max-height: 90vh; overflow-y: auto; }
-.modal-content h2 { margin-bottom: 20px; }
+  .btn { padding: 10px 24px; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 14px; }
+  .btn-primary { background: #007aff; color: white; }
+  .btn-success { background: #34c759; color: white; }
+  .btn-danger { background: #ff3b30; color: white; }
+  .btn-warning { background: #ff9500; color: white; }
+  .btn-small { padding: 6px 12px; font-size: 12px; }
+  .actions { display: flex; gap: 8px; }
+  .hidden { display: none!important; }
+  .alerta { background: #fff3cd; border-left: 4px solid #ffc107; padding: 12px; border-radius: 8px; margin-bottom: 15px; }
+  .sync-status { position: fixed; bottom: 20px; right: 20px; background: #34c759; color: white; padding: 10px 16px; border-radius: 8px; font-size: 13px; font-weight: 600; z-index: 999; }
+  .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000; overflow-y: auto; }
+  .modal-content { background: white; padding: 30px; border-radius: 16px; width: 90%; max-width: 600px; margin: 20px; max-height: 90vh; overflow-y: auto; }
+  .modal-content h2 { margin-bottom: 20px; }
     label { display: block; margin-bottom: 5px; font-size: 13px; font-weight: 600; color: #6e6e73; }
-.variacao-item { background: #f5f5f7; padding: 12px; border-radius: 8px; margin-bottom: 10px; display: flex; gap: 10px; align-items: end; }
-.variacao-item input { margin-bottom: 0; }
-.expand-btn { background: none; border: none; cursor: pointer; font-size: 18px; padding: 0 5px; }
-.sub-row { background: #fafafa; }
-.sub-row td { padding-left: 40px; }
+  .variacao-item { background: #f5f5f7; padding: 12px; border-radius: 8px; margin-bottom: 10px; display: flex; gap: 10px; align-items: end; }
+  .variacao-item input { margin-bottom: 0; }
+  .expand-btn { background: none; border: none; cursor: pointer; font-size: 18px; padding: 0 5px; }
+  .sub-row { background: #fafafa; }
+  .sub-row td { padding-left: 40px; }
+  .aviso-sem-login { background: #ff9500; color: white; padding: 10px; text-align: center; font-weight: 600; }
 </style>
 </head>
 <body>
 
-<div id="loginScreen" class="login-screen">
-    <div class="login-box">
-        <h1>📦 Controle de Estoque</h1>
-        <div class="login-tabs">
-            <button class="active" id="tabLogin" onclick="switchLoginTab('login')">Entrar</button>
-            <button id="tabCadastro" onclick="switchLoginTab('cadastro')">Criar Conta</button>
-        </div>
+<div class="aviso-sem-login">⚠️ MODO SEM LOGIN ATIVO - QUALQUER PESSOA COM O LINK PODE EDITAR</div>
 
-        <div id="loginForm">
-            <input type="email" id="loginEmail" placeholder="Email" autocomplete="email">
-            <input type="password" id="loginPass" placeholder="Senha" autocomplete="current-password" onkeypress="if(event.key==='Enter') fazerLogin()">
-            <button class="submit" id="btnLogin" onclick="fazerLogin()">Entrar</button>
-        </div>
-
-        <div id="cadastroForm" class="hidden">
-            <input type="email" id="cadastroEmail" placeholder="Email" autocomplete="email">
-            <input type="password" id="cadastroPass" placeholder="Senha (min 6 caracteres)" autocomplete="new-password">
-            <input type="password" id="cadastroPass2" placeholder="Confirmar senha" autocomplete="new-password" onkeypress="if(event.key==='Enter') fazerCadastro()">
-            <button class="submit" id="btnCadastro" onclick="fazerCadastro()">Criar Conta</button>
-            <p style="font-size:12px; color:#6e6e73; text-align:center; margin-top:10px;">Primeiro cadastro vira Admin</p>
-        </div>
-
-        <div id="loginError" class="login-error"></div>
-        <div id="loginSuccess" class="login-success"></div>
-    </div>
-</div>
-
-<div id="sistema" class="container hidden">
+<div id="sistema" class="container">
     <header>
         <div class="header-left">
             <h1>📦 Estoque Online</h1>
@@ -101,12 +63,7 @@
                 <button onclick="showTab('produtos')" id="btn-produtos">Produtos</button>
                 <button onclick="showTab('movimentar')" id="btn-movimentar">Entrada/Saída</button>
                 <button onclick="showTab('historico')" id="btn-historico">Histórico</button>
-                <button onclick="showTab('usuarios')" id="btn-usuarios" class="admin-only">Usuários</button>
             </nav>
-        </div>
-        <div class="user-info">
-            <span class="user-badge" id="userBadge"></span>
-            <button class="btn btn-logout" onclick="logout()">Sair</button>
         </div>
     </header>
 
@@ -119,7 +76,7 @@
     </div>
 
     <div id="produtos" class="tab hidden">
-        <div class="card admin-only">
+        <div class="card">
             <h2>Cadastrar Produto Pai</h2>
             <label>Nome do Produto*</label>
             <input type="text" id="nomeProduto" placeholder="Ex: Camiseta Polo Azul" style="margin-bottom:15px;">
@@ -175,19 +132,6 @@
             </div>
         </div>
     </div>
-
-    <div id="usuarios" class="tab hidden">
-        <div class="card admin-only">
-            <h2>Gerenciar Usuários</h2>
-            <p style="font-size:13px; color:#6e6e73; margin-bottom:15px;">Novos usuários se cadastram na tela de login. Aqui tu só muda o nível.</p>
-        </div>
-        <div class="card">
-            <h2>Usuários Cadastrados</h2>
-            <div style="overflow-x:auto;">
-                <table id="tabela-usuarios"></table>
-            </div>
-        </div>
-    </div>
 </div>
 
 <div id="modalEditarProduto" class="modal hidden">
@@ -205,23 +149,7 @@
         <button class="btn btn-success btn-small" onclick="addVariacaoEdit()" style="margin-bottom:15px;">+ Adicionar Código</button>
         <br>
         <button class="btn btn-success" onclick="salvarEdicaoProduto()" style="width:100%;margin-bottom:10px;">Salvar Alterações</button>
-        <button class="btn btn-logout" onclick="fecharModalProduto()" style="width:100%;">Cancelar</button>
-    </div>
-</div>
-
-<div id="modalEditar" class="modal hidden">
-    <div class="modal-content">
-        <h2>Editar Usuário</h2>
-        <input type="hidden" id="editUserId">
-        <input type="email" id="editEmail" placeholder="Email" disabled style="background:#f5f5f7;margin-bottom:15px;">
-        <label>Nível de Acesso</label>
-        <select id="editNivel" style="margin-bottom:15px;">
-            <option value="user">Usuário Comum</option>
-            <option value="admin">Administrador</option>
-        </select>
-        <button class="btn btn-success" onclick="salvarEdicaoUsuario()" style="width:100%;margin-bottom:10px;">Salvar Nível</button>
-        <button class="btn btn-warning" onclick="resetarSenha()" style="width:100%;margin-bottom:10px;">Enviar Reset de Senha por Email</button>
-        <button class="btn btn-logout" onclick="fecharModal()" style="width:100%;">Cancelar</button>
+        <button class="btn btn-danger" onclick="fecharModalProduto()" style="width:100%;">Cancelar</button>
     </div>
 </div>
 
@@ -229,8 +157,7 @@
 
 <script type="module">
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
-import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged, sendPasswordResetEmail } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
-import { getDatabase, ref, set, push, onValue, remove, update, get } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js';
+import { getDatabase, ref, push, onValue, remove, update } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js';
 
 const firebaseConfig = {
   apiKey: "AIzaSyD2IZIVK0FKwo8ADp1t1X87VNrB-HP0tCY",
@@ -243,175 +170,13 @@ const firebaseConfig = {
 };
 
 const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
 const db = getDatabase(app);
 
-let usuarioLogado = null;
-let nivelUsuario = 'user';
 let produtosCache = [];
 let movimentacoesCache = [];
-let usuariosCache = [];
 let variacoesTemp = [];
 let variacoesEditTemp = [];
 let produtosExpandidos = {};
-
-onAuthStateChanged(auth, async (user) => {
-    if (user) {
-        const userRef = ref(db, `usuarios/${user.uid}`);
-        const snapshot = await get(userRef);
-        let dados = snapshot.val();
-
-        if (!dados) {
-            const usuariosRef = ref(db, 'usuarios');
-            const todosSnapshot = await get(usuariosRef);
-            const totalUsuarios = todosSnapshot.exists()? Object.keys(todosSnapshot.val()).length : 0;
-            const nivel = totalUsuarios === 0? 'admin' : 'user';
-
-            await set(ref(db, `usuarios/${user.uid}`), {
-                email: user.email,
-                nivel: nivel,
-                dataCriacao: new Date().toLocaleString('pt-BR')
-            });
-            nivelUsuario = nivel;
-        } else {
-            nivelUsuario = dados.nivel || 'user';
-        }
-
-        usuarioLogado = user;
-        iniciarSistema();
-        escutarDados();
-    } else {
-        document.getElementById('loginScreen').classList.remove('hidden');
-        document.getElementById('sistema').classList.add('hidden');
-    }
-});
-
-window.switchLoginTab = (tab) => {
-    document.getElementById('tabLogin').classList.remove('active');
-    document.getElementById('tabCadastro').classList.remove('active');
-    document.getElementById('loginForm').classList.add('hidden');
-    document.getElementById('cadastroForm').classList.add('hidden');
-    document.getElementById('loginError').textContent = '';
-    document.getElementById('loginSuccess').textContent = '';
-
-    if (tab === 'login') {
-        document.getElementById('tabLogin').classList.add('active');
-        document.getElementById('loginForm').classList.remove('hidden');
-    } else {
-        document.getElementById('tabCadastro').classList.add('active');
-        document.getElementById('cadastroForm').classList.remove('hidden');
-    }
-};
-
-window.fazerLogin = async () => {
-    const email = document.getElementById('loginEmail').value.trim();
-    const pass = document.getElementById('loginPass').value;
-    const error = document.getElementById('loginError');
-    const success = document.getElementById('loginSuccess');
-    const btn = document.getElementById('btnLogin');
-    error.textContent = '';
-    success.textContent = '';
-    btn.disabled = true;
-    btn.textContent = 'Entrando...';
-    try {
-        await signInWithEmailAndPassword(auth, email, pass);
-    } catch (e) {
-        console.error(e);
-        if (e.code === 'auth/invalid-credential') {
-            error.textContent = 'Email ou senha incorretos';
-        } else if (e.code === 'auth/user-not-found') {
-            error.textContent = 'Usuário não encontrado. Crie uma conta.';
-        } else {
-            error.textContent = 'Erro: ' + e.message;
-        }
-    } finally {
-        btn.disabled = false;
-        btn.textContent = 'Entrar';
-    }
-};
-
-window.fazerCadastro = async () => {
-    const email = document.getElementById('cadastroEmail').value.trim();
-    const pass = document.getElementById('cadastroPass').value;
-    const pass2 = document.getElementById('cadastroPass2').value;
-    const error = document.getElementById('loginError');
-    const success = document.getElementById('loginSuccess');
-    const btn = document.getElementById('btnCadastro');
-    error.textContent = '';
-    success.textContent = '';
-
-    if (!email || pass.length < 6) {
-        error.textContent = 'Preencha email e senha com 6+ caracteres';
-        return;
-    }
-    if (pass!== pass2) {
-        error.textContent = 'As senhas não coincidem';
-        return;
-    }
-
-    btn.disabled = true;
-    btn.textContent = 'Criando...';
-
-    try {
-        await createUserWithEmailAndPassword(auth, email, pass);
-        success.textContent = 'Conta criada! Entrando...';
-        document.getElementById('cadastroEmail').value = '';
-        document.getElementById('cadastroPass').value = '';
-        document.getElementById('cadastroPass2').value = '';
-    } catch (e) {
-        console.error(e);
-        if (e.code === 'auth/email-already-in-use') {
-            error.textContent = 'Este email já está cadastrado';
-        } else if (e.code === 'auth/invalid-email') {
-            error.textContent = 'Email inválido';
-        } else if (e.code === 'auth/weak-password') {
-            error.textContent = 'Senha muito fraca. Use 6+ caracteres';
-        } else {
-            error.textContent = 'Erro: ' + e.message;
-        }
-    } finally {
-        btn.disabled = false;
-        btn.textContent = 'Criar Conta';
-    }
-};
-
-window.abrirEditarUsuario = (userId) => {
-    const user = usuariosCache.find(u => u.id === userId);
-    if (!user) return;
-    document.getElementById('editUserId').value = userId;
-    document.getElementById('editEmail').value = user.email;
-    document.getElementById('editNivel').value = user.nivel;
-    document.getElementById('modalEditar').classList.remove('hidden');
-};
-
-window.fecharModal = () => {
-    document.getElementById('modalEditar').classList.add('hidden');
-};
-
-window.salvarEdicaoUsuario = async () => {
-    const userId = document.getElementById('editUserId').value;
-    const novoNivel = document.getElementById('editNivel').value;
-    await update(ref(db, `usuarios/${userId}`), { nivel: novoNivel });
-    alert('Nível atualizado!');
-    fecharModal();
-};
-
-window.resetarSenha = async () => {
-    const email = document.getElementById('editEmail').value;
-    try {
-        await sendPasswordResetEmail(auth, email);
-        alert(`Email de redefinição enviado para ${email}`);
-        fecharModal();
-    } catch (e) {
-        alert('Erro ao enviar email: ' + e.message);
-    }
-};
-
-window.excluirUsuario = async (userId, email) => {
-    if (!confirm(`Excluir usuário ${email}? Isso remove só do banco de dados. Pra excluir o login, apaga no Firebase > Authentication.`)) return;
-    await remove(ref(db, `usuarios/${userId}`));
-    alert('Usuário removido do sistema. Lembra de excluir também em Authentication no Firebase.');
-};
 
 window.addVariacaoCampo = () => {
     const id = Date.now();
@@ -441,7 +206,6 @@ window.removeVariacao = (tempId) => {
 };
 
 window.addProduto = async () => {
-    if (nivelUsuario!== 'admin') return alert('Sem permissão');
     const nome = document.getElementById('nomeProduto').value.trim();
     const desc = document.getElementById('descProduto').value.trim();
     const minimo = parseInt(document.getElementById('minimoProduto').value) || 0;
@@ -520,7 +284,6 @@ window.removeVariacaoEdit = (tempId) => {
 };
 
 window.salvarEdicaoProduto = async () => {
-    if (nivelUsuario!== 'admin') return alert('Sem permissão');
     const prodId = document.getElementById('editProdId').value;
     const nome = document.getElementById('editNomeProduto').value.trim();
     const desc = document.getElementById('editDescProduto').value.trim();
@@ -551,7 +314,6 @@ window.salvarEdicaoProduto = async () => {
 };
 
 window.deleteProduto = async (id) => {
-    if (nivelUsuario!== 'admin') return alert('Sem permissão');
     if (confirm('Excluir este produto e todas suas variações?')) {
         await remove(ref(db, `produtos/${id}`));
     }
@@ -581,7 +343,7 @@ window.registrarMov = async () => {
         variacaoCodigo: variacaoCodigo,
         tipo: tipo,
         quantidade: qtd,
-        usuario: usuarioLogado.email,
+        usuario: 'Sem Login',
         data: new Date().toLocaleString('pt-BR'),
         timestamp: Date.now()
     });
@@ -608,4 +370,182 @@ window.updateSaldo = () => {
     const varCodigo = document.getElementById('mov-variacao').value;
     const p = produtosCache.find(x => x.id === prodId);
     if (p) {
-        const v = p.variacoes.find(x => x.codigo ===
+        const v = p.variacoes.find(x => x.codigo === varCodigo);
+        const total = p.variacoes.reduce((sum, x) => sum + x.qtd, 0);
+        if (v) {
+            document.getElementById('saldo-atual').innerHTML =
+                `Variação: <strong>${v.qtd}</strong> | Total do produto: <strong>${total}</strong> | Mínimo: ${p.minimo}`;
+        }
+    }
+};
+
+window.showTab = (tab) => {
+    document.querySelectorAll('.tab').forEach(t => t.classList.add('hidden'));
+    document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
+    document.getElementById(tab).classList.remove('hidden');
+    document.getElementById('btn-' + tab).classList.add('active');
+    if (tab === 'historico') updateFiltrosHistorico();
+};
+
+window.updateFiltrosHistorico = () => {
+    const selectProd = document.getElementById('filtro-produto');
+    const selectVar = document.getElementById('filtro-variacao');
+    const prodId = selectProd.value;
+    selectProd.innerHTML = '<option value="">Todos os produtos</option>' +
+        produtosCache.map(p => `<option value="${p.id}">${p.nome}</option>`).join('');
+    if (prodId) {
+        const prod = produtosCache.find(p => p.id === prodId);
+        selectVar.innerHTML = '<option value="">Todas as variações</option>' +
+            (prod?.variacoes || []).map(v => `<option value="${v.codigo}">${v.codigo}</option>`).join('');
+    }
+    renderHistorico();
+};
+
+function escutarDados() {
+    onValue(ref(db, 'produtos'), (snapshot) => {
+        const data = snapshot.val() || {};
+        produtosCache = Object.entries(data).map(([id, val]) => ({ id,...val }));
+        renderProdutos();
+        renderDashboard();
+        renderMovimentar();
+        mostrarSync();
+    });
+    onValue(ref(db, 'movimentacoes'), (snapshot) => {
+        const data = snapshot.val() || {};
+        movimentacoesCache = Object.entries(data).map(([id, val]) => ({ id,...val }))
+      .sort((a, b) => b.timestamp - a.timestamp);
+        renderHistorico();
+    });
+}
+
+function mostrarSync() {
+    const el = document.getElementById('syncStatus');
+    el.classList.remove('hidden');
+    setTimeout(() => el.classList.add('hidden'), 2000);
+}
+
+function renderDashboard() {
+    const totalProdutos = produtosCache.length;
+    const totalVariacoes = produtosCache.reduce((sum, p) => sum + (p.variacoes?.length || 0), 0);
+    const totalEstoque = produtosCache.reduce((sum, p) => sum + (p.variacoes?.reduce((s, v) => s + v.qtd, 0) || 0), 0);
+    const baixo = produtosCache.filter(p => {
+        const total = (p.variacoes || []).reduce((sum, v) => sum + v.qtd, 0);
+        return total <= p.minimo;
+    }).length;
+    document.getElementById('metrics').innerHTML = `
+        <div class="metric"><h3>Produtos Pai</h3><p>${totalProdutos}</p></div>
+        <div class="metric"><h3>Total de SKUs</h3><p>${totalVariacoes}</p></div>
+        <div class="metric"><h3>Itens em Estoque</h3><p>${totalEstoque}</p></div>
+        <div class="metric ${baixo > 0? 'alert' : ''}"><h3>Abaixo do Mínimo</h3><p>${baixo}</p></div>
+    `;
+    const alertas = produtosCache.filter(p => {
+        const total = (p.variacoes || []).reduce((sum, v) => sum + v.qtd, 0);
+        return total <= p.minimo;
+    });
+    if (alertas.length > 0) {
+        document.getElementById('alertas').innerHTML = `
+            <div class="alerta">⚠️ ${alertas.length} produto(s) com estoque baixo</div>
+            <table>
+                <thead><tr><th>Produto</th><th>Estoque Total</th><th>Mínimo</th></tr></thead>
+                <tbody>
+                    ${alertas.map(p => {
+                        const total = (p.variacoes || []).reduce((sum, v) => sum + v.qtd, 0);
+                        return `
+                        <tr>
+                            <td>${p.nome}</td>
+                            <td><span class="badge danger">${total}</span></td>
+                            <td>${p.minimo}</td>
+                        </tr>
+                    `}).join('')}
+                </tbody>
+            </table>
+        `;
+    } else {
+        document.getElementById('alertas').innerHTML = '<p style="color:#0a5;">✓ Todos os produtos acima do mínimo</p>';
+    }
+}
+
+function renderProdutos() {
+    const busca = document.getElementById('busca').value.toLowerCase();
+    const filtrados = produtosCache.filter(p =>
+        p.nome.toLowerCase().includes(busca) ||
+        (p.variacoes || []).some(v => v.codigo.toLowerCase().includes(busca))
+    );
+    let html = `<thead><tr><th style="width:40px;"></th><th>Produto</th><th>Códigos</th><th>Estoque Total</th><th>Mínimo</th><th>Ações</th></tr></thead><tbody>`;
+
+    filtrados.forEach(p => {
+        const total = (p.variacoes || []).reduce((sum, v) => sum + v.qtd, 0);
+        const status = total === 0? 'danger' : total <= p.minimo? 'warn' : 'ok';
+        const expandido = produtosExpandidos[p.id];
+        html += `
+            <tr>
+                <td><button class="expand-btn" onclick="toggleProduto('${p.id}')">${expandido? '▼' : '▶'}</button></td>
+                <td><strong>${p.nome}</strong><br><span style="font-size:12px;color:#6e6e73;">${p.descricao || ''}</span></td>
+                <td>${(p.variacoes || []).length} SKUs</td>
+                <td><span class="badge ${status}">${total}</span></td>
+                <td>${p.minimo}</td>
+                <td class="actions">
+                    <button class="btn btn-warning btn-small" onclick="abrirEditarProduto('${p.id}')">Editar</button>
+                    <button class="btn btn-danger btn-small" onclick="deleteProduto('${p.id}')">Excluir</button>
+                </td>
+            </tr>
+        `;
+        if (expandido) {
+            (p.variacoes || []).forEach(v => {
+                const vStatus = v.qtd === 0? 'danger' : 'ok';
+                html += `
+                    <tr class="sub-row">
+                        <td></td>
+                        <td colspan="2">└ ${v.codigo}</td>
+                        <td><span class="badge ${vStatus}">${v.qtd}</span></td>
+                        <td colspan="2"></td>
+                    </tr>
+                `;
+            });
+        }
+    });
+    html += '</tbody>';
+    document.getElementById('tabela-produtos').innerHTML = html;
+}
+
+function renderMovimentar() {
+    const select = document.getElementById('mov-produto');
+    select.innerHTML = produtosCache.map(p =>
+        `<option value="${p.id}">${p.nome}</option>`
+    ).join('');
+    if (produtosCache.length > 0) updateVariacoesMov();
+}
+
+function renderHistorico() {
+    const filtroId = document.getElementById('filtro-produto').value;
+    const filtroVar = document.getElementById('filtro-variacao').value;
+    let movs = movimentacoesCache;
+    if (filtroId) movs = movs.filter(m => m.produtoId == filtroId);
+    if (filtroVar) movs = movs.filter(m => m.variacaoCodigo == filtroVar);
+    const html = `
+        <thead><tr><th>Data</th><th>Produto</th><th>Código</th><th>Tipo</th><th>Qtd</th><th>Usuário</th></tr></thead>
+        <tbody>
+            ${movs.slice(0, 100).map(m => {
+                const p = produtosCache.find(x => x.id === m.produtoId);
+                return `
+                    <tr>
+                        <td>${m.data}</td>
+                        <td>${p? p.nome : 'Excluído'}</td>
+                        <td>${m.variacaoCodigo}</td>
+                        <td><span class="badge ${m.tipo === 'entrada'? 'ok' : 'warn'}">${m.tipo}</span></td>
+                        <td>${m.quantidade}</td>
+                        <td>${m.usuario || '-'}</td>
+                    </tr>
+                `;
+            }).join('')}
+        </tbody>
+    `;
+    document.getElementById('tabela-historico').innerHTML = html;
+}
+
+// Inicia
+addVariacaoCampo();
+escutarDados();
+</script>
+</body>
+</html>
