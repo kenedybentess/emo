@@ -48,8 +48,9 @@
     .alerta { background: #fff3cd; border-left: 4px solid #ffc107; padding: 12px; border-radius: 8px; margin-bottom: 15px; }
     .sync-status { position: fixed; bottom: 20px; right: 20px; background: #34c759; color: white; padding: 10px 16px; border-radius: 8px; font-size: 13px; font-weight: 600; z-index: 999; }
     .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000; }
-    .modal-content { background: white; padding: 30px; border-radius: 16px; width: 90%; max-width: 450px; }
+    .modal-content { background: white; padding: 30px; border-radius: 16px; width: 90%; max-width: 500px; }
     .modal-content h2 { margin-bottom: 20px; }
+    label { display: block; margin-bottom: 5px; font-size: 13px; font-weight: 600; color: #6e6e73; }
 </style>
 </head>
 <body>
@@ -161,11 +162,29 @@
     </div>
 </div>
 
+<div id="modalEditarProduto" class="modal hidden">
+    <div class="modal-content">
+        <h2>Editar Produto</h2>
+        <input type="hidden" id="editProdId">
+        <label>Código</label>
+        <input type="text" id="editCodigo" placeholder="Código" style="margin-bottom:15px;">
+        <label>Descrição</label>
+        <input type="text" id="editNome" placeholder="Descrição" style="margin-bottom:15px;">
+        <label>Quantidade em Estoque</label>
+        <input type="number" id="editQtd" placeholder="Quantidade" min="0" style="margin-bottom:15px;">
+        <label>Estoque Mínimo</label>
+        <input type="number" id="editMinimo" placeholder="Mínimo" min="0" style="margin-bottom:15px;">
+        <button class="btn btn-success" onclick="salvarEdicaoProduto()" style="width:100%;margin-bottom:10px;">Salvar Alterações</button>
+        <button class="btn btn-logout" onclick="fecharModalProduto()" style="width:100%;">Cancelar</button>
+    </div>
+</div>
+
 <div id="modalEditar" class="modal hidden">
     <div class="modal-content">
         <h2>Editar Usuário</h2>
         <input type="hidden" id="editUserId">
-        <input type="email" id="editEmail" placeholder="Email" disabled style="background:#f5f5f7;">
+        <input type="email" id="editEmail" placeholder="Email" disabled style="background:#f5f5f7;margin-bottom:15px;">
+        <label>Nível de Acesso</label>
         <select id="editNivel" style="margin-bottom:15px;">
             <option value="user">Usuário Comum</option>
             <option value="admin">Administrador</option>
@@ -292,6 +311,39 @@ window.excluirUsuario = async (userId, email) => {
     if (!confirm(`Excluir usuário ${email}? Isso remove só do banco de dados. Pra excluir o login, apaga no Firebase > Authentication.`)) return;
     await remove(ref(db, `usuarios/${userId}`));
     alert('Usuário removido do sistema. Lembra de excluir também em Authentication no Firebase.');
+};
+
+window.abrirEditarProduto = (prodId) => {
+    const p = produtosCache.find(x => x.id === prodId);
+    if (!p) return;
+    document.getElementById('editProdId').value = prodId;
+    document.getElementById('editCodigo').value = p.codigo;
+    document.getElementById('editNome').value = p.nome;
+    document.getElementById('editQtd').value = p.qtd;
+    document.getElementById('editMinimo').value = p.minimo;
+    document.getElementById('modalEditarProduto').classList.remove('hidden');
+};
+
+window.fecharModalProduto = () => {
+    document.getElementById('modalEditarProduto').classList.add('hidden');
+};
+
+window.salvarEdicaoProduto = async () => {
+    if (nivelUsuario !== 'admin') return alert('Sem permissão');
+    const prodId = document.getElementById('editProdId').value;
+    const codigo = document.getElementById('editCodigo').value.trim();
+    const nome = document.getElementById('editNome').value.trim();
+    const qtd = parseInt(document.getElementById('editQtd').value) || 0;
+    const minimo = parseInt(document.getElementById('editMinimo').value) || 0;
+    
+    if (!codigo || !nome) return alert('Preencha Código e Descrição!');
+    
+    const outroComMesmoCodigo = produtosCache.find(x => x.codigo === codigo && x.id !== prodId);
+    if (outroComMesmoCodigo) return alert('Já existe outro produto com esse código!');
+    
+    await update(ref(db, `produtos/${prodId}`), { codigo, nome, qtd, minimo });
+    alert('Produto atualizado!');
+    fecharModalProduto();
 };
 
 window.logout = () => signOut(auth);
@@ -446,7 +498,10 @@ function renderProdutos() {
                         <td><strong>${p.nome}</strong></td>
                         <td><span class="badge ${status}">${p.qtd}</span></td>
                         <td>${p.minimo}</td>
-                        ${isAdmin ? `<td class="actions"><button class="btn btn-danger" onclick="deleteProduto('${p.id}')">Excluir</button></td>` : ''}
+                        ${isAdmin ? `<td class="actions">
+                            <button class="btn btn-warning" onclick="abrirEditarProduto('${p.id}')">Editar</button>
+                            <button class="btn btn-danger" onclick="deleteProduto('${p.id}')">Excluir</button>
+                        </td>` : ''}
                     </tr>
                 `;
             }).join('')}
