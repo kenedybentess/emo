@@ -45,6 +45,8 @@
     .hidden { display: none!important; }
     .alerta { background: #fff3cd; border-left: 4px solid #ffc107; padding: 12px; border-radius: 8px; margin-bottom: 15px; }
     .sync-status { position: fixed; bottom: 20px; right: 20px; background: #34c759; color: white; padding: 10px 16px; border-radius: 8px; font-size: 13px; font-weight: 600; z-index: 999; }
+    .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000; }
+    .modal-content { background: white; padding: 30px; border-radius: 16px; width: 90%; max-width: 450px; }
 </style>
 </head>
 <body>
@@ -55,23 +57,7 @@
         <input type="email" id="loginEmail" placeholder="Email" autocomplete="email">
         <input type="password" id="loginPass" placeholder="Senha" autocomplete="current-password" onkeypress="if(event.key==='Enter') fazerLogin()">
         <button onclick="fazerLogin()">Entrar</button>
-        <button onclick="mostrarCadastro()" style="background:#34c759;">Criar Conta</button>
         <div id="loginError" class="login-error"></div>
-    </div>
-</div>
-
-<div id="cadastroScreen" class="login-screen hidden">
-    <div class="login-box">
-        <h1>Criar Conta</h1>
-        <input type="email" id="cadEmail" placeholder="Email" autocomplete="email">
-        <input type="password" id="cadPass" placeholder="Senha (min 6 caracteres)" autocomplete="new-password">
-        <select id="cadNivel">
-            <option value="user">Usuário Comum</option>
-            <option value="admin">Administrador</option>
-        </select>
-        <button onclick="criarConta()">Cadastrar</button>
-        <button onclick="voltarLogin()" style="background:#8e8e93;">Voltar</button>
-        <div id="cadError" class="login-error"></div>
     </div>
 </div>
 
@@ -84,6 +70,7 @@
                 <button onclick="showTab('produtos')" id="btn-produtos">Produtos</button>
                 <button onclick="showTab('movimentar')" id="btn-movimentar">Entrada/Saída</button>
                 <button onclick="showTab('historico')" id="btn-historico">Histórico</button>
+                <button onclick="showTab('usuarios')" id="btn-usuarios" class="admin-only">Usuários</button>
             </nav>
         </div>
         <div class="user-info">
@@ -147,6 +134,28 @@
             </div>
         </div>
     </div>
+
+    <div id="usuarios" class="tab hidden">
+        <div class="card">
+            <h2>Cadastrar Novo Usuário</h2>
+            <div class="form-grid">
+                <input type="email" id="novoEmail" placeholder="Email do usuário*" required>
+                <input type="password" id="novoPass" placeholder="Senha (min 6 caracteres)*" required>
+                <select id="novoNivel">
+                    <option value="user">Usuário Comum</option>
+                    <option value="admin">Administrador</option>
+                </select>
+            </div>
+            <button class="btn btn-primary" onclick="criarUsuario()">Criar Usuário</button>
+            <div id="userError" class="login-error"></div>
+        </div>
+        <div class="card">
+            <h2>Usuários Cadastrados</h2>
+            <div style="overflow-x:auto;">
+                <table id="tabela-usuarios"></table>
+            </div>
+        </div>
+    </div>
 </div>
 
 <div id="syncStatus" class="sync-status hidden">✓ Sincronizado</div>
@@ -156,7 +165,6 @@ import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebas
 import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
 import { getDatabase, ref, set, push, onValue, remove, update, get } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js';
 
-// TEU CONFIG DO FIREBASE JÁ COLADO 👇
 const firebaseConfig = {
   apiKey: "AIzaSyD2IZIVK0FKwo8ADp1t1X87VNrB-HP0tCY",
   authDomain: "controle-estoque-d94e3.firebaseapp.com",
@@ -175,6 +183,7 @@ let usuarioLogado = null;
 let nivelUsuario = 'user';
 let produtosCache = [];
 let movimentacoesCache = [];
+let usuariosCache = [];
 
 onAuthStateChanged(auth, async (user) => {
     if (user) {
@@ -203,33 +212,31 @@ window.fazerLogin = async () => {
     }
 };
 
-window.criarConta = async () => {
-    const email = document.getElementById('cadEmail').value.trim();
-    const pass = document.getElementById('cadPass').value;
-    const nivel = document.getElementById('cadNivel').value;
-    const error = document.getElementById('cadError');
-    if (pass.length < 6) {
-        error.textContent = 'Senha precisa ter 6+ caracteres';
+window.criarUsuario = async () => {
+    if (nivelUsuario !== 'admin') return alert('Apenas administradores podem criar usuários');
+    const email = document.getElementById('novoEmail').value.trim();
+    const pass = document.getElementById('novoPass').value;
+    const nivel = document.getElementById('novoNivel').value;
+    const error = document.getElementById('userError');
+    if (!email || pass.length < 6) {
+        error.textContent = 'Preencha email e senha com 6+ caracteres';
         return;
     }
     try {
         const cred = await createUserWithEmailAndPassword(auth, email, pass);
-        await set(ref(db, `usuarios/${cred.user.uid}`), { email, nivel });
-        alert('Conta criada! Fazendo login...');
+        await set(ref(db, `usuarios/${cred.user.uid}`), { email, nivel, criadoPor: usuarioLogado.email });
+        document.getElementById('novoEmail').value = '';
+        document.getElementById('novoPass').value = '';
+        error.textContent = '';
+        alert(`Usuário ${email} criado com sucesso!`);
+        await signOut(auth);
+        await signInWithEmailAndPassword(auth, usuarioLogado.email, prompt('Digite sua senha novamente para continuar:'));
     } catch (e) {
         error.textContent = 'Erro: ' + e.message;
     }
 };
 
 window.logout = () => signOut(auth);
-window.mostrarCadastro = () => {
-    document.getElementById('loginScreen').classList.add('hidden');
-    document.getElementById('cadastroScreen').classList.remove('hidden');
-};
-window.voltarLogin = () => {
-    document.getElementById('cadastroScreen').classList.add('hidden');
-    document.getElementById('loginScreen').classList.remove('hidden');
-};
 
 function escutarDados() {
     onValue(ref(db, 'produtos'), (snapshot) => {
@@ -246,6 +253,11 @@ function escutarDados() {
             .sort((a, b) => b.timestamp - a.timestamp);
         renderHistorico();
     });
+    onValue(ref(db, 'usuarios'), (snapshot) => {
+        const data = snapshot.val() || {};
+        usuariosCache = Object.entries(data).map(([id, val]) => ({ id, ...val }));
+        renderUsuarios();
+    });
 }
 
 function mostrarSync() {
@@ -256,11 +268,12 @@ function mostrarSync() {
 
 function iniciarSistema() {
     document.getElementById('loginScreen').classList.add('hidden');
-    document.getElementById('cadastroScreen').classList.add('hidden');
     document.getElementById('sistema').classList.remove('hidden');
     document.getElementById('userBadge').textContent = `${usuarioLogado.email} - ${nivelUsuario}`;
     if (nivelUsuario !== 'admin') {
         document.querySelectorAll('.admin-only').forEach(el => el.classList.add('hidden'));
+    } else {
+        document.querySelectorAll('.admin-only').forEach(el => el.classList.remove('hidden'));
     }
 }
 
@@ -417,6 +430,22 @@ function renderHistorico() {
         </tbody>
     `;
     document.getElementById('tabela-historico').innerHTML = html;
+}
+
+function renderUsuarios() {
+    const html = `
+        <thead><tr><th>Email</th><th>Nível</th><th>Criado por</th></tr></thead>
+        <tbody>
+            ${usuariosCache.map(u => `
+                <tr>
+                    <td>${u.email}</td>
+                    <td><span class="badge ${u.nivel === 'admin' ? 'ok' : 'warn'}">${u.nivel}</span></td>
+                    <td>${u.criadoPor || '-'}</td>
+                </tr>
+            `).join('')}
+        </tbody>
+    `;
+    document.getElementById('tabela-usuarios').innerHTML = html;
 }
 </script>
 </body>
