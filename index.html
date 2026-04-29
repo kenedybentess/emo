@@ -40,13 +40,16 @@
     .btn-primary { background: #007aff; color: white; }
     .btn-success { background: #34c759; color: white; }
     .btn-danger { background: #ff3b30; color: white; }
+    .btn-warning { background: #ff9500; color: white; }
     .btn-logout { background: #8e8e93; color: white; }
+    .actions { display: flex; gap: 8px; }
     .actions button { padding: 6px 12px; font-size: 12px; }
     .hidden { display: none!important; }
     .alerta { background: #fff3cd; border-left: 4px solid #ffc107; padding: 12px; border-radius: 8px; margin-bottom: 15px; }
     .sync-status { position: fixed; bottom: 20px; right: 20px; background: #34c759; color: white; padding: 10px 16px; border-radius: 8px; font-size: 13px; font-weight: 600; z-index: 999; }
     .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000; }
     .modal-content { background: white; padding: 30px; border-radius: 16px; width: 90%; max-width: 450px; }
+    .modal-content h2 { margin-bottom: 20px; }
 </style>
 </head>
 <body>
@@ -158,11 +161,26 @@
     </div>
 </div>
 
+<div id="modalEditar" class="modal hidden">
+    <div class="modal-content">
+        <h2>Editar Usuário</h2>
+        <input type="hidden" id="editUserId">
+        <input type="email" id="editEmail" placeholder="Email" disabled style="background:#f5f5f7;">
+        <select id="editNivel" style="margin-bottom:15px;">
+            <option value="user">Usuário Comum</option>
+            <option value="admin">Administrador</option>
+        </select>
+        <button class="btn btn-success" onclick="salvarEdicaoUsuario()" style="width:100%;margin-bottom:10px;">Salvar Nível</button>
+        <button class="btn btn-warning" onclick="resetarSenha()" style="width:100%;margin-bottom:10px;">Enviar Reset de Senha por Email</button>
+        <button class="btn btn-logout" onclick="fecharModal()" style="width:100%;">Cancelar</button>
+    </div>
+</div>
+
 <div id="syncStatus" class="sync-status hidden">✓ Sincronizado</div>
 
 <script type="module">
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
-import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged, sendPasswordResetEmail } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
 import { getDatabase, ref, set, push, onValue, remove, update, get } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js';
 
 const firebaseConfig = {
@@ -184,6 +202,7 @@ let nivelUsuario = 'user';
 let produtosCache = [];
 let movimentacoesCache = [];
 let usuariosCache = [];
+let adminEmailCache = '';
 
 onAuthStateChanged(auth, async (user) => {
     if (user) {
@@ -192,6 +211,7 @@ onAuthStateChanged(auth, async (user) => {
         const dados = snapshot.val();
         usuarioLogado = user;
         nivelUsuario = dados?.nivel || 'user';
+        adminEmailCache = user.email;
         iniciarSistema();
         escutarDados();
     } else {
@@ -224,16 +244,54 @@ window.criarUsuario = async () => {
     }
     try {
         const cred = await createUserWithEmailAndPassword(auth, email, pass);
-        await set(ref(db, `usuarios/${cred.user.uid}`), { email, nivel, criadoPor: usuarioLogado.email });
+        await set(ref(db, `usuarios/${cred.user.uid}`), { email, nivel, criadoPor: usuarioLogado.email, dataCriacao: new Date().toLocaleString('pt-BR') });
         document.getElementById('novoEmail').value = '';
         document.getElementById('novoPass').value = '';
         error.textContent = '';
         alert(`Usuário ${email} criado com sucesso!`);
         await signOut(auth);
-        await signInWithEmailAndPassword(auth, usuarioLogado.email, prompt('Digite sua senha novamente para continuar:'));
+        await signInWithEmailAndPassword(auth, adminEmailCache, prompt('Digite sua senha novamente para continuar:'));
     } catch (e) {
         error.textContent = 'Erro: ' + e.message;
     }
+};
+
+window.abrirEditarUsuario = (userId) => {
+    const user = usuariosCache.find(u => u.id === userId);
+    if (!user) return;
+    document.getElementById('editUserId').value = userId;
+    document.getElementById('editEmail').value = user.email;
+    document.getElementById('editNivel').value = user.nivel;
+    document.getElementById('modalEditar').classList.remove('hidden');
+};
+
+window.fecharModal = () => {
+    document.getElementById('modalEditar').classList.add('hidden');
+};
+
+window.salvarEdicaoUsuario = async () => {
+    const userId = document.getElementById('editUserId').value;
+    const novoNivel = document.getElementById('editNivel').value;
+    await update(ref(db, `usuarios/${userId}`), { nivel: novoNivel });
+    alert('Nível atualizado!');
+    fecharModal();
+};
+
+window.resetarSenha = async () => {
+    const email = document.getElementById('editEmail').value;
+    try {
+        await sendPasswordResetEmail(auth, email);
+        alert(`Email de redefinição enviado para ${email}`);
+        fecharModal();
+    } catch (e) {
+        alert('Erro ao enviar email: ' + e.message);
+    }
+};
+
+window.excluirUsuario = async (userId, email) => {
+    if (!confirm(`Excluir usuário ${email}? Isso remove só do banco de dados. Pra excluir o login, apaga no Firebase > Authentication.`)) return;
+    await remove(ref(db, `usuarios/${userId}`));
+    alert('Usuário removido do sistema. Lembra de excluir também em Authentication no Firebase.');
 };
 
 window.logout = () => signOut(auth);
@@ -434,13 +492,17 @@ function renderHistorico() {
 
 function renderUsuarios() {
     const html = `
-        <thead><tr><th>Email</th><th>Nível</th><th>Criado por</th></tr></thead>
+        <thead><tr><th>Email</th><th>Nível</th><th>Criado por</th><th>Ações</th></tr></thead>
         <tbody>
             ${usuariosCache.map(u => `
                 <tr>
                     <td>${u.email}</td>
                     <td><span class="badge ${u.nivel === 'admin' ? 'ok' : 'warn'}">${u.nivel}</span></td>
                     <td>${u.criadoPor || '-'}</td>
+                    <td class="actions">
+                        <button class="btn btn-warning" onclick="abrirEditarUsuario('${u.id}')">Editar</button>
+                        ${u.email !== adminEmailCache ? `<button class="btn btn-danger" onclick="excluirUsuario('${u.id}','${u.email}')">Excluir</button>` : ''}
+                    </td>
                 </tr>
             `).join('')}
         </tbody>
