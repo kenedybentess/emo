@@ -2,13 +2,13 @@
 <html lang="pt-pt">
 <head>
     <meta charset="UTF-8">
-    <title>SGE - I9 Industrial (Histórico Cloud)</title>
+    <title>SGE - I9 Industrial PRO</title>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-auth-compat.js"></script>
     
     <style>
-        :root { --primary: #2c3e50; --entry: #27ae60; --exit: #e67e22; --info: #3498db; --light: #f4f7f6; --danger: #e74c3c; }
+        :root { --primary: #2c3e50; --entry: #27ae60; --exit: #e67e22; --info: #3498db; --light: #f4f7f6; --danger: #e74c3c; --warning: #f1c40f; }
         body { font-family: 'Segoe UI', sans-serif; margin: 0; background: var(--light); color: #333; font-size: 13px; }
         
         /* Login */
@@ -22,18 +22,22 @@
         .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
         .card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); margin-bottom: 20px; }
         
-        /* UI Elements */
-        input, select { width: 100%; padding: 10px; margin: 8px 0; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box; }
-        input:read-only { background: #f1f2f6; font-weight: bold; }
-        button { cursor: pointer; padding: 12px; border: none; border-radius: 5px; font-weight: bold; color: white; width: 100%; margin-top: 5px; }
-        .btn-reg { background: var(--primary); }
-        .btn-logout { background: transparent; border: 1px solid white; width: auto; padding: 5px 15px; }
-
+        /* Forms */
+        input, select { width: 100%; padding: 10px; margin: 5px 0 12px 0; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box; }
+        input:read-only { background: #f1f2f6; }
+        button { cursor: pointer; padding: 10px; border: none; border-radius: 5px; font-weight: bold; color: white; transition: 0.3s; }
+        .btn-reg { background: var(--primary); width: 100%; }
+        .btn-edit { background: var(--info); padding: 5px 10px; font-size: 10px; }
+        .btn-del { background: var(--danger); padding: 5px 10px; font-size: 10px; margin-left: 5px; }
+        
         /* Tabelas */
-        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-        th { background: #f8f9fa; padding: 12px; text-align: left; border-bottom: 2px solid #ddd; font-size: 11px; color: #666; }
+        table { width: 100%; border-collapse: collapse; }
+        th { background: #f8f9fa; padding: 12px; text-align: left; border-bottom: 2px solid #ddd; font-size: 11px; }
         td { padding: 12px; border-bottom: 1px solid #eee; }
-        .badge { padding: 3px 8px; border-radius: 4px; font-size: 10px; font-weight: bold; color: white; }
+        
+        /* Alertas de Stock */
+        .stock-critico { background-color: #fff5f5 !important; color: var(--danger); font-weight: bold; }
+        .alert-pill { background: var(--danger); color: white; padding: 2px 6px; border-radius: 4px; font-size: 9px; margin-left: 10px; }
     </style>
 </head>
 <body>
@@ -43,7 +47,7 @@
         <h2>I9 INDUSTRIAL</h2>
         <input type="email" id="email" placeholder="E-mail">
         <input type="password" id="password" placeholder="Palavra-passe">
-        <button style="background: var(--info)" onclick="fazerLogin()">ENTRAR</button>
+        <button style="background: var(--info); width: 100%;" onclick="fazerLogin()">ENTRAR</button>
         <div id="login-msg" style="color: red; font-size: 11px; margin-top: 10px;"></div>
     </div>
 </div>
@@ -51,59 +55,46 @@
 <div id="main-content">
     <div class="navbar">
         <div><b>SGE I9</b> | <span id="user-display">---</span></div>
-        <button class="btn-logout" onclick="fazerLogout()">Sair</button>
+        <button onclick="auth.signOut().then(() => location.reload())" style="background:transparent; border:1px solid white;">Sair</button>
     </div>
 
     <div class="container">
-        <div class="card">
-            <input type="text" id="inputPesquisa" placeholder="🔍 Pesquisar em tudo (Código, Produto, Operador ou Descrição)..." onkeyup="renderizar()">
-        </div>
-
         <div class="grid">
             <div id="panel-admin" class="card" style="display: none; border-top: 5px solid var(--danger);">
-                <h3 style="margin-top:0">📂 CADASTRO DE PRODUTO</h3>
-                <label>Código</label><input type="text" id="cad_cod">
+                <h3 id="form-title">📂 CADASTRO DE PRODUTO</h3>
+                <label>Código (ID Único)</label><input type="text" id="cad_cod">
                 <label>Produto</label><input type="text" id="cad_prod">
                 <label>Descrição</label><input type="text" id="cad_desc">
-                <button class="btn-reg" style="background: var(--danger)" onclick="salvarProduto()">SALVAR NA NUVEM</button>
+                <label>Stock Mínimo (Alerta)</label><input type="number" id="cad_min" value="5">
+                <button id="btn-save" class="btn-reg" style="background: var(--danger)" onclick="salvarProduto()">CADASTRAR PRODUTO</button>
+                <button id="btn-cancel" class="btn-reg" style="background: #95a5a6; display:none; margin-top:5px;" onclick="limparFormAdmin()">CANCELAR EDIÇÃO</button>
             </div>
 
             <div class="card">
-                <h3 style="margin-top:0">🚀 MOVIMENTAÇÃO</h3>
+                <h3>🚀 MOVIMENTAÇÃO</h3>
                 <label>Operação</label>
                 <select id="mov_tipo"><option value="ENTRADA">ENTRADA</option><option value="SAIDA">SAÍDA</option></select>
                 <label>Código</label><input type="text" id="mov_cod" oninput="procv(this.value)">
                 <label>Produto</label><input type="text" id="mov_nome" readonly>
-                <label>Descrição</label><input type="text" id="mov_desc_auto" readonly>
                 <label>Quantidade</label><input type="number" id="mov_qtd">
-                <button class="btn-reg" onclick="lancarMovimento()">REGISTAR AGORA</button>
+                <button class="btn-reg" onclick="lancarMovimento()">REGISTAR</button>
             </div>
         </div>
 
         <div class="card">
-            <h3 style="margin:0 0 10px 0; color: var(--primary);">📊 SALDO ATUAL EM STOCK</h3>
-            <table id="tabelaSaldo">
-                <thead>
-                    <tr><th>CÓDIGO</th><th>PRODUTO</th><th>DESCRIÇÃO</th><th>SALDO</th></tr>
-                </thead>
-                <tbody id="corpoSaldo"></tbody>
-            </table>
-        </div>
-
-        <div class="card">
-            <h3 style="margin:0 0 10px 0; color: var(--primary);">🕒 HISTÓRICO DE MOVIMENTAÇÕES (TEMPO REAL)</h3>
-            <table id="tabelaHist">
+            <h3>📊 STOCK ATUAL & GESTÃO</h3>
+            <input type="text" id="inputPesquisa" placeholder="Filtrar tabela..." onkeyup="renderizar()" style="margin-bottom: 15px;">
+            <table>
                 <thead>
                     <tr>
-                        <th>DATA/HORA</th>
-                        <th>TIPO</th>
                         <th>CÓDIGO</th>
                         <th>PRODUTO / DESCRIÇÃO</th>
-                        <th>QTD</th>
-                        <th>OPERADOR</th>
+                        <th>SALDO</th>
+                        <th>MÍN.</th>
+                        <th>AÇÕES (ADMIN)</th>
                     </tr>
                 </thead>
-                <tbody id="corpoHist"></tbody>
+                <tbody id="corpoSaldo"></tbody>
             </table>
         </div>
     </div>
@@ -122,14 +113,13 @@
     const auth = firebase.auth();
     const db = firebase.database();
 
-    const listaAdmins = ["admin@i9.com"];
+    const listaAdmins = ["admin@i9.com"]; // Ajusta os teus admins aqui
+    let editandoCod = null;
 
     function fazerLogin() {
-        const email = document.getElementById('email').value;
-        const pass = document.getElementById('password').value;
-        auth.signInWithEmailAndPassword(email, pass)
+        auth.signInWithEmailAndPassword(document.getElementById('email').value, document.getElementById('password').value)
             .then(res => configurarInterface(res.user.email))
-            .catch(err => document.getElementById('login-msg').innerText = "Credenciais Inválidas.");
+            .catch(err => document.getElementById('login-msg').innerText = "Erro no acesso.");
     }
 
     function configurarInterface(email) {
@@ -140,8 +130,6 @@
         carregarDados();
     }
 
-    function fazerLogout() { auth.signOut().then(() => location.reload()); }
-
     let produtosGlobal = {};
     let historicoGlobal = [];
 
@@ -149,8 +137,7 @@
         db.ref('produtos').on('value', snap => { produtosGlobal = snap.val() || {}; renderizar(); });
         db.ref('movimentacoes').on('value', snap => {
             const data = snap.val();
-            // Transforma o objeto do Firebase em array e inverte para os mais recentes aparecerem primeiro
-            historicoGlobal = data ? Object.values(data).reverse() : [];
+            historicoGlobal = data ? Object.values(data) : [];
             renderizar();
         });
     }
@@ -158,19 +145,57 @@
     function procv(cod) {
         const info = produtosGlobal[cod.toUpperCase().trim()];
         document.getElementById('mov_nome').value = info ? info.prod : "";
-        document.getElementById('mov_desc_auto').value = info ? info.desc : "";
     }
+
+    // --- FUNÇÕES ADMIN: SALVAR / EDITAR / EXCLUIR ---
 
     function salvarProduto() {
         const cod = document.getElementById('cad_cod').value.toUpperCase().trim();
         const prod = document.getElementById('cad_prod').value;
         const desc = document.getElementById('cad_desc').value;
-        if(!cod || !prod) return alert("Preencha Código e Nome!");
-        db.ref('produtos/' + cod).set({ prod, desc }).then(() => {
-            alert("Cadastrado com sucesso!");
-            document.getElementById('cad_cod').value = ""; document.getElementById('cad_prod').value = ""; document.getElementById('cad_desc').value = "";
+        const min = parseInt(document.getElementById('cad_min').value) || 0;
+
+        if(!cod || !prod) return alert("Código e Produto obrigatórios!");
+
+        db.ref('produtos/' + cod).set({ prod, desc, min }).then(() => {
+            alert(editandoCod ? "Produto Atualizado!" : "Produto Cadastrado!");
+            limparFormAdmin();
         });
     }
+
+    function editarProduto(cod) {
+        const p = produtosGlobal[cod];
+        editandoCod = cod;
+        document.getElementById('form-title').innerText = "✏️ EDITAR PRODUTO";
+        document.getElementById('cad_cod').value = cod;
+        document.getElementById('cad_cod').readOnly = true;
+        document.getElementById('cad_prod').value = p.prod;
+        document.getElementById('cad_desc').value = p.desc;
+        document.getElementById('cad_min').value = p.min || 0;
+        document.getElementById('btn-save').innerText = "GUARDAR ALTERAÇÕES";
+        document.getElementById('btn-cancel').style.display = "block";
+        window.scrollTo(0,0);
+    }
+
+    function excluirProduto(cod) {
+        if(confirm(`Tem certeza que deseja excluir o produto ${cod}? Isso não apagará o histórico, mas o produto sumirá da lista.`)) {
+            db.ref('produtos/' + cod).remove();
+        }
+    }
+
+    function limparFormAdmin() {
+        editandoCod = null;
+        document.getElementById('form-title').innerText = "📂 CADASTRO DE PRODUTO";
+        document.getElementById('cad_cod').value = "";
+        document.getElementById('cad_cod').readOnly = false;
+        document.getElementById('cad_prod').value = "";
+        document.getElementById('cad_desc').value = "";
+        document.getElementById('cad_min').value = "5";
+        document.getElementById('btn-save').innerText = "CADASTRAR PRODUTO";
+        document.getElementById('btn-cancel').style.display = "none";
+    }
+
+    // --- MOVIMENTAÇÃO ---
 
     function lancarMovimento() {
         const cod = document.getElementById('mov_cod').value.toUpperCase().trim();
@@ -178,63 +203,59 @@
         const tipo = document.getElementById('mov_tipo').value;
         const ope = document.getElementById('user-display').innerText;
 
-        if(!produtosGlobal[cod] || !qtd) return alert("Erro: Verifique Código/Quantidade!");
+        if(!produtosGlobal[cod] || !qtd) return alert("Erro: Dados inválidos!");
 
-        const registro = {
+        db.ref('movimentacoes').push({
             data: new Date().toLocaleString('pt-pt'),
-            tipo, cod, qtd, ope, 
-            prod: produtosGlobal[cod].prod,
-            desc: produtosGlobal[cod].desc
-        };
-
-        db.ref('movimentacoes').push(registro).then(() => {
+            tipo, cod, qtd, ope, prod: produtosGlobal[cod].prod
+        }).then(() => {
             document.getElementById('mov_cod').value = "";
             document.getElementById('mov_qtd').value = "";
             document.getElementById('mov_nome').value = "";
-            document.getElementById('mov_desc_auto').value = "";
         });
     }
 
     function renderizar() {
         const filtro = document.getElementById('inputPesquisa').value.toLowerCase();
+        const corpo = document.getElementById('corpoSaldo');
+        const isAdmin = listaAdmins.includes(document.getElementById('user-display').innerText);
+        corpo.innerHTML = '';
         
-        // 1. Renderizar Saldo
-        const corpoSaldo = document.getElementById('corpoSaldo');
-        corpoSaldo.innerHTML = '';
         const saldos = {};
+        // Inicializa saldos com todos os produtos cadastrados
+        for(let c in produtosGlobal) saldos[c] = { prod: produtosGlobal[c].prod, desc: produtosGlobal[c].desc, min: produtosGlobal[c].min || 0, e: 0, s: 0 };
         
+        // Calcula a partir do histórico
         historicoGlobal.forEach(l => {
-            if(!saldos[l.cod]) saldos[l.cod] = { prod: l.prod, desc: l.desc, e: 0, s: 0 };
-            if(l.tipo === 'ENTRADA') saldos[l.cod].e += l.qtd; else saldos[l.cod].s += l.qtd;
+            if(saldos[l.cod]) {
+                if(l.tipo === 'ENTRADA') saldos[l.cod].e += l.qtd; else saldos[l.cod].s += l.qtd;
+            }
         });
 
         for(let c in saldos) {
             const total = saldos[c].e - saldos[c].s;
+            const min = saldos[c].min;
+            const critico = total <= min;
+
             if(c.toLowerCase().includes(filtro) || saldos[c].prod.toLowerCase().includes(filtro)) {
-                corpoSaldo.innerHTML += `<tr><td><b>${c}</b></td><td>${saldos[c].prod}</td><td style="color:#777">${saldos[c].desc || ''}</td><td style="font-weight:bold">${total}</td></tr>`;
+                corpo.innerHTML += `
+                    <tr class="${critico ? 'stock-critico' : ''}">
+                        <td><b>${c}</b></td>
+                        <td>${saldos[c].prod} <br><small style="color:#888">${saldos[c].desc || ''}</small></td>
+                        <td>
+                            ${total} 
+                            ${critico ? '<span class="alert-pill">STOCK BAIXO</span>' : ''}
+                        </td>
+                        <td>${min}</td>
+                        <td>
+                            ${isAdmin ? `
+                                <button class="btn-edit" onclick="editarProduto('${c}')">EDITAR</button>
+                                <button class="btn-del" onclick="excluirProduto('${c}')">X</button>
+                            ` : '---'}
+                        </td>
+                    </tr>`;
             }
         }
-
-        // 2. Renderizar Histórico (Últimos 20 movimentos)
-        const corpoHist = document.getElementById('corpoHist');
-        corpoHist.innerHTML = '';
-        
-        historicoGlobal.filter(l => 
-            l.cod.toLowerCase().includes(filtro) || 
-            l.ope.toLowerCase().includes(filtro) ||
-            l.prod.toLowerCase().includes(filtro)
-        ).slice(0, 20).forEach(l => {
-            const corBadge = l.tipo === 'ENTRADA' ? 'var(--entry)' : 'var(--exit)';
-            corpoHist.innerHTML += `
-                <tr>
-                    <td style="font-size:11px; color:#666">${l.data}</td>
-                    <td><span class="badge" style="background:${corBadge}">${l.tipo}</span></td>
-                    <td><b>${l.cod}</b></td>
-                    <td>${l.prod} <br><small style="color:#999">${l.desc || ''}</small></td>
-                    <td><b>${l.tipo === 'SAIDA' ? '-' : '+'}${l.qtd}</b></td>
-                    <td style="font-size:11px">${l.ope}</td>
-                </tr>`;
-        });
     }
 </script>
 </body>
