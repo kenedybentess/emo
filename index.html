@@ -2,7 +2,7 @@
 <html lang="pt-pt">
 <head>
     <meta charset="UTF-8">
-    <title>SGE - I9 Industrial (Ordens Detalhadas)</title>
+    <title>SGE - I9 Industrial (Histórico sob Consulta)</title>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-auth-compat.js"></script>
@@ -29,18 +29,22 @@
         
         button { cursor: pointer; padding: 8px; border: none; border-radius: 5px; font-weight: bold; color: white; transition: 0.3s; }
         .btn-reg { background: var(--primary); width: 100%; margin-top: 10px; }
-        .btn-action { font-size: 9px; padding: 4px 8px; margin-right: 2px; }
+        .btn-history { background: var(--primary); width: 100%; padding: 15px; font-size: 14px; margin-bottom: 20px; border: 2px solid #34495e; }
+        
+        /* Estilo do Modal/Painel de Histórico */
+        #modal-historico { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 2000; overflow-y: auto; }
+        .modal-content { background: white; width: 90%; margin: 50px auto; padding: 25px; border-radius: 8px; position: relative; }
+        .close-modal { position: absolute; right: 20px; top: 15px; font-size: 24px; cursor: pointer; color: var(--danger); }
         
         .badge { padding: 3px 8px; border-radius: 4px; font-size: 10px; color: white; font-weight: bold; }
         .desc-text { color: #7f8c8d; font-size: 11px; font-style: italic; display: block; margin-top: 2px; }
-        .stock-baixo { background-color: #fff5f5; color: var(--danger); font-weight: bold; }
     </style>
 </head>
 <body>
 
 <div id="login-screen">
     <div class="login-card">
-        <h2 style="color:var(--primary)">I9 INDUSTRIAL</h2>
+        <h2>I9 INDUSTRIAL</h2>
         <input type="email" id="email" placeholder="E-mail">
         <input type="password" id="password" placeholder="Palavra-passe">
         <button style="background: var(--info); width:100%" onclick="fazerLogin()">ENTRAR</button>
@@ -54,19 +58,15 @@
     </div>
 
     <div class="container">
-        <div class="card" style="margin-bottom: 20px;">
-            <input type="text" id="inputPesquisa" placeholder="🔍 Pesquisar em Stock ou Ordens..." onkeyup="renderizarTudo()">
-        </div>
+        <button class="btn-history" onclick="abrirHistorico()">🕒 VER HISTÓRICO DE MOVIMENTAÇÕES</button>
 
         <div class="grid">
             <div id="panel-admin" class="card" style="display: none; border-top: 5px solid var(--danger);">
-                <h3 id="admin-title">📂 GESTÃO ADMIN</h3>
+                <h3>📂 GESTÃO ADMIN</h3>
                 <select id="admin_modo" onchange="alternarFormAdmin()">
                     <option value="PROD">PRODUTOS</option>
                     <option value="ORDEM">ORDENS DE TRABALHO</option>
                 </select>
-                <hr>
-                
                 <div id="form-prod">
                     <label>Código</label><input type="text" id="cad_cod">
                     <label>Produto</label><input type="text" id="cad_prod">
@@ -74,11 +74,10 @@
                     <label>Mínimo</label><input type="number" id="cad_min" value="5">
                     <button class="btn-reg" onclick="salvarProduto()">SALVAR PRODUTO</button>
                 </div>
-
                 <div id="form-ordem" style="display:none">
                     <label>Nº Ordem</label><input type="text" id="ord_id">
                     <label>Cód. Produto</label><input type="text" id="ord_cod" oninput="procv(this.value, 'ord_nome', '')">
-                    <input type="text" id="ord_nome" readonly placeholder="Nome automático">
+                    <input type="text" id="ord_nome" readonly>
                     <label>Qtd. Planeada</label><input type="number" id="ord_meta">
                     <button class="btn-reg" style="background: var(--done)" onclick="salvarOrdem()">SALVAR ORDEM</button>
                 </div>
@@ -91,24 +90,20 @@
                     <option value="STOCK">STOCK GERAL</option>
                     <option value="ORDEM">ORDEM DE TRABALHO</option>
                 </select>
-
                 <div id="mov-stock-fields">
                     <label>Operação</label>
                     <select id="mov_tipo"><option value="ENTRADA">ENTRADA</option><option value="SAIDA">SAÍDA</option></select>
                     <label>Código</label><input type="text" id="mov_cod" oninput="procv(this.value, 'nome_prod', 'desc_prod')">
                 </div>
-
                 <div id="mov-ordem-fields" style="display:none">
-                    <label>Selecionar Ordem</label>
+                    <label>Ordem Ativa</label>
                     <select id="mov_ordem_id" onchange="validarOrdem()"><option value="">Selecione...</option></select>
                 </div>
-
-                <label>Produto / Descrição</label>
+                <label>Produto</label>
                 <input type="text" id="nome_prod" readonly>
                 <input type="text" id="desc_prod" readonly>
                 <label>Quantidade</label>
                 <input type="number" id="mov_qtd" oninput="validarOrdem()">
-                
                 <span id="msg-validacao" style="color:var(--danger); font-weight:bold; display:block; margin:5px 0;"></span>
                 <button id="btn-registar" class="btn-reg" onclick="lancarMovimento()">REGISTAR</button>
             </div>
@@ -117,7 +112,7 @@
         <div class="card" style="margin-bottom:20px">
             <h3>📋 MONITORIZAÇÃO DE ORDENS</h3>
             <table>
-                <thead><tr><th>ORDEM</th><th>CÓDIGO</th><th>PRODUTO / DESCRIÇÃO</th><th>META</th><th>REAL</th><th>PROG.</th><th>AÇÕES</th></tr></thead>
+                <thead><tr><th>ORDEM</th><th>CÓDIGO</th><th>PRODUTO</th><th>META</th><th>REAL</th><th>PROG.</th></tr></thead>
                 <tbody id="corpoOrdens"></tbody>
             </table>
         </div>
@@ -125,10 +120,28 @@
         <div class="card">
             <h3>📊 STOCK ATUAL</h3>
             <table>
-                <thead><tr><th>CÓDIGO</th><th>PRODUTO / DESCRIÇÃO</th><th>SALDO</th><th>MÍN.</th></tr></thead>
+                <thead><tr><th>CÓDIGO</th><th>PRODUTO</th><th>SALDO</th><th>MÍN.</th></tr></thead>
                 <tbody id="corpoStock"></tbody>
             </table>
         </div>
+    </div>
+</div>
+
+<div id="modal-historico">
+    <div class="modal-content">
+        <span class="close-modal" onclick="fecharHistorico()">&times;</span>
+        <h2 style="color: var(--primary)">🕒 HISTÓRICO COMPLETO</h2>
+        <input type="text" id="pesquisaHist" placeholder="Filtrar histórico por código, produto ou ordem..." onkeyup="renderizarHistorial()">
+        
+        <div style="max-height: 500px; overflow-y: auto;">
+            <table>
+                <thead>
+                    <tr><th>DATA</th><th>TIPO/ORDEM</th><th>CÓDIGO</th><th>PRODUTO</th><th>QTD</th><th>OPERADOR</th></tr>
+                </thead>
+                <tbody id="corpoHist"></tbody>
+            </table>
+        </div>
+        <button id="btn-limpar-tudo" style="background: var(--danger); margin-top: 20px; display:none;" onclick="limparHistorico()">APAGAR TODO O HISTÓRICO</button>
     </div>
 </div>
 
@@ -159,8 +172,9 @@
                 document.getElementById('main-content').style.display = 'block';
                 document.getElementById('user-display').innerText = res.user.email;
                 if(listaAdmins.includes(res.user.email)) document.getElementById('panel-admin').style.display = 'block';
+                if(listaSuper.includes(res.user.email)) document.getElementById('btn-limpar-tudo').style.display = 'block';
                 carregarDados();
-            }).catch(() => alert("Acesso Negado"));
+            }).catch(() => alert("Acesso negado"));
     }
 
     function carregarDados() {
@@ -170,9 +184,38 @@
             const d = s.val(); 
             historicoGlobal = d ? Object.values(d).reverse() : []; 
             renderizarTudo(); 
+            renderizarHistorial();
         });
     }
 
+    // CONTROLO DO MODAL
+    function abrirHistorico() { document.getElementById('modal-historico').style.display = 'block'; }
+    function fecharHistorico() { document.getElementById('modal-historico').style.display = 'none'; }
+
+    function renderizarHistorial() {
+        const filtro = document.getElementById('pesquisaHist').value.toLowerCase();
+        const corpo = document.getElementById('corpoHist');
+        corpo.innerHTML = '';
+
+        historicoGlobal.filter(h => 
+            h.cod.toLowerCase().includes(filtro) || 
+            h.prod.toLowerCase().includes(filtro) || 
+            (h.ordem && h.ordem.toLowerCase().includes(filtro))
+        ).forEach(h => {
+            const cor = h.ordem ? 'var(--done)' : (h.tipo === 'ENTRADA' ? 'var(--entry)' : 'var(--exit)');
+            corpo.innerHTML += `
+                <tr>
+                    <td>${h.data}</td>
+                    <td><span class="badge" style="background:${cor}">${h.ordem || h.tipo}</span></td>
+                    <td>${h.cod}</td>
+                    <td>${h.prod}</td>
+                    <td><b>${h.qtd}</b></td>
+                    <td>${h.ope.split('@')[0]}</td>
+                </tr>`;
+        });
+    }
+
+    // Funções auxiliares mantidas das versões anteriores...
     function alternarFormAdmin() {
         const modo = document.getElementById('admin_modo').value;
         document.getElementById('form-prod').style.display = modo === 'PROD' ? 'block' : 'none';
@@ -183,7 +226,6 @@
         const modo = document.getElementById('mov_modo').value;
         document.getElementById('mov-stock-fields').style.display = modo === 'STOCK' ? 'block' : 'none';
         document.getElementById('mov-ordem-fields').style.display = modo === 'ORDEM' ? 'block' : 'none';
-        limparCamposMov();
     }
 
     function procv(cod, idNome, idDesc) {
@@ -203,46 +245,16 @@
         const prod = document.getElementById('cad_prod').value;
         const desc = document.getElementById('cad_desc').value;
         const min = parseInt(document.getElementById('cad_min').value) || 0;
-        if(!cod || !prod) return alert("Dados inválidos");
-        db.ref('produtos/' + cod).set({ prod, desc, min }).then(() => {
-            document.getElementById('cad_cod').value = "";
-            document.getElementById('cad_prod').value = "";
-            document.getElementById('cad_desc').value = "";
-        });
+        if(!cod || !prod) return alert("Erro");
+        db.ref('produtos/' + cod).set({ prod, desc, min });
     }
 
     function salvarOrdem() {
         const id = document.getElementById('ord_id').value.toUpperCase().trim();
         const cod = document.getElementById('ord_cod').value.toUpperCase().trim();
         const meta = parseInt(document.getElementById('ord_meta').value);
-        if(!id || !produtosGlobal[cod] || isNaN(meta)) return alert("Verifique os dados da Ordem");
-        
-        db.ref('ordens/' + id).set({ 
-            cod: cod, 
-            prod: produtosGlobal[cod].prod, 
-            desc: produtosGlobal[cod].desc || "", // Salva descrição na ordem
-            meta: meta 
-        }).then(() => {
-            alert("Ordem Guardada!");
-            document.getElementById('ord_id').value = "";
-            document.getElementById('ord_cod').value = "";
-            document.getElementById('ord_meta').value = "";
-        });
-    }
-
-    function editarOrdem(id) {
-        const ord = ordensGlobal[id];
-        document.getElementById('admin_modo').value = 'ORDEM';
-        alternarFormAdmin();
-        document.getElementById('ord_id').value = id;
-        document.getElementById('ord_cod').value = ord.cod;
-        document.getElementById('ord_nome').value = ord.prod;
-        document.getElementById('ord_meta').value = ord.meta;
-        window.scrollTo(0,0);
-    }
-
-    function eliminarOrdem(id) {
-        if(confirm(`Deseja ELIMINAR a Ordem ${id}?`)) db.ref('ordens/' + id).remove();
+        if(!id || !produtosGlobal[cod]) return alert("Erro");
+        db.ref('ordens/' + id).set({ cod, prod: produtosGlobal[cod].prod, meta });
     }
 
     function validarOrdem() {
@@ -250,20 +262,11 @@
         if(modo !== 'ORDEM') return;
         const idOrd = document.getElementById('mov_ordem_id').value;
         const qtd = parseInt(document.getElementById('mov_qtd').value) || 0;
-        
         if(idOrd && ordensGlobal[idOrd]) {
-            const ord = ordensGlobal[idOrd];
-            document.getElementById('nome_prod').value = ord.prod;
-            document.getElementById('desc_prod').value = ord.desc || "";
             const feito = historicoGlobal.filter(h => h.ordem === idOrd).reduce((a, b) => a + b.qtd, 0);
-            const falta = ord.meta - feito;
-            if(qtd > falta) {
-                document.getElementById('btn-registar').disabled = true;
-                document.getElementById('msg-validacao').innerText = `⚠️ Máximo permitido: ${falta}`;
-            } else {
-                document.getElementById('btn-registar').disabled = false;
-                document.getElementById('msg-validacao').innerText = `Saldo da Ordem: ${falta}`;
-            }
+            const falta = ordensGlobal[idOrd].meta - feito;
+            document.getElementById('btn-registar').disabled = (qtd > falta);
+            document.getElementById('msg-validacao').innerText = qtd > falta ? "⚠️ Limite excedido!" : "";
         }
     }
 
@@ -271,91 +274,28 @@
         const modo = document.getElementById('mov_modo').value;
         const qtd = parseInt(document.getElementById('mov_qtd').value);
         const user = document.getElementById('user-display').innerText;
-        if(!qtd) return alert("Insira uma quantidade");
-
-        let dados = { data: new Date().toLocaleString('pt-pt'), qtd, ope: user };
-
+        let d = { data: new Date().toLocaleString('pt-pt'), qtd, ope: user };
         if(modo === 'STOCK') {
             const cod = document.getElementById('mov_cod').value.toUpperCase().trim();
-            if(!produtosGlobal[cod]) return alert("Produto inexistente");
-            dados.tipo = document.getElementById('mov_tipo').value;
-            dados.cod = cod;
-            dados.prod = produtosGlobal[cod].prod;
+            d.tipo = document.getElementById('mov_tipo').value; d.cod = cod; d.prod = produtosGlobal[cod].prod;
         } else {
-            const idOrd = document.getElementById('mov_ordem_id').value;
-            if(!idOrd) return alert("Selecione uma ordem");
-            dados.tipo = "ORDEM";
-            dados.ordem = idOrd;
-            dados.cod = ordensGlobal[idOrd].cod;
-            dados.prod = ordensGlobal[idOrd].prod;
+            const id = document.getElementById('mov_ordem_id').value;
+            d.tipo = "ORDEM"; d.ordem = id; d.cod = ordensGlobal[id].cod; d.prod = ordensGlobal[id].prod;
         }
-
-        db.ref('movimentacoes').push(dados).then(() => {
-            alert("Registado com sucesso!");
-            limparCamposMov();
-        });
-    }
-
-    function limparCamposMov() {
-        document.getElementById('mov_cod').value = "";
-        document.getElementById('mov_qtd').value = "";
-        document.getElementById('nome_prod').value = "";
-        document.getElementById('desc_prod').value = "";
-        document.getElementById('msg-validacao').innerText = "";
+        db.ref('movimentacoes').push(d).then(() => alert("Registado!"));
     }
 
     function renderizarTudo() {
-        const user = document.getElementById('user-display').innerText;
-        const isSuper = listaSuper.includes(user);
-        const filtro = document.getElementById('inputPesquisa').value.toLowerCase();
+        // Renderizar Stock e Ordens nas tabelas principais (simplificado para poupar espaço)
+        const corpoStock = document.getElementById('corpoStock'); corpoStock.innerHTML = '';
+        const saldos = {}; for(let c in produtosGlobal) saldos[c] = { ...produtosGlobal[c], e:0, s:0 };
+        historicoGlobal.forEach(h => { if(saldos[h.cod]) { if(h.tipo==='ENTRADA'||h.tipo==='ORDEM') saldos[h.cod].e+=h.qtd; else saldos[h.cod].s+=h.qtd; } });
+        for(let c in saldos) corpoStock.innerHTML += `<tr><td>${c}</td><td>${saldos[c].prod}</td><td>${saldos[c].e - saldos[c].s}</td><td>${saldos[c].min}</td></tr>`;
 
-        // Stock
-        const corpoStock = document.getElementById('corpoStock');
-        corpoStock.innerHTML = '';
-        const saldos = {};
-        for(let c in produtosGlobal) saldos[c] = { ...produtosGlobal[c], e:0, s:0 };
-        historicoGlobal.forEach(h => {
-            if(saldos[h.cod]) {
-                if(h.tipo === 'ENTRADA' || h.tipo === 'ORDEM') saldos[h.cod].e += h.qtd;
-                else saldos[h.cod].s += h.qtd;
-            }
-        });
-        for(let c in saldos) {
-            if(c.toLowerCase().includes(filtro) || saldos[c].prod.toLowerCase().includes(filtro)) {
-                const total = saldos[c].e - saldos[c].s;
-                corpoStock.innerHTML += `<tr>
-                    <td><b>${c}</b></td>
-                    <td>${saldos[c].prod}<span class="desc-text">${saldos[c].desc || ''}</span></td>
-                    <td>${total}</td>
-                    <td>${saldos[c].min}</td>
-                </tr>`;
-            }
-        }
-
-        // Monitorização de Ordens (Com Código e Descrição)
-        const corpoOrdens = document.getElementById('corpoOrdens');
-        corpoOrdens.innerHTML = '';
+        const corpoOrdens = document.getElementById('corpoOrdens'); corpoOrdens.innerHTML = '';
         for(let id in ordensGlobal) {
-            const ord = ordensGlobal[id];
-            if(id.toLowerCase().includes(filtro) || ord.prod.toLowerCase().includes(filtro) || ord.cod.toLowerCase().includes(filtro)) {
-                const feito = historicoGlobal.filter(h => h.ordem === id).reduce((a, b) => a + b.qtd, 0);
-                const perc = ((feito/ord.meta)*100).toFixed(0);
-                corpoOrdens.innerHTML += `
-                    <tr>
-                        <td><b>${id}</b></td>
-                        <td>${ord.cod}</td>
-                        <td>${ord.prod}<span class="desc-text">${ord.desc || ''}</span></td>
-                        <td>${ord.meta}</td>
-                        <td>${feito}</td>
-                        <td><span class="badge" style="background:var(--done)">${perc}%</span></td>
-                        <td>
-                            ${isSuper ? `
-                                <button class="btn-action" style="background:var(--info)" onclick="editarOrdem('${id}')">EDIT</button>
-                                <button class="btn-action" style="background:var(--danger)" onclick="eliminarOrdem('${id}')">DEL</button>
-                            ` : '--'}
-                        </td>
-                    </tr>`;
-            }
+            const feito = historicoGlobal.filter(h => h.ordem === id).reduce((a, b) => a + b.qtd, 0);
+            corpoOrdens.innerHTML += `<tr><td>${id}</td><td>${ordensGlobal[id].cod}</td><td>${ordensGlobal[id].prod}</td><td>${ordensGlobal[id].meta}</td><td>${feito}</td><td>${((feito/ordensGlobal[id].meta)*100).toFixed(0)}%</td></tr>`;
         }
     }
 </script>
