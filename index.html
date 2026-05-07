@@ -2,7 +2,7 @@
 <html lang="pt-pt">
 <head>
     <meta charset="UTF-8">
-    <title>SGE - I9 Industrial (Sistema Consolidado)</title>
+    <title>SGE - I9 Industrial (Entrada via Ordem)</title>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-auth-compat.js"></script>
@@ -32,18 +32,14 @@
         button { cursor: pointer; padding: 8px; border: none; border-radius: 5px; font-weight: bold; color: white; transition: 0.3s; }
         .btn-reg { background: var(--primary); width: 100%; margin-top: 10px; }
         .btn-history { background: white; color: var(--primary); width: 100%; padding: 12px; font-size: 13px; margin-bottom: 20px; border: 2px solid var(--primary); }
-        .btn-export { background: var(--entry); margin-left: 10px; font-size: 11px; }
         
-        /* Cores Dinâmicas */
-        .txt-entry { color: var(--entry); font-weight: bold; } /* Verde para Entradas */
-        .txt-exit { color: var(--exit); font-weight: bold; }  /* Laranja para Saídas */
-        .txt-order { color: var(--done); font-weight: bold; } /* Roxo para Ordens */
-        .txt-danger { color: var(--danger); font-weight: bold; }
+        .txt-entry { color: var(--entry); font-weight: bold; } 
+        .txt-exit { color: var(--exit); font-weight: bold; }  
+        .txt-order { color: var(--done); font-weight: bold; } 
         
         #modal-historico { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 2000; overflow-y: auto; }
         .modal-content { background: white; width: 95%; margin: 30px auto; padding: 25px; border-radius: 8px; position: relative; }
         .close-modal { position: absolute; right: 20px; top: 15px; font-size: 24px; cursor: pointer; color: var(--danger); }
-        
         .stock-baixo td { color: var(--danger); font-weight: bold; background-color: #fff5f5; }
     </style>
 </head>
@@ -65,7 +61,7 @@
     </div>
 
     <div class="container">
-        <button class="btn-history" onclick="abrirHistorico()">🕒 VER HISTÓRICO & EXPORTAR DADOS</button>
+        <button class="btn-history" onclick="abrirHistorico()">🕒 HISTÓRICO & EXPORTAR</button>
 
         <div class="grid">
             <div id="panel-admin" class="card" style="display: none; border-top: 5px solid var(--danger);">
@@ -83,50 +79,55 @@
                 </div>
                 <div id="form-ordem" style="display:none">
                     <label>Nº Ordem</label><input type="text" id="ord_id">
-                    <label>Código Artigo</label><input type="text" id="ord_cod" oninput="procv(this.value, 'ord_nome', '')">
+                    <label>Cód. Artigo</label><input type="text" id="ord_cod" oninput="procv(this.value, 'ord_nome', '')">
                     <input type="text" id="ord_nome" readonly style="color: var(--done); font-weight: bold;">
-                    <label>Meta Planeada</label><input type="number" id="ord_meta">
+                    <label>Meta</label><input type="number" id="ord_meta">
                     <button class="btn-reg" style="background: var(--done)" onclick="salvarOrdem()">CRIAR ORDEM</button>
                 </div>
             </div>
 
             <div class="card">
                 <h3 style="color: var(--info)">🚀 MOVIMENTAR STOCK</h3>
-                <select id="mov_modo" onchange="alternarModoMov()">
-                    <option value="STOCK">MOVIMENTAÇÃO MANUAL (ENTRADA/SAÍDA)</option>
-                    <option value="ORDEM">PRODUÇÃO (ORDEM DE TRABALHO)</option>
+                <label>Tipo de Operação</label>
+                <select id="mov_tipo" onchange="alternarCamposEntrada()">
+                    <option value="ENTRADA">ENTRADA (Via Ordem de Trabalho)</option>
+                    <option value="SAIDA">SAÍDA (Venda / Desperdício)</option>
                 </select>
-                <div id="mov-stock-fields">
-                    <label>Operação</label>
-                    <select id="mov_tipo"><option value="ENTRADA">ENTRADA (+)</option><option value="SAIDA">SAÍDA (-)</option></select>
-                    <input type="text" id="mov_cod" placeholder="Código do Artigo" oninput="procv(this.value, 'nome_prod', 'desc_prod')">
+
+                <div id="campos-entrada">
+                    <label>Selecionar Ordem de Trabalho</label>
+                    <select id="mov_ordem_id" onchange="preencherPelaOrdem()"><option value="">Carregando Ordens...</option></select>
                 </div>
-                <div id="mov-ordem-fields" style="display:none">
-                    <label>Selecionar Ordem Ativa</label>
-                    <select id="mov_ordem_id" onchange="validarOrdem()"><option value="">Aguardando...</option></select>
+
+                <div id="campos-saida" style="display:none">
+                    <label>Código do Artigo</label>
+                    <input type="text" id="mov_cod" oninput="procv(this.value, 'nome_prod', 'desc_prod')">
                 </div>
-                <label>Artigo / Descrição</label>
-                <input type="text" id="nome_prod" readonly placeholder="Nome">
-                <input type="text" id="desc_prod" readonly placeholder="Descrição técnica" style="font-size: 11px;">
+
+                <label>Produto Identificado</label>
+                <input type="text" id="nome_prod" readonly style="font-weight: bold;">
+                <input type="text" id="desc_prod" readonly style="font-size: 11px; color: #666;">
+                
                 <label>Quantidade</label>
-                <input type="number" id="mov_qtd" oninput="validarOrdem()">
-                <span id="msg-validacao" style="display:block; margin-bottom:10px;"></span>
-                <button id="btn-registar" class="btn-reg" onclick="lancarMovimento()">CONFIRMAR MOVIMENTO</button>
+                <input type="number" id="mov_qtd" oninput="validarOF()">
+                <span id="msg-validacao"></span>
+                
+                <button id="btn-registar" class="btn-reg" onclick="lancarMovimento()">CONFIRMAR REGISTO</button>
             </div>
         </div>
 
-        <div class="card" style="margin-bottom:20px">
-            <h3 style="color: var(--done)">📋 MONITORIZAÇÃO DE ORDENS</h3>
+        <div class="card">
+            <h3>📋 ORDENS E SALDOS</h3>
             <table>
-                <thead><tr><th>OF</th><th>CÓDIGO</th><th>PRODUTO/DESCRIÇÃO</th><th>META</th><th>REAL</th><th>%</th><th>AÇÕES</th></tr></thead>
+                <thead><tr><th>OF</th><th>CÓDIGO</th><th>PRODUTO</th><th>META</th><th>REAL</th><th>ESTADO</th></tr></thead>
                 <tbody id="corpoOrdens"></tbody>
             </table>
         </div>
 
-        <div class="card">
-            <h3 style="color: var(--primary)">📊 SALDOS EM STOCK</h3>
+        <div class="card" style="margin-top:20px">
+            <h3>📊 STOCK EM TEMPO REAL</h3>
             <table>
-                <thead><tr><th>CÓDIGO</th><th>PRODUTO/DESCRIÇÃO</th><th>SALDO ATUAL</th><th>MÍN</th></tr></thead>
+                <thead><tr><th>CÓDIGO</th><th>ARTIGO</th><th>SALDO</th><th>MÍN</th></tr></thead>
                 <tbody id="corpoStock"></tbody>
             </table>
         </div>
@@ -136,22 +137,17 @@
 <div id="modal-historico">
     <div class="modal-content">
         <span class="close-modal" onclick="fecharHistorico()">&times;</span>
-        <h2 style="color: var(--primary)">🕒 HISTÓRICO DETALHADO 
-            <button class="btn-export" onclick="exportarCSV()">📥 EXPORTAR PARA EXCEL (CSV)</button>
-        </h2>
-        <input type="text" id="pesquisaHist" placeholder="Pesquisar no histórico..." onkeyup="renderizarHistorial()">
-        <div style="overflow-x:auto">
-            <table>
-                <thead>
-                    <tr><th>DATA/HORA</th><th>TIPO/OF</th><th>CÓDIGO</th><th>PRODUTO</th><th>DESCRIÇÃO</th><th>QTD</th><th>OPERADOR</th></tr>
-                </thead>
-                <tbody id="corpoHist"></tbody>
-            </table>
-        </div>
+        <h2>🕒 REGISTOS TÉCNICOS <button onclick="exportarCSV()" style="background:var(--entry); font-size:11px">DOWNLOAD CSV</button></h2>
+        <input type="text" id="pesquisaHist" placeholder="Pesquisar..." onkeyup="renderizarHistorial()">
+        <table>
+            <thead><tr><th>DATA</th><th>TIPO/OF</th><th>COD</th><th>PRODUTO</th><th>QTD</th><th>USER</th></tr></thead>
+            <tbody id="corpoHist"></tbody>
+        </table>
     </div>
 </div>
 
 <script>
+    // Configuração Firebase
     const firebaseConfig = {
         apiKey: "AIzaSyAPHVbVNdYEp_b7-_bWkTyn5jCVrbZogTo",
         authDomain: "i9-industrial.firebaseapp.com",
@@ -164,8 +160,6 @@
     const auth = firebase.auth();
     const db = firebase.database();
 
-    const listaAdmins = ["admin@i9.com", "super@i9.com"];
-    const listaSuper = ["super@i9.com"];
     let produtosGlobal = {};
     let ordensGlobal = {};
     let historicoGlobal = [];
@@ -176,14 +170,18 @@
                 document.getElementById('login-screen').style.display = 'none';
                 document.getElementById('main-content').style.display = 'block';
                 document.getElementById('user-display').innerText = res.user.email;
-                if(listaAdmins.includes(res.user.email)) document.getElementById('panel-admin').style.display = 'block';
+                if(["admin@i9.com", "super@i9.com"].includes(res.user.email)) document.getElementById('panel-admin').style.display = 'block';
                 carregarDados();
-            }).catch(() => alert("Acesso Negado"));
+            }).catch(() => alert("Erro de Login"));
     }
 
     function carregarDados() {
         db.ref('produtos').on('value', s => { produtosGlobal = s.val() || {}; renderizarTudo(); });
-        db.ref('ordens').on('value', s => { ordensGlobal = s.val() || {}; atualizarSelectOrdens(); renderizarTudo(); });
+        db.ref('ordens').on('value', s => { 
+            ordensGlobal = s.val() || {}; 
+            atualizarSelectOrdens(); 
+            renderizarTudo(); 
+        });
         db.ref('movimentacoes').on('value', s => { 
             historicoGlobal = s.val() ? Object.values(s.val()).reverse() : []; 
             renderizarTudo(); 
@@ -194,110 +192,121 @@
     function abrirHistorico() { document.getElementById('modal-historico').style.display = 'block'; }
     function fecharHistorico() { document.getElementById('modal-historico').style.display = 'none'; }
 
-    function procv(cod, idNome, idDesc) {
-        const item = produtosGlobal[cod.toUpperCase().trim()];
-        if(document.getElementById(idNome)) document.getElementById(idNome).value = item ? item.prod : "";
-        if(document.getElementById(idDesc)) document.getElementById(idDesc).value = item ? (item.desc || "") : "";
+    function alternarCamposEntrada() {
+        const tipo = document.getElementById('mov_tipo').value;
+        document.getElementById('campos-entrada').style.display = (tipo === 'ENTRADA') ? 'block' : 'none';
+        document.getElementById('campos-saida').style.display = (tipo === 'SAIDA') ? 'block' : 'none';
+        limparFormMov();
     }
 
     function atualizarSelectOrdens() {
         const sel = document.getElementById('mov_ordem_id');
-        sel.innerHTML = '<option value="">Selecionar...</option>';
-        for(let id in ordensGlobal) sel.innerHTML += `<option value="${id}">${id} - ${ordensGlobal[id].prod}</option>`;
+        sel.innerHTML = '<option value="">Selecione a Ordem Ativa...</option>';
+        for(let id in ordensGlobal) {
+            sel.innerHTML += `<option value="${id}">${id} - ${ordensGlobal[id].prod}</option>`;
+        }
     }
 
-    function validarOrdem() {
-        const modo = document.getElementById('mov_modo').value;
-        if(modo !== 'ORDEM') return;
-        const idOrd = document.getElementById('mov_ordem_id').value;
-        const qtd = parseInt(document.getElementById('mov_qtd').value) || 0;
-        if(idOrd && ordensGlobal[idOrd]) {
-            const feito = historicoGlobal.filter(h => h.ordem === idOrd).reduce((a, b) => a + b.qtd, 0);
-            const falta = ordensGlobal[idOrd].meta - feito;
-            document.getElementById('nome_prod').value = ordensGlobal[idOrd].prod;
-            document.getElementById('desc_prod').value = ordensGlobal[idOrd].desc || "";
-            const msg = document.getElementById('msg-validacao');
+    function preencherPelaOrdem() {
+        const id = document.getElementById('mov_ordem_id').value;
+        if(id && ordensGlobal[id]) {
+            const cod = ordensGlobal[id].cod;
+            document.getElementById('nome_prod').value = ordensGlobal[id].prod;
+            document.getElementById('desc_prod').value = produtosGlobal[cod] ? produtosGlobal[cod].desc : "";
+            validarOF();
+        }
+    }
+
+    function procv(cod, idNome, idDesc) {
+        const item = produtosGlobal[cod.toUpperCase().trim()];
+        document.getElementById(idNome).value = item ? item.prod : "";
+        document.getElementById(idDesc).value = item ? (item.desc || "") : "";
+    }
+
+    function validarOF() {
+        const tipo = document.getElementById('mov_tipo').value;
+        if(tipo !== 'ENTRADA') return;
+        
+        const id = document.getElementById('mov_ordem_id').value;
+        const qtd = parseFloat(document.getElementById('mov_qtd').value) || 0;
+        const msg = document.getElementById('msg-validacao');
+        
+        if(id && ordensGlobal[id]) {
+            const feito = historicoGlobal.filter(h => h.ordem === id).reduce((a, b) => a + (parseFloat(b.qtd) || 0), 0);
+            const falta = ordensGlobal[id].meta - feito;
+            
             if(qtd > falta) {
-                msg.innerHTML = `<b class="txt-danger">⚠️ Limite Excedido! Saldo OF: ${falta}</b>`;
+                msg.innerHTML = `<b class="txt-danger">Excesso! Só restam ${falta} unidades nesta OF.</b>`;
                 document.getElementById('btn-registar').disabled = true;
             } else {
-                msg.innerHTML = `<b class="txt-entry">Saldo disponível na OF: ${falta}</b>`;
+                msg.innerHTML = `<b class="txt-entry">Saldo da OF: ${falta}</b>`;
                 document.getElementById('btn-registar').disabled = false;
             }
         }
     }
 
     function lancarMovimento() {
-        const modo = document.getElementById('mov_modo').value;
-        const qtd = parseInt(document.getElementById('mov_qtd').value);
-        const user = document.getElementById('user-display').innerText;
-        if(!qtd) return alert("Insira uma quantidade!");
+        const tipo = document.getElementById('mov_tipo').value;
+        const qtd = parseFloat(document.getElementById('mov_qtd').value);
+        if(!qtd) return alert("Insira quantidade");
 
-        let d = { data: new Date().toLocaleString('pt-pt'), qtd, ope: user };
-        
-        if(modo === 'STOCK') {
-            const cod = document.getElementById('mov_cod').value.toUpperCase().trim();
-            if(!produtosGlobal[cod]) return alert("Artigo não encontrado!");
-            d.tipo = document.getElementById('mov_tipo').value;
-            d.cod = cod; d.prod = produtosGlobal[cod].prod; d.desc = produtosGlobal[cod].desc || "";
+        let d = { 
+            data: new Date().toLocaleString('pt-pt'), 
+            qtd: qtd, 
+            ope: document.getElementById('user-display').innerText 
+        };
+
+        if(tipo === 'ENTRADA') {
+            const idOF = document.getElementById('mov_ordem_id').value;
+            if(!idOF) return alert("Selecione a OF");
+            d.tipo = "ORDEM";
+            d.ordem = idOF;
+            d.cod = ordensGlobal[idOF].cod;
+            d.prod = ordensGlobal[idOF].prod;
         } else {
-            const id = document.getElementById('mov_ordem_id').value;
-            if(!id) return alert("Selecione uma OF!");
-            d.tipo = "ORDEM"; d.ordem = id;
-            d.cod = ordensGlobal[id].cod; d.prod = ordensGlobal[id].prod; d.desc = ordensGlobal[id].desc || "";
+            const cod = document.getElementById('mov_cod').value.toUpperCase().trim();
+            if(!produtosGlobal[cod]) return alert("Código inexistente");
+            d.tipo = "SAIDA";
+            d.cod = cod;
+            d.prod = produtosGlobal[cod].prod;
         }
 
         db.ref('movimentacoes').push(d).then(() => {
-            alert("Registo Concluído!");
-            limparCampos();
+            alert("Sucesso!");
+            limparFormMov();
         });
-    }
-
-    function exportarCSV() {
-        let csv = "\uFEFFData;Tipo;Codigo;Produto;Descricao;Quantidade;Operador\n";
-        historicoGlobal.forEach(h => {
-            csv += `${h.data};${h.ordem || h.tipo};${h.cod};${h.prod};${h.desc || ''};${h.qtd};${h.ope}\n`;
-        });
-        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-        const link = document.createElement("a");
-        link.href = URL.createObjectURL(blob);
-        link.download = `SGE_I9_Export_${new Date().toLocaleDateString()}.csv`;
-        link.click();
     }
 
     function renderizarTudo() {
-        const isSuper = listaSuper.includes(document.getElementById('user-display').innerText);
-        
-        // Stock: Lógica de Soma (ENTRADA + ORDEM somam ao stock)
+        // Stock
         const corpoStock = document.getElementById('corpoStock'); corpoStock.innerHTML = '';
-        const saldos = {}; for(let c in produtosGlobal) saldos[c] = { ...produtosGlobal[c], e:0, s:0 };
+        const saldos = {};
+        for(let c in produtosGlobal) saldos[c] = { ...produtosGlobal[c], total: 0 };
         
-        historicoGlobal.forEach(h => { 
-            if(saldos[h.cod]) { 
-                if(h.tipo === 'ENTRADA' || h.tipo === 'ORDEM') saldos[h.cod].e += h.qtd; 
-                else saldos[h.cod].s += h.qtd; 
-            } 
+        historicoGlobal.forEach(h => {
+            if(saldos[h.cod]) {
+                const q = parseFloat(h.qtd) || 0;
+                if(h.tipo === 'ORDEM' || h.tipo === 'ENTRADA') saldos[h.cod].total += q;
+                else saldos[h.cod].total -= q;
+            }
         });
 
         for(let c in saldos) {
-            const total = saldos[c].e - saldos[c].s;
-            corpoStock.innerHTML += `<tr class="${total <= saldos[c].min ? 'stock-baixo' : ''}">
-                <td><b>${c}</b></td><td>${saldos[c].prod}<br><small>${saldos[c].desc || ''}</small></td>
-                <td style="font-size:14px"><b>${total}</b></td><td>${saldos[c].min}</td>
+            corpoStock.innerHTML += `<tr class="${saldos[c].total <= saldos[c].min ? 'stock-baixo' : ''}">
+                <td><b>${c}</b></td><td>${saldos[c].prod}</td>
+                <td><b>${saldos[c].total}</b></td><td>${saldos[c].min}</td>
             </tr>`;
         }
 
         // Ordens
         const corpoOrdens = document.getElementById('corpoOrdens'); corpoOrdens.innerHTML = '';
         for(let id in ordensGlobal) {
-            const feito = historicoGlobal.filter(h => h.ordem === id).reduce((a, b) => a + b.qtd, 0);
+            const feito = historicoGlobal.filter(h => h.ordem === id).reduce((a, b) => a + (parseFloat(b.qtd) || 0), 0);
             const perc = ((feito/ordensGlobal[id].meta)*100).toFixed(0);
             corpoOrdens.innerHTML += `<tr>
                 <td class="txt-order">${id}</td><td>${ordensGlobal[id].cod}</td>
-                <td>${ordensGlobal[id].prod}<br><small>${ordensGlobal[id].desc || ''}</small></td>
-                <td>${ordensGlobal[id].meta}</td><td class="txt-order">${feito}</td>
-                <td><b style="color:${perc >= 100 ? 'var(--entry)' : 'var(--info)'}">${perc}%</b></td>
-                <td>${isSuper ? `<button class="txt-danger" style="background:none; border:1px solid" onclick="eliminarOrdem('${id}')">Eliminar</button>` : '--'}</td>
+                <td>${ordensGlobal[id].prod}</td><td>${ordensGlobal[id].meta}</td>
+                <td class="txt-order">${feito}</td><td>${perc}%</td>
             </tr>`;
         }
     }
@@ -305,15 +314,19 @@
     function renderizarHistorial() {
         const f = document.getElementById('pesquisaHist').value.toLowerCase();
         const corpo = document.getElementById('corpoHist'); corpo.innerHTML = '';
-        historicoGlobal.filter(h => h.cod.toLowerCase().includes(f) || h.prod.toLowerCase().includes(f) || (h.ordem && h.ordem.toLowerCase().includes(f)))
-        .forEach(h => {
-            const cl = h.ordem ? 'txt-order' : (h.tipo === 'ENTRADA' ? 'txt-entry' : 'txt-exit');
-            corpo.innerHTML += `<tr>
-                <td style="font-size:10px">${h.data}</td><td class="${cl}">${h.ordem || h.tipo}</td>
-                <td>${h.cod}</td><td>${h.prod}</td><td>${h.desc || ''}</td>
-                <td class="${cl}">${h.qtd}</td><td style="font-size:10px">${h.ope.split('@')[0]}</td>
-            </tr>`;
+        historicoGlobal.filter(h => h.cod.toLowerCase().includes(f) || h.prod.toLowerCase().includes(f)).forEach(h => {
+            const cl = h.ordem ? 'txt-order' : 'txt-exit';
+            corpo.innerHTML += `<tr><td>${h.data}</td><td class="${cl}">${h.ordem || h.tipo}</td><td>${h.cod}</td><td>${h.prod}</td><td>${h.qtd}</td><td>${h.ope.split('@')[0]}</td></tr>`;
         });
+    }
+
+    function limparFormMov() {
+        document.getElementById('mov_cod').value = "";
+        document.getElementById('mov_qtd').value = "";
+        document.getElementById('nome_prod').value = "";
+        document.getElementById('desc_prod').value = "";
+        document.getElementById('msg-validacao').innerText = "";
+        document.getElementById('mov_ordem_id').value = "";
     }
 
     function salvarProduto() {
@@ -328,25 +341,23 @@
         const id = document.getElementById('ord_id').value.toUpperCase().trim();
         const cod = document.getElementById('ord_cod').value.toUpperCase().trim();
         const meta = parseInt(document.getElementById('ord_meta').value);
-        if(id && produtosGlobal[cod]) db.ref('ordens/'+id).set({ cod, prod: produtosGlobal[cod].prod, desc: produtosGlobal[cod].desc || "", meta });
+        if(id && produtosGlobal[cod]) db.ref('ordens/'+id).set({ cod, prod: produtosGlobal[cod].prod, meta });
     }
 
-    function eliminarOrdem(id) { if(confirm("Confirmar exclusão da OF?")) db.ref('ordens/'+id).remove(); }
     function alternarFormAdmin() {
         const m = document.getElementById('admin_modo').value;
         document.getElementById('form-prod').style.display = m === 'PROD' ? 'block' : 'none';
         document.getElementById('form-ordem').style.display = m === 'ORDEM' ? 'block' : 'none';
     }
-    function alternarModoMov() {
-        const m = document.getElementById('mov_modo').value;
-        document.getElementById('mov-stock-fields').style.display = m === 'STOCK' ? 'block' : 'none';
-        document.getElementById('mov-ordem-fields').style.display = m === 'ORDEM' ? 'block' : 'none';
-        limparCampos();
-    }
-    function limparCampos() {
-        document.getElementById('mov_cod').value = ""; document.getElementById('mov_qtd').value = "";
-        document.getElementById('nome_prod').value = ""; document.getElementById('desc_prod').value = "";
-        document.getElementById('msg-validacao').innerText = "";
+
+    function exportarCSV() {
+        let csv = "\uFEFFData;Tipo;Codigo;Produto;Quantidade;Operador\n";
+        historicoGlobal.forEach(h => { csv += `${h.data};${h.ordem || h.tipo};${h.cod};${h.prod};${h.qtd};${h.ope}\n`; });
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement("a");
+        link.href = URL.createObjectURL(blob);
+        link.download = `I9_Export.csv`;
+        link.click();
     }
 </script>
 </body>
