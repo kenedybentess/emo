@@ -2,99 +2,105 @@
 <html lang="pt-pt">
 <head>
     <meta charset="UTF-8">
-    <title>SGE - I9 Industrial PRO</title>
+    <title>SGE - I9 Industrial (Gestão Total)</title>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-auth-compat.js"></script>
     
     <style>
-        :root { --primary: #2c3e50; --entry: #27ae60; --exit: #e67e22; --info: #3498db; --light: #f4f7f6; --danger: #e74c3c; --warning: #f1c40f; }
+        :root { --primary: #2c3e50; --entry: #27ae60; --exit: #e67e22; --info: #3498db; --light: #f4f7f6; --danger: #e74c3c; }
         body { font-family: 'Segoe UI', sans-serif; margin: 0; background: var(--light); color: #333; font-size: 13px; }
         
-        /* Login */
+        /* Telas */
         #login-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--primary); display: flex; justify-content: center; align-items: center; z-index: 1000; }
         .login-card { background: white; padding: 40px; border-radius: 12px; width: 320px; box-shadow: 0 10px 25px rgba(0,0,0,0.3); text-align: center; }
-        
-        /* Layout */
         #main-content { display: none; }
+
         .navbar { background: var(--primary); color: white; padding: 12px 25px; display: flex; justify-content: space-between; align-items: center; }
         .container { width: 96%; margin: 20px auto; }
-        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-        .card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); margin-bottom: 20px; }
-        
-        /* Forms */
-        input, select { width: 100%; padding: 10px; margin: 5px 0 12px 0; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box; }
-        input:read-only { background: #f1f2f6; }
-        button { cursor: pointer; padding: 10px; border: none; border-radius: 5px; font-weight: bold; color: white; transition: 0.3s; }
-        .btn-reg { background: var(--primary); width: 100%; }
-        .btn-edit { background: var(--info); padding: 5px 10px; font-size: 10px; }
-        .btn-del { background: var(--danger); padding: 5px 10px; font-size: 10px; margin-left: 5px; }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px; }
+        .card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
         
         /* Tabelas */
-        table { width: 100%; border-collapse: collapse; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
         th { background: #f8f9fa; padding: 12px; text-align: left; border-bottom: 2px solid #ddd; font-size: 11px; }
         td { padding: 12px; border-bottom: 1px solid #eee; }
         
-        /* Alertas de Stock */
-        .stock-critico { background-color: #fff5f5 !important; color: var(--danger); font-weight: bold; }
-        .alert-pill { background: var(--danger); color: white; padding: 2px 6px; border-radius: 4px; font-size: 9px; margin-left: 10px; }
+        /* Inputs e Botões */
+        input, select { width: 100%; padding: 10px; margin: 5px 0 12px 0; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box; }
+        button { cursor: pointer; padding: 10px; border: none; border-radius: 5px; font-weight: bold; color: white; transition: 0.3s; }
+        .btn-reg { background: var(--primary); width: 100%; }
+        .badge { padding: 3px 8px; border-radius: 4px; font-size: 10px; color: white; font-weight: bold; }
+        
+        .stock-baixo { background-color: #fff5f5; color: var(--danger); font-weight: bold; }
     </style>
 </head>
 <body>
 
 <div id="login-screen">
     <div class="login-card">
-        <h2>I9 INDUSTRIAL</h2>
+        <h2 style="margin-bottom: 5px;">I9 INDUSTRIAL</h2>
+        <p style="margin-bottom: 20px; color: #666;">Controle de Stock Cloud</p>
         <input type="email" id="email" placeholder="E-mail">
         <input type="password" id="password" placeholder="Palavra-passe">
-        <button style="background: var(--info); width: 100%;" onclick="fazerLogin()">ENTRAR</button>
+        <button style="background: var(--info); width: 100%;" onclick="fazerLogin()">ACEDER AO SISTEMA</button>
         <div id="login-msg" style="color: red; font-size: 11px; margin-top: 10px;"></div>
     </div>
 </div>
 
 <div id="main-content">
     <div class="navbar">
-        <div><b>SGE I9</b> | <span id="user-display">---</span></div>
+        <div><b>SGE I9</b> | Usuário: <span id="user-display">---</span></div>
         <button onclick="auth.signOut().then(() => location.reload())" style="background:transparent; border:1px solid white;">Sair</button>
     </div>
 
     <div class="container">
+        <div class="card" style="margin-bottom: 20px;">
+            <input type="text" id="inputPesquisa" placeholder="🔍 Pesquisar em Stock ou Histórico..." onkeyup="renderizarTabelas()">
+        </div>
+
         <div class="grid">
             <div id="panel-admin" class="card" style="display: none; border-top: 5px solid var(--danger);">
-                <h3 id="form-title">📂 CADASTRO DE PRODUTO</h3>
-                <label>Código (ID Único)</label><input type="text" id="cad_cod">
+                <h3 id="titulo-admin">📂 CADASTRO / EDIÇÃO</h3>
+                <label>Código</label><input type="text" id="cad_cod">
                 <label>Produto</label><input type="text" id="cad_prod">
                 <label>Descrição</label><input type="text" id="cad_desc">
-                <label>Stock Mínimo (Alerta)</label><input type="number" id="cad_min" value="5">
-                <button id="btn-save" class="btn-reg" style="background: var(--danger)" onclick="salvarProduto()">CADASTRAR PRODUTO</button>
-                <button id="btn-cancel" class="btn-reg" style="background: #95a5a6; display:none; margin-top:5px;" onclick="limparFormAdmin()">CANCELAR EDIÇÃO</button>
+                <label>Mínimo em Stock</label><input type="number" id="cad_min" value="5">
+                <button id="btn-salvar" class="btn-reg" style="background: var(--danger)" onclick="salvarProduto()">SALVAR PRODUTO</button>
+                <button id="btn-cancelar" class="btn-reg" style="background: #95a5a6; display:none; margin-top:5px;" onclick="resetFormAdmin()">CANCELAR</button>
             </div>
 
             <div class="card">
-                <h3>🚀 MOVIMENTAÇÃO</h3>
-                <label>Operação</label>
-                <select id="mov_tipo"><option value="ENTRADA">ENTRADA</option><option value="SAIDA">SAÍDA</option></select>
+                <h3>🚀 LANÇAR MOVIMENTO</h3>
+                <label>Tipo</label>
+                <select id="mov_tipo">
+                    <option value="ENTRADA">ENTRADA (+)</option>
+                    <option value="SAIDA">SAÍDA (-)</option>
+                </select>
                 <label>Código</label><input type="text" id="mov_cod" oninput="procv(this.value)">
                 <label>Produto</label><input type="text" id="mov_nome" readonly>
                 <label>Quantidade</label><input type="number" id="mov_qtd">
-                <button class="btn-reg" onclick="lancarMovimento()">REGISTAR</button>
+                <button class="btn-reg" onclick="lancarMovimento()">REGISTAR MOVIMENTO</button>
             </div>
         </div>
 
-        <div class="card">
-            <h3>📊 STOCK ATUAL & GESTÃO</h3>
-            <input type="text" id="inputPesquisa" placeholder="Filtrar tabela..." onkeyup="renderizar()" style="margin-bottom: 15px;">
+        <div class="card" style="margin-bottom: 20px;">
+            <h3>📊 STOCK ATUAL</h3>
             <table>
                 <thead>
-                    <tr>
-                        <th>CÓDIGO</th>
-                        <th>PRODUTO / DESCRIÇÃO</th>
-                        <th>SALDO</th>
-                        <th>MÍN.</th>
-                        <th>AÇÕES (ADMIN)</th>
-                    </tr>
+                    <tr><th>CÓDIGO</th><th>PRODUTO / DESCRIÇÃO</th><th>SALDO</th><th>MÍN.</th><th>AÇÕES</th></tr>
                 </thead>
                 <tbody id="corpoSaldo"></tbody>
+            </table>
+        </div>
+
+        <div class="card">
+            <h3>🕒 ÚLTIMAS MOVIMENTAÇÕES</h3>
+            <table>
+                <thead>
+                    <tr><th>DATA/HORA</th><th>TIPO</th><th>CÓDIGO</th><th>PRODUTO</th><th>QTD</th><th>OPERADOR</th></tr>
+                </thead>
+                <tbody id="corpoHist"></tbody>
             </table>
         </div>
     </div>
@@ -113,13 +119,18 @@
     const auth = firebase.auth();
     const db = firebase.database();
 
-    const listaAdmins = ["admin@i9.com"]; // Ajusta os teus admins aqui
+    // CONFIGURAÇÃO DE USUÁRIOS
+    const listaAdmins = ["admin@i9.com", "gerencia@i9.com"]; // Adicione os e-mails admin aqui
     let editandoCod = null;
+    let produtosGlobal = {};
+    let historicoGlobal = [];
 
     function fazerLogin() {
-        auth.signInWithEmailAndPassword(document.getElementById('email').value, document.getElementById('password').value)
+        const email = document.getElementById('email').value;
+        const pass = document.getElementById('password').value;
+        auth.signInWithEmailAndPassword(email, pass)
             .then(res => configurarInterface(res.user.email))
-            .catch(err => document.getElementById('login-msg').innerText = "Erro no acesso.");
+            .catch(err => document.getElementById('login-msg').innerText = "Acesso Negado.");
     }
 
     function configurarInterface(email) {
@@ -130,15 +141,12 @@
         carregarDados();
     }
 
-    let produtosGlobal = {};
-    let historicoGlobal = [];
-
     function carregarDados() {
-        db.ref('produtos').on('value', snap => { produtosGlobal = snap.val() || {}; renderizar(); });
+        db.ref('produtos').on('value', snap => { produtosGlobal = snap.val() || {}; renderizarTabelas(); });
         db.ref('movimentacoes').on('value', snap => {
             const data = snap.val();
-            historicoGlobal = data ? Object.values(data) : [];
-            renderizar();
+            historicoGlobal = data ? Object.values(data).reverse() : [];
+            renderizarTabelas();
         });
     }
 
@@ -147,55 +155,46 @@
         document.getElementById('mov_nome').value = info ? info.prod : "";
     }
 
-    // --- FUNÇÕES ADMIN: SALVAR / EDITAR / EXCLUIR ---
-
     function salvarProduto() {
         const cod = document.getElementById('cad_cod').value.toUpperCase().trim();
         const prod = document.getElementById('cad_prod').value;
         const desc = document.getElementById('cad_desc').value;
         const min = parseInt(document.getElementById('cad_min').value) || 0;
-
-        if(!cod || !prod) return alert("Código e Produto obrigatórios!");
-
+        if(!cod || !prod) return alert("Preencha Código e Produto!");
+        
         db.ref('produtos/' + cod).set({ prod, desc, min }).then(() => {
-            alert(editandoCod ? "Produto Atualizado!" : "Produto Cadastrado!");
-            limparFormAdmin();
+            alert("Sucesso!");
+            resetFormAdmin();
         });
     }
 
     function editarProduto(cod) {
         const p = produtosGlobal[cod];
         editandoCod = cod;
-        document.getElementById('form-title').innerText = "✏️ EDITAR PRODUTO";
+        document.getElementById('titulo-admin').innerText = "✏️ EDITAR PRODUTO";
         document.getElementById('cad_cod').value = cod;
         document.getElementById('cad_cod').readOnly = true;
         document.getElementById('cad_prod').value = p.prod;
         document.getElementById('cad_desc').value = p.desc;
         document.getElementById('cad_min').value = p.min || 0;
-        document.getElementById('btn-save').innerText = "GUARDAR ALTERAÇÕES";
-        document.getElementById('btn-cancel').style.display = "block";
-        window.scrollTo(0,0);
+        document.getElementById('btn-salvar').innerText = "GUARDAR ALTERAÇÕES";
+        document.getElementById('btn-cancelar').style.display = "block";
     }
 
     function excluirProduto(cod) {
-        if(confirm(`Tem certeza que deseja excluir o produto ${cod}? Isso não apagará o histórico, mas o produto sumirá da lista.`)) {
-            db.ref('produtos/' + cod).remove();
-        }
+        if(confirm("Deseja apagar o produto " + cod + "?")) db.ref('produtos/' + cod).remove();
     }
 
-    function limparFormAdmin() {
+    function resetFormAdmin() {
         editandoCod = null;
-        document.getElementById('form-title').innerText = "📂 CADASTRO DE PRODUTO";
+        document.getElementById('titulo-admin').innerText = "📂 CADASTRO / EDIÇÃO";
         document.getElementById('cad_cod').value = "";
         document.getElementById('cad_cod').readOnly = false;
         document.getElementById('cad_prod').value = "";
         document.getElementById('cad_desc').value = "";
-        document.getElementById('cad_min').value = "5";
-        document.getElementById('btn-save').innerText = "CADASTRAR PRODUTO";
-        document.getElementById('btn-cancel').style.display = "none";
+        document.getElementById('btn-salvar').innerText = "SALVAR PRODUTO";
+        document.getElementById('btn-cancelar').style.display = "none";
     }
-
-    // --- MOVIMENTAÇÃO ---
 
     function lancarMovimento() {
         const cod = document.getElementById('mov_cod').value.toUpperCase().trim();
@@ -203,7 +202,7 @@
         const tipo = document.getElementById('mov_tipo').value;
         const ope = document.getElementById('user-display').innerText;
 
-        if(!produtosGlobal[cod] || !qtd) return alert("Erro: Dados inválidos!");
+        if(!produtosGlobal[cod] || !qtd) return alert("Código ou Quantidade inválida!");
 
         db.ref('movimentacoes').push({
             data: new Date().toLocaleString('pt-pt'),
@@ -215,17 +214,15 @@
         });
     }
 
-    function renderizar() {
+    function renderizarTabelas() {
         const filtro = document.getElementById('inputPesquisa').value.toLowerCase();
-        const corpo = document.getElementById('corpoSaldo');
         const isAdmin = listaAdmins.includes(document.getElementById('user-display').innerText);
-        corpo.innerHTML = '';
         
+        // Render Stock
+        const corpoSaldo = document.getElementById('corpoSaldo');
+        corpoSaldo.innerHTML = '';
         const saldos = {};
-        // Inicializa saldos com todos os produtos cadastrados
-        for(let c in produtosGlobal) saldos[c] = { prod: produtosGlobal[c].prod, desc: produtosGlobal[c].desc, min: produtosGlobal[c].min || 0, e: 0, s: 0 };
-        
-        // Calcula a partir do histórico
+        for(let c in produtosGlobal) saldos[c] = { ...produtosGlobal[c], e: 0, s: 0 };
         historicoGlobal.forEach(l => {
             if(saldos[l.cod]) {
                 if(l.tipo === 'ENTRADA') saldos[l.cod].e += l.qtd; else saldos[l.cod].s += l.qtd;
@@ -234,28 +231,37 @@
 
         for(let c in saldos) {
             const total = saldos[c].e - saldos[c].s;
-            const min = saldos[c].min;
-            const critico = total <= min;
-
+            const critico = total <= (saldos[c].min || 0);
             if(c.toLowerCase().includes(filtro) || saldos[c].prod.toLowerCase().includes(filtro)) {
-                corpo.innerHTML += `
-                    <tr class="${critico ? 'stock-critico' : ''}">
+                corpoSaldo.innerHTML += `
+                    <tr class="${critico ? 'stock-baixo' : ''}">
                         <td><b>${c}</b></td>
-                        <td>${saldos[c].prod} <br><small style="color:#888">${saldos[c].desc || ''}</small></td>
+                        <td>${saldos[c].prod}<br><small>${saldos[c].desc || ''}</small></td>
+                        <td>${total} ${critico ? '⚠️' : ''}</td>
+                        <td>${saldos[c].min || 0}</td>
                         <td>
-                            ${total} 
-                            ${critico ? '<span class="alert-pill">STOCK BAIXO</span>' : ''}
-                        </td>
-                        <td>${min}</td>
-                        <td>
-                            ${isAdmin ? `
-                                <button class="btn-edit" onclick="editarProduto('${c}')">EDITAR</button>
-                                <button class="btn-del" onclick="excluirProduto('${c}')">X</button>
-                            ` : '---'}
+                            ${isAdmin ? `<button onclick="editarProduto('${c}')" style="background:var(--info); font-size:9px">EDITAR</button>
+                            <button onclick="excluirProduto('${c}')" style="background:var(--danger); font-size:9px">X</button>` : '---'}
                         </td>
                     </tr>`;
             }
         }
+
+        // Render Histórico
+        const corpoHist = document.getElementById('corpoHist');
+        corpoHist.innerHTML = '';
+        historicoGlobal.filter(l => l.cod.toLowerCase().includes(filtro) || l.prod.toLowerCase().includes(filtro)).slice(0, 15).forEach(l => {
+            const cor = l.tipo === 'ENTRADA' ? 'var(--entry)' : 'var(--exit)';
+            corpoHist.innerHTML += `
+                <tr>
+                    <td style="font-size:10px">${l.data}</td>
+                    <td><span class="badge" style="background:${cor}">${l.tipo}</span></td>
+                    <td>${l.cod}</td>
+                    <td>${l.prod}</td>
+                    <td><b>${l.qtd}</b></td>
+                    <td style="font-size:10px">${l.ope}</td>
+                </tr>`;
+        });
     }
 </script>
 </body>
