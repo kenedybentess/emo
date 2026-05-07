@@ -2,7 +2,7 @@
 <html lang="pt-pt">
 <head>
     <meta charset="UTF-8">
-    <title>SGE - I9 Industrial (Gestão Total + Ordens)</title>
+    <title>SGE - I9 Industrial (Super User Control)</title>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-auth-compat.js"></script>
@@ -27,21 +27,20 @@
         input, select { width: 100%; padding: 10px; margin: 5px 0 12px 0; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box; }
         input:read-only { background: #f1f2f6; }
         
-        button { cursor: pointer; padding: 10px; border: none; border-radius: 5px; font-weight: bold; color: white; transition: 0.3s; }
-        .btn-reg { background: var(--primary); width: 100%; }
-        .btn-reg:disabled { background: #ccc; cursor: not-allowed; }
+        button { cursor: pointer; padding: 8px; border: none; border-radius: 5px; font-weight: bold; color: white; transition: 0.3s; }
+        .btn-reg { background: var(--primary); width: 100%; margin-top: 10px; }
+        .btn-action { font-size: 9px; padding: 4px 8px; margin-right: 2px; }
         
         .badge { padding: 3px 8px; border-radius: 4px; font-size: 10px; color: white; font-weight: bold; }
         .desc-text { color: #7f8c8d; font-size: 11px; font-style: italic; display: block; }
         .stock-baixo { background-color: #fff5f5; color: var(--danger); font-weight: bold; }
-        .header-flex { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
     </style>
 </head>
 <body>
 
 <div id="login-screen">
     <div class="login-card">
-        <h2>I9 INDUSTRIAL</h2>
+        <h2 style="color:var(--primary)">I9 INDUSTRIAL</h2>
         <input type="email" id="email" placeholder="E-mail">
         <input type="password" id="password" placeholder="Palavra-passe">
         <button style="background: var(--info); width:100%" onclick="fazerLogin()">ENTRAR</button>
@@ -51,43 +50,46 @@
 <div id="main-content">
     <div class="navbar">
         <div><b>SGE I9</b> | <span id="user-display">---</span></div>
-        <button onclick="auth.signOut().then(() => location.reload())" style="background:transparent; border:1px solid white;">Sair</button>
+        <button onclick="auth.signOut().then(() => location.reload())" style="background:transparent; border:1px solid white; width:auto">Sair</button>
     </div>
 
     <div class="container">
         <div class="card" style="margin-bottom: 20px;">
-            <input type="text" id="inputPesquisa" placeholder="🔍 Pesquisar em Stock, Ordens ou Histórico..." onkeyup="renderizarTudo()">
+            <input type="text" id="inputPesquisa" placeholder="🔍 Pesquisar..." onkeyup="renderizarTudo()">
         </div>
 
         <div class="grid">
             <div id="panel-admin" class="card" style="display: none; border-top: 5px solid var(--danger);">
-                <h3>📂 GESTÃO ADMIN</h3>
+                <h3 id="admin-title">📂 GESTÃO ADMIN</h3>
                 <select id="admin_modo" onchange="alternarFormAdmin()">
-                    <option value="PROD">CADASTRO DE PRODUTO</option>
-                    <option value="ORDEM">GERAR ORDEM DE TRABALHO</option>
+                    <option value="PROD">PRODUTOS</option>
+                    <option value="ORDEM">ORDENS DE TRABALHO</option>
                 </select>
                 <hr>
+                
                 <div id="form-prod">
                     <label>Código</label><input type="text" id="cad_cod">
                     <label>Produto</label><input type="text" id="cad_prod">
                     <label>Descrição</label><input type="text" id="cad_desc">
                     <label>Mínimo</label><input type="number" id="cad_min" value="5">
-                    <button class="btn-reg" style="background: var(--primary)" onclick="salvarProduto()">SALVAR PRODUTO</button>
+                    <button class="btn-reg" onclick="salvarProduto()">SALVAR PRODUTO</button>
                 </div>
+
                 <div id="form-ordem" style="display:none">
                     <label>Nº Ordem</label><input type="text" id="ord_id">
-                    <label>Cód. Produto</label><input type="text" id="ord_cod" oninput="procvAdmin(this.value)">
+                    <label>Cód. Produto</label><input type="text" id="ord_cod" oninput="procv(this.value, 'ord_nome', '')">
+                    <input type="text" id="ord_nome" readonly placeholder="Nome automático">
                     <label>Qtd. Planeada</label><input type="number" id="ord_meta">
-                    <button class="btn-reg" style="background: var(--done)" onclick="salvarOrdem()">CRIAR ORDEM</button>
+                    <button class="btn-reg" style="background: var(--done)" onclick="salvarOrdem()">SALVAR ORDEM</button>
                 </div>
             </div>
 
             <div class="card">
                 <h3>🚀 LANÇAR MOVIMENTO</h3>
-                <label>Tipo de Lançamento</label>
+                <label>Modo</label>
                 <select id="mov_modo" onchange="alternarModoMov()">
-                    <option value="STOCK">STOCK GERAL (ENTRADA/SAÍDA)</option>
-                    <option value="ORDEM">ORDEM DE TRABALHO (APONTAMENTO)</option>
+                    <option value="STOCK">STOCK GERAL</option>
+                    <option value="ORDEM">ORDEM DE TRABALHO</option>
                 </select>
 
                 <div id="mov-stock-fields">
@@ -97,14 +99,13 @@
                 </div>
 
                 <div id="mov-ordem-fields" style="display:none">
-                    <label>Ordem Ativa</label>
+                    <label>Selecionar Ordem</label>
                     <select id="mov_ordem_id" onchange="validarOrdem()"><option value="">Selecione...</option></select>
                 </div>
 
-                <label>Produto / Descrição</label>
+                <label>Produto</label>
                 <input type="text" id="nome_prod" readonly>
                 <input type="text" id="desc_prod" readonly>
-                
                 <label>Quantidade</label>
                 <input type="number" id="mov_qtd" oninput="validarOrdem()">
                 
@@ -114,29 +115,18 @@
         </div>
 
         <div class="card" style="margin-bottom:20px">
-            <h3>📊 STOCK ATUAL</h3>
-            <table id="tabelaStock">
-                <thead><tr><th>CÓDIGO</th><th>PRODUTO</th><th>SALDO</th><th>MÍN.</th><th>AÇÕES</th></tr></thead>
-                <tbody id="corpoStock"></tbody>
-            </table>
-        </div>
-
-        <div class="card" style="margin-bottom:20px">
             <h3>📋 MONITORIZAÇÃO DE ORDENS</h3>
             <table>
-                <thead><tr><th>ORDEM</th><th>PRODUTO</th><th>META</th><th>REAL</th><th>PROGRESSO</th></tr></thead>
+                <thead><tr><th>ORDEM</th><th>PRODUTO</th><th>META</th><th>REAL</th><th>PROG.</th><th>AÇÕES</th></tr></thead>
                 <tbody id="corpoOrdens"></tbody>
             </table>
         </div>
 
         <div class="card">
-            <div class="header-flex">
-                <h3 style="margin:0">🕒 HISTÓRICO RECENTE</h3>
-                <button id="btn-super" class="btn-reg" style="display:none; background:var(--danger); width:auto; font-size:10px;" onclick="limparHistorico()">LIMPAR TUDO</button>
-            </div>
+            <h3>📊 STOCK ATUAL</h3>
             <table>
-                <thead><tr><th>DATA</th><th>TIPO/ORDEM</th><th>PRODUTO</th><th>QTD</th><th>USER</th></tr></thead>
-                <tbody id="corpoHist"></tbody>
+                <thead><tr><th>CÓDIGO</th><th>PRODUTO</th><th>SALDO</th><th>MÍN.</th></tr></thead>
+                <tbody id="corpoStock"></tbody>
             </table>
         </div>
     </div>
@@ -169,9 +159,8 @@
                 document.getElementById('main-content').style.display = 'block';
                 document.getElementById('user-display').innerText = res.user.email;
                 if(listaAdmins.includes(res.user.email)) document.getElementById('panel-admin').style.display = 'block';
-                if(listaSuper.includes(res.user.email)) document.getElementById('btn-super').style.display = 'block';
                 carregarDados();
-            }).catch(() => alert("Acesso negado"));
+            }).catch(() => alert("Acesso Negado"));
     }
 
     function carregarDados() {
@@ -184,7 +173,6 @@
         });
     }
 
-    // --- LÓGICA DE INTERFACE ---
     function alternarFormAdmin() {
         const modo = document.getElementById('admin_modo').value;
         document.getElementById('form-prod').style.display = modo === 'PROD' ? 'block' : 'none';
@@ -200,14 +188,8 @@
 
     function procv(cod, idNome, idDesc) {
         const item = produtosGlobal[cod.toUpperCase().trim()];
-        document.getElementById(idNome).value = item ? item.prod : "";
-        document.getElementById(idDesc).value = item ? (item.desc || "") : "";
-    }
-
-    function procvAdmin(cod) {
-        const item = produtosGlobal[cod.toUpperCase().trim()];
-        if(!item) return;
-        alert("Produto encontrado: " + item.prod);
+        if(document.getElementById(idNome)) document.getElementById(idNome).value = item ? item.prod : "";
+        if(document.getElementById(idDesc)) document.getElementById(idDesc).value = item ? (item.desc || "") : "";
     }
 
     function atualizarSelectOrdens() {
@@ -216,16 +198,15 @@
         for(let id in ordensGlobal) sel.innerHTML += `<option value="${id}">${id}</option>`;
     }
 
-    // --- FUNÇÕES DE SALVAMENTO ---
     function salvarProduto() {
         const cod = document.getElementById('cad_cod').value.toUpperCase().trim();
         const prod = document.getElementById('cad_prod').value;
         const desc = document.getElementById('cad_desc').value;
         const min = parseInt(document.getElementById('cad_min').value) || 0;
-        if(!cod || !prod) return alert("Erro");
+        if(!cod || !prod) return alert("Dados inválidos");
         db.ref('produtos/' + cod).set({ prod, desc, min }).then(() => {
-             document.getElementById('cad_cod').value = "";
-             document.getElementById('cad_prod').value = "";
+            document.getElementById('cad_cod').value = "";
+            document.getElementById('cad_prod').value = "";
         });
     }
 
@@ -233,18 +214,37 @@
         const id = document.getElementById('ord_id').value.toUpperCase().trim();
         const cod = document.getElementById('ord_cod').value.toUpperCase().trim();
         const meta = parseInt(document.getElementById('ord_meta').value);
-        if(!id || !produtosGlobal[cod]) return alert("Erro nos dados");
-        db.ref('ordens/' + id).set({ cod, prod: produtosGlobal[cod].prod, meta });
+        if(!id || !produtosGlobal[cod] || isNaN(meta)) return alert("Verifique os dados da Ordem");
+        
+        db.ref('ordens/' + id).set({ cod, prod: produtosGlobal[cod].prod, meta }).then(() => {
+            alert("Ordem Guardada!");
+            document.getElementById('ord_id').value = "";
+            document.getElementById('ord_cod').value = "";
+            document.getElementById('ord_meta').value = "";
+        });
+    }
+
+    // --- FUNÇÕES EXCLUSIVAS SUPER USUÁRIO ---
+    function editarOrdem(id) {
+        const ord = ordensGlobal[id];
+        document.getElementById('admin_modo').value = 'ORDEM';
+        alternarFormAdmin();
+        document.getElementById('ord_id').value = id;
+        document.getElementById('ord_cod').value = ord.cod;
+        document.getElementById('ord_nome').value = ord.prod;
+        document.getElementById('ord_meta').value = ord.meta;
+        window.scrollTo(0,0);
+    }
+
+    function eliminarOrdem(id) {
+        if(confirm(`Deseja ELIMINAR a Ordem ${id}? Os apontamentos no histórico permanecerão, mas a ordem sumirá do controle.`)) {
+            db.ref('ordens/' + id).remove();
+        }
     }
 
     function validarOrdem() {
         const modo = document.getElementById('mov_modo').value;
-        if(modo !== 'ORDEM') {
-            document.getElementById('btn-registar').disabled = false;
-            document.getElementById('msg-validacao').innerText = "";
-            return;
-        }
-
+        if(modo !== 'ORDEM') return;
         const idOrd = document.getElementById('mov_ordem_id').value;
         const qtd = parseInt(document.getElementById('mov_qtd').value) || 0;
         
@@ -253,13 +253,12 @@
             document.getElementById('nome_prod').value = ord.prod;
             const feito = historicoGlobal.filter(h => h.ordem === idOrd).reduce((a, b) => a + b.qtd, 0);
             const falta = ord.meta - feito;
-
             if(qtd > falta) {
                 document.getElementById('btn-registar').disabled = true;
-                document.getElementById('msg-validacao').innerText = `⚠️ Excede o limite! Máximo permitido: ${falta}`;
+                document.getElementById('msg-validacao').innerText = `⚠️ Máximo permitido: ${falta}`;
             } else {
                 document.getElementById('btn-registar').disabled = false;
-                document.getElementById('msg-validacao').innerText = `Restam ${falta} unidades.`;
+                document.getElementById('msg-validacao').innerText = `Saldo da Ordem: ${falta}`;
             }
         }
     }
@@ -268,17 +267,19 @@
         const modo = document.getElementById('mov_modo').value;
         const qtd = parseInt(document.getElementById('mov_qtd').value);
         const user = document.getElementById('user-display').innerText;
-        
+        if(!qtd) return alert("Insira uma quantidade");
+
         let dados = { data: new Date().toLocaleString('pt-pt'), qtd, ope: user };
 
         if(modo === 'STOCK') {
             const cod = document.getElementById('mov_cod').value.toUpperCase().trim();
-            if(!produtosGlobal[cod]) return;
+            if(!produtosGlobal[cod]) return alert("Produto inexistente");
             dados.tipo = document.getElementById('mov_tipo').value;
             dados.cod = cod;
             dados.prod = produtosGlobal[cod].prod;
         } else {
             const idOrd = document.getElementById('mov_ordem_id').value;
+            if(!idOrd) return alert("Selecione uma ordem");
             dados.tipo = "ORDEM";
             dados.ordem = idOrd;
             dados.cod = ordensGlobal[idOrd].cod;
@@ -286,7 +287,7 @@
         }
 
         db.ref('movimentacoes').push(dados).then(() => {
-            alert("Sucesso!");
+            alert("Registado com sucesso!");
             limparCamposMov();
         });
     }
@@ -299,74 +300,49 @@
         document.getElementById('msg-validacao').innerText = "";
     }
 
-    function limparHistorico() {
-        if(confirm("Apagar tudo?")) db.ref('movimentacoes').remove();
-    }
-
-    // --- RENDERIZAÇÃO ---
     function renderizarTudo() {
-        const filtro = document.getElementById('inputPesquisa').value.toLowerCase();
         const user = document.getElementById('user-display').innerText;
-        const isAdmin = listaAdmins.includes(user);
+        const isSuper = listaSuper.includes(user);
 
-        // 1. Stock
+        // Renderizar Stock
         const corpoStock = document.getElementById('corpoStock');
         corpoStock.innerHTML = '';
         const saldos = {};
         for(let c in produtosGlobal) saldos[c] = { ...produtosGlobal[c], e:0, s:0 };
-        
         historicoGlobal.forEach(h => {
             if(saldos[h.cod]) {
                 if(h.tipo === 'ENTRADA' || h.tipo === 'ORDEM') saldos[h.cod].e += h.qtd;
                 else saldos[h.cod].s += h.qtd;
             }
         });
-
         for(let c in saldos) {
             const total = saldos[c].e - saldos[c].s;
-            const critico = total <= saldos[c].min;
-            if(c.toLowerCase().includes(filtro) || saldos[c].prod.toLowerCase().includes(filtro)) {
-                corpoStock.innerHTML += `<tr class="${critico ? 'stock-baixo' : ''}">
-                    <td>${c}</td>
-                    <td>${saldos[c].prod}<span class="desc-text">${saldos[c].desc || ''}</span></td>
-                    <td>${total} ${critico ? '⚠️' : ''}</td>
-                    <td>${saldos[c].min}</td>
-                    <td>${isAdmin ? '<button onclick="excluirProd(\''+c+'\')" style="background:var(--danger); font-size:9px">X</button>' : '--'}</td>
-                </tr>`;
-            }
+            corpoStock.innerHTML += `<tr><td>${c}</td><td>${saldos[c].prod}</td><td>${total}</td><td>${saldos[c].min}</td></tr>`;
         }
 
-        // 2. Ordens
+        // Renderizar Ordens
         const corpoOrdens = document.getElementById('corpoOrdens');
         corpoOrdens.innerHTML = '';
         for(let id in ordensGlobal) {
             const feito = historicoGlobal.filter(h => h.ordem === id).reduce((a, b) => a + b.qtd, 0);
             const meta = ordensGlobal[id].meta;
-            const perc = Math.min((feito/meta)*100, 100).toFixed(0);
-            corpoOrdens.innerHTML += `<tr>
-                <td><b>${id}</b></td>
-                <td>${ordensGlobal[id].prod}</td>
-                <td>${meta}</td><td>${feito}</td>
-                <td><span class="badge" style="background:var(--done)">${perc}%</span></td>
-            </tr>`;
+            const perc = ((feito/meta)*100).toFixed(0);
+            corpoOrdens.innerHTML += `
+                <tr>
+                    <td><b>${id}</b></td>
+                    <td>${ordensGlobal[id].prod}</td>
+                    <td>${meta}</td>
+                    <td>${feito}</td>
+                    <td><span class="badge" style="background:var(--done)">${perc}%</span></td>
+                    <td>
+                        ${isSuper ? `
+                            <button class="btn-action" style="background:var(--info)" onclick="editarOrdem('${id}')">EDIT</button>
+                            <button class="btn-action" style="background:var(--danger)" onclick="eliminarOrdem('${id}')">DEL</button>
+                        ` : '--'}
+                    </td>
+                </tr>`;
         }
-
-        // 3. Histórico
-        const corpoHist = document.getElementById('corpoHist');
-        corpoHist.innerHTML = '';
-        historicoGlobal.slice(0, 20).forEach(h => {
-            const label = h.ordem ? h.ordem : h.tipo;
-            corpoHist.innerHTML += `<tr>
-                <td style="font-size:10px">${h.data}</td>
-                <td><span class="badge" style="background:${h.ordem ? 'var(--done)' : (h.tipo=='ENTRADA'?'var(--entry)':'var(--exit)')}">${label}</span></td>
-                <td>${h.prod}</td>
-                <td><b>${h.qtd}</b></td>
-                <td style="font-size:10px">${h.ope.split('@')[0]}</td>
-            </tr>`;
-        });
     }
-
-    function excluirProd(c) { if(confirm("Apagar produto?")) db.ref('produtos/'+c).remove(); }
 </script>
 </body>
 </html>
