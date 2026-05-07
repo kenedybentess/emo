@@ -2,223 +2,188 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <title>SGE - I9 Injeção (Rastreabilidade Total)</title>
+    <title>SGE - I9 Injeção (Com Busca Automática)</title>
     <style>
-        :root { --primary: #2c3e50; --entry: #27ae60; --exit: #e67e22; --danger: #e74c3c; --light: #f4f7f6; }
+        :root { --primary: #2c3e50; --entry: #27ae60; --exit: #e67e22; --info: #3498db; --light: #f4f7f6; }
         body { font-family: 'Segoe UI', sans-serif; margin: 0; background: var(--light); font-size: 12px; }
-        .navbar { background: var(--primary); color: white; padding: 10px 20px; display: flex; justify-content: space-between; align-items: center; }
+        .navbar { background: var(--primary); color: white; padding: 10px 20px; display: flex; justify-content: space-between; }
         .container { width: 98%; margin: 10px auto; background: white; padding: 15px; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
         
-        /* Centro de Pesquisa */
-        .search-container { background: #fff; border: 2px solid var(--primary); border-radius: 8px; padding: 12px; margin-bottom: 15px; position: sticky; top: 10px; z-index: 100; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
-        #campoBusca { width: 100%; padding: 10px; border: none; font-size: 15px; outline: none; }
+        /* Seções */
+        .section { background: #fff; border: 1px solid #ddd; padding: 15px; border-radius: 8px; margin-bottom: 20px; }
+        .section-title { font-weight: bold; margin-bottom: 10px; border-bottom: 2px solid var(--primary); display: inline-block; padding-bottom: 3px; }
 
-        /* Painel de Registro */
-        .panel { display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 8px; background: #eee; padding: 15px; border-radius: 6px; margin-bottom: 10px; border: 2px solid #ccc; }
-        .modo-saida { border-color: var(--exit); background: #fff5eb; }
+        /* Formulários */
+        .grid-form { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin-bottom: 15px; }
         .form-group { display: flex; flex-direction: column; }
-        label { font-size: 9px; font-weight: bold; margin-bottom: 2px; color: #444; }
-        input, select { padding: 8px; border: 1px solid #bbb; border-radius: 4px; }
+        label { font-size: 10px; font-weight: bold; margin-bottom: 3px; }
+        input, select { padding: 8px; border: 1px solid #ccc; border-radius: 4px; }
+        input:read-only { background: #f0f0f0; color: #777; }
+
+        /* Botões */
+        button { cursor: pointer; padding: 10px; border: none; border-radius: 4px; font-weight: bold; color: white; transition: 0.2s; }
+        .btn-add-db { background: var(--info); }
+        .btn-reg-mov { background: var(--entry); width: 100%; font-size: 14px; }
         
-        /* Destaque para campos obrigatórios na saída */
-        .modo-saida .campo-obrigatorio { border: 2px solid var(--exit); background: #fff; }
-
-        .btns { display: flex; gap: 10px; margin-bottom: 20px; }
-        button { cursor: pointer; padding: 10px; border: none; border-radius: 4px; font-weight: bold; color: white; }
-        .btn-reg { background: var(--primary); flex-grow: 2; font-size: 14px; }
-        .btn-exp { background: #217346; flex-grow: 1; }
-
-        /* Tabelas */
-        .section-title { background: #34495e; color: white; padding: 8px 12px; font-weight: bold; margin-top: 20px; border-radius: 4px 4px 0 0; }
-        table { width: 100%; border-collapse: collapse; background: white; margin-bottom: 20px; }
-        th { background: #f8f9fa; padding: 10px; text-align: left; border-bottom: 2px solid #dee2e6; }
-        td { padding: 10px; border-bottom: 1px solid #eee; }
-        .saldo-valor { font-weight: bold; font-size: 14px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th { background: #eee; padding: 8px; text-align: left; border-bottom: 2px solid #ccc; }
+        td { padding: 8px; border-bottom: 1px solid #eee; }
+        .badge-saida { color: var(--exit); font-weight: bold; }
+        .badge-entrada { color: var(--entry); font-weight: bold; }
     </style>
 </head>
 <body>
 
 <div class="navbar">
-    <div style="font-weight: bold;">SISTEMA I9 - CONTROLE COM OPERADOR</div>
+    <div style="font-weight: bold;">I9 INJEÇÃO - SISTEMA COM BUSCA AUTOMÁTICA (PROCV)</div>
     <div id="relogio"></div>
 </div>
 
 <div class="container">
     
-    <div class="search-container">
-        <input type="text" id="campoBusca" placeholder="🔍 Pesquisar por Código, Operador ou Ordem..." onkeyup="atualizarTelas()">
-    </div>
-
-    <div class="panel" id="painel">
-        <div class="form-group">
-            <label>TIPO DE OPERAÇÃO</label>
-            <select id="tipoMov" onchange="alternarModo()">
-                <option value="ENTRADA">➕ ENTRADA (Produção)</option>
-                <option value="SAIDA">➖ SAÍDA (Expedição)</option>
-            </select>
+    <div class="section" style="background: #eef7ff;">
+        <div class="section-title">📂 1. CADASTRAR NOVO PRODUTO NO BANCO DE DADOS</div>
+        <div class="grid-form">
+            <div class="form-group"><label>CÓDIGO</label><input type="text" id="db_cod" placeholder="Ex: 1010"></div>
+            <div class="form-group"><label>NOME DO PRODUTO</label><input type="text" id="db_prod" placeholder="Ex: Tampa"></div>
+            <div class="form-group"><label>DESCRIÇÃO</label><input type="text" id="db_desc" placeholder="Ex: Tampa PP Azul"></div>
+            <div class="form-group" style="justify-content: flex-end;">
+                <button class="btn-add-db" onclick="salvarNoBanco()">💾 SALVAR NO BANCO</button>
+            </div>
         </div>
-        <div class="form-group"><label>CÓDIGO *</label><input type="text" id="cod" class="campo-obrigatorio"></div>
-        <div class="form-group"><label>QUANTIDADE *</label><input type="number" id="qtd" class="campo-obrigatorio"></div>
-        <div class="form-group"><label>OPERADOR (QUEM REALIZA) *</label><input type="text" id="operador" class="campo-obrigatorio"></div>
-        
-        <div class="form-group"><label>PRODUTO</label><input type="text" id="prod" class="f-completo"></div>
-        <div class="form-group"><label>DESCRIÇÃO</label><input type="text" id="desc" class="f-completo"></div>
-        <div class="form-group"><label>ORDEM</label><input type="text" id="ordem" class="f-completo"></div>
-        <div class="form-group"><label>PESO UM</label><input type="text" id="peso" class="f-completo"></div>
+        <small style="color: #666;">* Registre aqui uma vez para que o sistema reconheça o código automaticamente depois.</small>
     </div>
 
-    <div class="btns">
-        <button id="btnAcao" class="btn-reg" onclick="registrar()">REGISTRAR OPERAÇÃO</button>
-        <button class="btn-exp" onclick="exportar()">📥 EXPORTAR EXCEL</button>
+    <div class="section">
+        <div class="section-title">🚀 2. REGISTRAR ENTRADA OU SAÍDA</div>
+        <div class="grid-form">
+            <div class="form-group">
+                <label>OPERAÇÃO</label>
+                <select id="tipoMov">
+                    <option value="ENTRADA">➕ ENTRADA (Produção)</option>
+                    <option value="SAIDA">➖ SAÍDA (Expedição)</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>DIGITE O CÓDIGO</label>
+                <input type="text" id="mov_cod" oninput="buscarProcv(this.value)" placeholder="Digite e veja a mágica...">
+            </div>
+            <div class="form-group"><label>PRODUTO (Automático)</label><input type="text" id="mov_prod" readonly></div>
+            <div class="form-group"><label>DESCRIÇÃO (Automático)</label><input type="text" id="mov_desc" readonly></div>
+            <div class="form-group"><label>QUANTIDADE</label><input type="number" id="mov_qtd"></div>
+            <div class="form-group"><label>OPERADOR</label><input type="text" id="mov_ope"></div>
+        </div>
+        <button class="btn-reg-mov" onclick="registrarMovimentacao()">FINALIZAR REGISTRO</button>
     </div>
 
-    <div class="section-title">📊 SALDO ATUAL EM ESTOQUE</div>
-    <table>
-        <thead>
-            <tr>
-                <th>CÓDIGO</th>
-                <th>PRODUTO / DESCRIÇÃO</th>
-                <th>ENTRADAS</th>
-                <th>SAÍDAS</th>
-                <th>SALDO ATUAL</th>
-            </tr>
-        </thead>
-        <tbody id="corpoStatus"></tbody>
-    </table>
-
-    <div class="section-title">🕒 HISTÓRICO DE MOVIMENTAÇÕES (POR OPERADOR)</div>
-    <table>
-        <thead>
-            <tr>
-                <th>DATA</th>
-                <th>TIPO</th>
-                <th>CÓDIGO</th>
-                <th>QTD</th>
-                <th>OPERADOR</th>
-                <th>AÇÃO</th>
-            </tr>
-        </thead>
-        <tbody id="corpoHist"></tbody>
-    </table>
+    <div class="section">
+        <div class="section-title">📊 SALDO ATUAL E ÚLTIMOS LANÇAMENTOS</div>
+        <table id="tabelaHist">
+            <thead>
+                <tr>
+                    <th>DATA</th>
+                    <th>TIPO</th>
+                    <th>CÓDIGO</th>
+                    <th>PRODUTO</th>
+                    <th>QTD</th>
+                    <th>OPERADOR</th>
+                </tr>
+            </thead>
+            <tbody id="corpoHist"></tbody>
+        </table>
+    </div>
 </div>
 
 <script>
-    let db = JSON.parse(localStorage.getItem('i9_db_operador')) || [];
+    // Banco de dados de produtos (Cadastro Mestre)
+    let bancoProdutos = JSON.parse(localStorage.getItem('i9_banco_produtos')) || {};
+    // Histórico de Movimentações
+    let movimentacoes = JSON.parse(localStorage.getItem('i9_movimentacoes')) || [];
 
-    function alternarModo() {
-        const tipo = document.getElementById('tipoMov').value;
-        const opcionais = document.querySelectorAll('.f-completo');
-        const painel = document.getElementById('painel');
-        const btn = document.getElementById('btnAcao');
+    // FUNÇÃO PARA SALVAR NO BANCO (O "PROCV" VAI BUSCAR DAQUI)
+    function salvarNoBanco() {
+        const cod = document.getElementById('db_cod').value.trim().toUpperCase();
+        const prod = document.getElementById('db_prod').value.trim();
+        const desc = document.getElementById('db_desc').value.trim();
 
-        if(tipo === 'SAIDA') {
-            opcionais.forEach(c => { c.disabled = true; c.value = "---"; });
-            painel.classList.add('modo-saida');
-            btn.style.background = "var(--exit)";
-            btn.innerText = "CONFIRMAR SAÍDA POR OPERADOR";
+        if(!cod || !prod) return alert("Código e Produto são obrigatórios para o cadastro!");
+
+        bancoProdutos[cod] = { produto: prod, descricao: desc };
+        localStorage.setItem('i9_banco_produtos', JSON.stringify(bancoProdutos));
+        
+        alert("Produto " + cod + " cadastrado com sucesso!");
+        document.getElementById('db_cod').value = "";
+        document.getElementById('db_prod').value = "";
+        document.getElementById('db_desc').value = "";
+    }
+
+    // FUNÇÃO PROCV (BUSCA AUTOMÁTICA)
+    function buscarProcv(codigo) {
+        codigo = codigo.toUpperCase().trim();
+        const prodCampo = document.getElementById('mov_prod');
+        const descCampo = document.getElementById('mov_desc');
+
+        if(bancoProdutos[codigo]) {
+            prodCampo.value = bancoProdutos[codigo].produto;
+            descCampo.value = bancoProdutos[codigo].descricao;
+            prodCampo.style.background = "#d4edda"; // Verde se achou
         } else {
-            opcionais.forEach(c => { c.disabled = false; c.value = ""; });
-            painel.classList.remove('modo-saida');
-            btn.style.background = "var(--primary)";
-            btn.innerText = "REGISTRAR OPERAÇÃO";
+            prodCampo.value = "NÃO CADASTRADO";
+            descCampo.value = "Vá na seção 1 e cadastre";
+            prodCampo.style.background = "#f8d7da"; // Vermelho se não achou
         }
     }
 
-    function registrar() {
-        const mov = {
-            id: Date.now(),
-            tipo: document.getElementById('tipoMov').value,
-            cod: document.getElementById('cod').value.trim().toUpperCase(),
-            prod: document.getElementById('prod').value,
-            desc: document.getElementById('desc').value,
-            ordem: document.getElementById('ordem').value,
-            qtd: parseInt(document.getElementById('qtd').value) || 0,
-            operador: document.getElementById('operador').value.trim().toUpperCase(),
-            data: new Date().toLocaleString('pt-BR')
+    // REGISTRAR A MOVIMENTAÇÃO
+    function registrarMovimentacao() {
+        const cod = document.getElementById('mov_cod').value.toUpperCase();
+        const qtd = parseInt(document.getElementById('mov_qtd').value);
+        const tipo = document.getElementById('tipoMov').value;
+        const ope = document.getElementById('mov_ope').value;
+
+        if(!bancoProdutos[cod]) return alert("Erro: Este código não existe no banco de dados!");
+        if(!qtd) return alert("Digite a quantidade!");
+
+        const novaMov = {
+            data: new Date().toLocaleString('pt-BR'),
+            tipo: tipo,
+            cod: cod,
+            prod: bancoProdutos[cod].produto,
+            qtd: qtd,
+            operador: ope
         };
 
-        if(!mov.cod || !mov.qtd || !mov.operador || mov.operador === "---") {
-            return alert("ERRO: Código, Quantidade e Operador são obrigatórios!");
-        }
-
-        db.unshift(mov);
-        localStorage.setItem('i9_db_operador', JSON.stringify(db));
+        movimentacoes.unshift(novaMov);
+        localStorage.setItem('i9_movimentacoes', JSON.stringify(movimentacoes));
         
-        // Limpa apenas Código e Quantidade para manter o nome do operador (caso ele faça várias saídas)
-        document.getElementById('cod').value = "";
-        document.getElementById('qtd').value = "";
-        document.getElementById('cod').focus();
+        // Limpar campos
+        document.getElementById('mov_cod').value = "";
+        document.getElementById('mov_qtd').value = "";
+        document.getElementById('mov_prod').value = "";
+        document.getElementById('mov_desc').value = "";
+        document.getElementById('mov_prod').style.background = "";
         
-        atualizarTelas();
+        renderizar();
     }
 
-    function atualizarTelas() {
-        const termo = document.getElementById('campoBusca').value.toLowerCase();
-        const histCorpo = document.getElementById('corpoHist');
-        const statusCorpo = document.getElementById('corpoStatus');
-        
-        const filtrados = db.filter(m => 
-            m.cod.toLowerCase().includes(termo) || 
-            m.operador.toLowerCase().includes(termo) ||
-            m.ordem.toLowerCase().includes(termo)
-        );
-
-        histCorpo.innerHTML = '';
-        filtrados.slice(0, 30).forEach(m => {
-            histCorpo.innerHTML += `<tr>
-                <td>${m.data}</td>
-                <td style="color:${m.tipo === 'ENTRADA' ? 'green' : 'orange'}"><b>${m.tipo}</b></td>
-                <td>${m.cod}</td>
-                <td>${m.qtd}</td>
-                <td>${m.operador}</td>
-                <td><button onclick="excluir(${m.id})" style="background:none; border:none; cursor:pointer;">🗑️</button></td>
-            </tr>`;
-        });
-
-        statusCorpo.innerHTML = '';
-        const consolidado = {};
-        db.forEach(m => {
-            if(!consolidado[m.cod]) consolidado[m.cod] = { prod: m.prod, desc: m.desc, e: 0, s: 0 };
-            if(m.tipo === 'ENTRADA') consolidado[m.cod].e += m.qtd;
-            else consolidado[m.cod].s += m.qtd;
-        });
-
-        for(let c in consolidado) {
-            if(c.toLowerCase().includes(termo)) {
-                const saldo = consolidado[c].e - consolidado[c].s;
-                statusCorpo.innerHTML += `<tr>
-                    <td><b>${c}</b></td>
-                    <td>${consolidado[c].prod} ${consolidado[c].desc}</td>
-                    <td>${consolidado[c].e}</td>
-                    <td>${consolidado[c].s}</td>
-                    <td class="saldo-valor" style="color:${saldo < 0 ? 'red' : 'black'}">${saldo}</td>
+    function renderizar() {
+        const corpo = document.getElementById('corpoHist');
+        corpo.innerHTML = '';
+        movimentacoes.slice(0, 15).forEach(m => {
+            corpo.innerHTML += `
+                <tr>
+                    <td>${m.data}</td>
+                    <td class="${m.tipo === 'ENTRADA' ? 'badge-entrada' : 'badge-saida'}">${m.tipo}</td>
+                    <td>${m.cod}</td>
+                    <td>${m.prod}</td>
+                    <td><b>${m.tipo === 'SAIDA' ? '-' : '+'}${m.qtd}</b></td>
+                    <td>${m.operador}</td>
                 </tr>`;
-            }
-        }
-    }
-
-    function excluir(id) {
-        if(confirm("Deseja apagar este registro?")) {
-            db = db.filter(x => x.id !== id);
-            localStorage.setItem('i9_db_operador', JSON.stringify(db));
-            atualizarTelas();
-        }
-    }
-
-    function exportar() {
-        let csv = '\uFEFFDATA;TIPO;CODIGO;PRODUTO;DESCRIÇÃO;ORDEM;QTD;OPERADOR\n';
-        db.forEach(m => {
-            csv += `${m.data};${m.tipo};${m.cod};${m.prod};${m.desc};${m.ordem};${m.qtd};${m.operador}\n`;
         });
-        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-        const link = document.createElement("a");
-        link.href = URL.createObjectURL(blob);
-        link.download = "Relatorio_I9_Operadores.csv";
-        link.click();
     }
 
     setInterval(() => { document.getElementById('relogio').innerText = new Date().toLocaleString(); }, 1000);
-    atualizarTelas();
+    renderizar();
 </script>
 </body>
 </html>
