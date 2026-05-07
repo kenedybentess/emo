@@ -2,28 +2,30 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <title>SGE - I9 Injeção (Busca Avançada)</title>
+    <title>SGE - I9 Injeção (Rastreabilidade Total)</title>
     <style>
         :root { --primary: #2c3e50; --entry: #27ae60; --exit: #e67e22; --danger: #e74c3c; --light: #f4f7f6; }
         body { font-family: 'Segoe UI', sans-serif; margin: 0; background: var(--light); font-size: 12px; }
         .navbar { background: var(--primary); color: white; padding: 10px 20px; display: flex; justify-content: space-between; align-items: center; }
         .container { width: 98%; margin: 10px auto; background: white; padding: 15px; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
         
-        /* Área de Pesquisa */
-        .search-container { background: #fff; border: 2px solid var(--primary); border-radius: 8px; padding: 15px; margin-bottom: 20px; position: sticky; top: 10px; z-index: 100; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
-        #campoBusca { width: 100%; padding: 12px; border: none; font-size: 16px; outline: none; }
-        .search-stats { font-size: 11px; color: #666; margin-top: 5px; font-weight: bold; }
+        /* Centro de Pesquisa */
+        .search-container { background: #fff; border: 2px solid var(--primary); border-radius: 8px; padding: 12px; margin-bottom: 15px; position: sticky; top: 10px; z-index: 100; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        #campoBusca { width: 100%; padding: 10px; border: none; font-size: 15px; outline: none; }
 
         /* Painel de Registro */
-        .panel { display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 8px; background: #eee; padding: 15px; border-radius: 6px; margin-bottom: 10px; }
-        .modo-saida { border: 2px solid var(--exit); background: #fff5eb; }
+        .panel { display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 8px; background: #eee; padding: 15px; border-radius: 6px; margin-bottom: 10px; border: 2px solid #ccc; }
+        .modo-saida { border-color: var(--exit); background: #fff5eb; }
         .form-group { display: flex; flex-direction: column; }
-        label { font-size: 9px; font-weight: bold; margin-bottom: 2px; }
-        input, select { padding: 6px; border: 1px solid #bbb; border-radius: 4px; }
+        label { font-size: 9px; font-weight: bold; margin-bottom: 2px; color: #444; }
+        input, select { padding: 8px; border: 1px solid #bbb; border-radius: 4px; }
+        
+        /* Destaque para campos obrigatórios na saída */
+        .modo-saida .campo-obrigatorio { border: 2px solid var(--exit); background: #fff; }
 
         .btns { display: flex; gap: 10px; margin-bottom: 20px; }
         button { cursor: pointer; padding: 10px; border: none; border-radius: 4px; font-weight: bold; color: white; }
-        .btn-reg { background: var(--primary); flex-grow: 2; }
+        .btn-reg { background: var(--primary); flex-grow: 2; font-size: 14px; }
         .btn-exp { background: #217346; flex-grow: 1; }
 
         /* Tabelas */
@@ -31,63 +33,60 @@
         table { width: 100%; border-collapse: collapse; background: white; margin-bottom: 20px; }
         th { background: #f8f9fa; padding: 10px; text-align: left; border-bottom: 2px solid #dee2e6; }
         td { padding: 10px; border-bottom: 1px solid #eee; }
-        
         .saldo-valor { font-weight: bold; font-size: 14px; }
-        .alerta { color: var(--danger); }
-        .resultado-vazio { padding: 20px; text-align: center; color: #999; font-style: italic; }
     </style>
 </head>
 <body>
 
 <div class="navbar">
-    <div style="font-weight: bold;">SISTEMA I9 - GESTÃO INDUSTRIAL</div>
+    <div style="font-weight: bold;">SISTEMA I9 - CONTROLE COM OPERADOR</div>
     <div id="relogio"></div>
 </div>
 
 <div class="container">
     
     <div class="search-container">
-        <label style="color:var(--primary); font-size:10px;">CENTRO DE PESQUISA (BUSCA GLOBAL)</label>
-        <input type="text" id="campoBusca" placeholder="🔍 Digite CÓDIGO, OPERADOR, ORDEM ou DESCRIÇÃO para filtrar tudo..." onkeyup="executarBusca()">
-        <div class="search-stats" id="contadorBusca">Mostrando todos os registros</div>
+        <input type="text" id="campoBusca" placeholder="🔍 Pesquisar por Código, Operador ou Ordem..." onkeyup="atualizarTelas()">
     </div>
 
     <div class="panel" id="painel">
         <div class="form-group">
-            <label>OPERAÇÃO</label>
+            <label>TIPO DE OPERAÇÃO</label>
             <select id="tipoMov" onchange="alternarModo()">
-                <option value="ENTRADA">➕ ENTRADA</option>
-                <option value="SAIDA">➖ SAÍDA RÁPIDA</option>
+                <option value="ENTRADA">➕ ENTRADA (Produção)</option>
+                <option value="SAIDA">➖ SAÍDA (Expedição)</option>
             </select>
         </div>
-        <div class="form-group"><label>CÓDIGO</label><input type="text" id="cod"></div>
+        <div class="form-group"><label>CÓDIGO *</label><input type="text" id="cod" class="campo-obrigatorio"></div>
+        <div class="form-group"><label>QUANTIDADE *</label><input type="number" id="qtd" class="campo-obrigatorio"></div>
+        <div class="form-group"><label>OPERADOR (QUEM REALIZA) *</label><input type="text" id="operador" class="campo-obrigatorio"></div>
+        
         <div class="form-group"><label>PRODUTO</label><input type="text" id="prod" class="f-completo"></div>
         <div class="form-group"><label>DESCRIÇÃO</label><input type="text" id="desc" class="f-completo"></div>
         <div class="form-group"><label>ORDEM</label><input type="text" id="ordem" class="f-completo"></div>
-        <div class="form-group"><label>QTD</label><input type="number" id="qtd"></div>
-        <div class="form-group"><label>OPERADOR</label><input type="text" id="operador" class="f-completo"></div>
+        <div class="form-group"><label>PESO UM</label><input type="text" id="peso" class="f-completo"></div>
     </div>
 
     <div class="btns">
-        <button id="btnAcao" class="btn-reg" onclick="registrar()">REGISTRAR AGORA</button>
-        <button class="btn-exp" onclick="exportar()">📥 EXPORTAR HISTÓRICO</button>
+        <button id="btnAcao" class="btn-reg" onclick="registrar()">REGISTRAR OPERAÇÃO</button>
+        <button class="btn-exp" onclick="exportar()">📥 EXPORTAR EXCEL</button>
     </div>
 
-    <div class="section-title">📊 SALDO ATUAL DAS PEÇAS FILTRADAS</div>
+    <div class="section-title">📊 SALDO ATUAL EM ESTOQUE</div>
     <table>
         <thead>
             <tr>
                 <th>CÓDIGO</th>
-                <th>DESCRIÇÃO</th>
+                <th>PRODUTO / DESCRIÇÃO</th>
                 <th>ENTRADAS</th>
                 <th>SAÍDAS</th>
-                <th>SALDO</th>
+                <th>SALDO ATUAL</th>
             </tr>
         </thead>
         <tbody id="corpoStatus"></tbody>
     </table>
 
-    <div class="section-title">🕒 HISTÓRICO DE MOVIMENTAÇÕES</div>
+    <div class="section-title">🕒 HISTÓRICO DE MOVIMENTAÇÕES (POR OPERADOR)</div>
     <table>
         <thead>
             <tr>
@@ -104,18 +103,24 @@
 </div>
 
 <script>
-    let db = JSON.parse(localStorage.getItem('i9_db_final')) || [];
+    let db = JSON.parse(localStorage.getItem('i9_db_operador')) || [];
 
     function alternarModo() {
         const tipo = document.getElementById('tipoMov').value;
-        const campos = document.querySelectorAll('.f-completo');
+        const opcionais = document.querySelectorAll('.f-completo');
         const painel = document.getElementById('painel');
+        const btn = document.getElementById('btnAcao');
+
         if(tipo === 'SAIDA') {
-            campos.forEach(c => { c.disabled = true; c.value = "---"; });
+            opcionais.forEach(c => { c.disabled = true; c.value = "---"; });
             painel.classList.add('modo-saida');
+            btn.style.background = "var(--exit)";
+            btn.innerText = "CONFIRMAR SAÍDA POR OPERADOR";
         } else {
-            campos.forEach(c => { c.disabled = false; c.value = ""; });
+            opcionais.forEach(c => { c.disabled = false; c.value = ""; });
             painel.classList.remove('modo-saida');
+            btn.style.background = "var(--primary)";
+            btn.innerText = "REGISTRAR OPERAÇÃO";
         }
     }
 
@@ -128,17 +133,22 @@
             desc: document.getElementById('desc').value,
             ordem: document.getElementById('ordem').value,
             qtd: parseInt(document.getElementById('qtd').value) || 0,
-            operador: document.getElementById('operador').value,
+            operador: document.getElementById('operador').value.trim().toUpperCase(),
             data: new Date().toLocaleString('pt-BR')
         };
-        if(!mov.cod || mov.qtd <= 0) return alert("Código e Quantidade inválidos!");
-        db.unshift(mov);
-        localStorage.setItem('i9_db_final', JSON.stringify(db));
-        limpar();
-        atualizarTelas();
-    }
 
-    function executarBusca() {
+        if(!mov.cod || !mov.qtd || !mov.operador || mov.operador === "---") {
+            return alert("ERRO: Código, Quantidade e Operador são obrigatórios!");
+        }
+
+        db.unshift(mov);
+        localStorage.setItem('i9_db_operador', JSON.stringify(db));
+        
+        // Limpa apenas Código e Quantidade para manter o nome do operador (caso ele faça várias saídas)
+        document.getElementById('cod').value = "";
+        document.getElementById('qtd').value = "";
+        document.getElementById('cod').focus();
+        
         atualizarTelas();
     }
 
@@ -147,19 +157,14 @@
         const histCorpo = document.getElementById('corpoHist');
         const statusCorpo = document.getElementById('corpoStatus');
         
-        // Filtrar Dados
-        const dadosFiltrados = db.filter(m => 
+        const filtrados = db.filter(m => 
             m.cod.toLowerCase().includes(termo) || 
-            m.desc.toLowerCase().includes(termo) || 
-            m.ordem.toLowerCase().includes(termo) || 
-            m.operador.toLowerCase().includes(termo)
+            m.operador.toLowerCase().includes(termo) ||
+            m.ordem.toLowerCase().includes(termo)
         );
 
-        document.getElementById('contadorBusca').innerText = `Encontrados: ${dadosFiltrados.length} registros`;
-
-        // Renderizar Histórico
-        histCorpo.innerHTML = dadosFiltrados.length ? '' : '<tr><td colspan="6" class="resultado-vazio">Nenhum registro encontrado.</td></tr>';
-        dadosFiltrados.slice(0, 50).forEach(m => {
+        histCorpo.innerHTML = '';
+        filtrados.slice(0, 30).forEach(m => {
             histCorpo.innerHTML += `<tr>
                 <td>${m.data}</td>
                 <td style="color:${m.tipo === 'ENTRADA' ? 'green' : 'orange'}"><b>${m.tipo}</b></td>
@@ -170,49 +175,48 @@
             </tr>`;
         });
 
-        // Renderizar Saldo (Baseado no filtro ou geral)
         statusCorpo.innerHTML = '';
         const consolidado = {};
-        // Para o saldo, calculamos sempre sobre o DB total para manter integridade, mas filtramos a exibição
         db.forEach(m => {
-            if(!consolidado[m.cod]) consolidado[m.cod] = { desc: m.desc, e: 0, s: 0 };
+            if(!consolidado[m.cod]) consolidado[m.cod] = { prod: m.prod, desc: m.desc, e: 0, s: 0 };
             if(m.tipo === 'ENTRADA') consolidado[m.cod].e += m.qtd;
             else consolidado[m.cod].s += m.qtd;
         });
 
         for(let c in consolidado) {
-            if(c.toLowerCase().includes(termo) || consolidado[c].desc.toLowerCase().includes(termo)) {
+            if(c.toLowerCase().includes(termo)) {
                 const saldo = consolidado[c].e - consolidado[c].s;
                 statusCorpo.innerHTML += `<tr>
                     <td><b>${c}</b></td>
-                    <td>${consolidado[c].desc}</td>
+                    <td>${consolidado[c].prod} ${consolidado[c].desc}</td>
                     <td>${consolidado[c].e}</td>
                     <td>${consolidado[c].s}</td>
-                    <td class="saldo-valor ${saldo < 0 ? 'alerta' : ''}">${saldo}</td>
+                    <td class="saldo-valor" style="color:${saldo < 0 ? 'red' : 'black'}">${saldo}</td>
                 </tr>`;
             }
         }
     }
 
     function excluir(id) {
-        if(confirm("Excluir registro?")) {
+        if(confirm("Deseja apagar este registro?")) {
             db = db.filter(x => x.id !== id);
-            localStorage.setItem('i9_db_final', JSON.stringify(db));
+            localStorage.setItem('i9_db_operador', JSON.stringify(db));
             atualizarTelas();
         }
     }
 
     function exportar() {
         let csv = '\uFEFFDATA;TIPO;CODIGO;PRODUTO;DESCRIÇÃO;ORDEM;QTD;OPERADOR\n';
-        db.forEach(m => { csv += `${m.data};${m.tipo};${m.cod};${m.prod};${m.desc};${m.ordem};${m.qtd};${m.operador}\n`; });
+        db.forEach(m => {
+            csv += `${m.data};${m.tipo};${m.cod};${m.prod};${m.desc};${m.ordem};${m.qtd};${m.operador}\n`;
+        });
         const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
         const link = document.createElement("a");
         link.href = URL.createObjectURL(blob);
-        link.download = "I9_Historico_Completo.csv";
+        link.download = "Relatorio_I9_Operadores.csv";
         link.click();
     }
 
-    function limpar() { ["cod", "qtd", "prod", "desc", "ordem", "operador"].forEach(id => document.getElementById(id).value = ""); }
     setInterval(() => { document.getElementById('relogio').innerText = new Date().toLocaleString(); }, 1000);
     atualizarTelas();
 </script>
