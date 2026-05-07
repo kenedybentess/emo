@@ -2,7 +2,7 @@
 <html lang="pt-pt">
 <head>
     <meta charset="UTF-8">
-    <title>SGE - I9 Controlo Industrial</title>
+    <title>SGE - I9 Industrial (Auto-Limpeza)</title>
     <style>
         :root { --primary: #2c3e50; --entry: #27ae60; --exit: #e67e22; --danger: #e74c3c; --info: #3498db; --light: #f4f7f6; }
         body { font-family: 'Segoe UI', sans-serif; margin: 0; background: var(--light); font-size: 13px; color: #333; }
@@ -52,19 +52,19 @@
 
     <div class="search-container">
         <div class="search-box">
-            <input type="text" id="inputPesquisa" placeholder="Pesquisar em tudo (Código, Produto, Descrição, Operador...)" onkeyup="renderizar()">
+            <input type="text" id="inputPesquisa" placeholder="Pesquisar por Código, Produto, Descrição, Operador..." onkeyup="renderizar()">
         </div>
     </div>
 
     <div class="grid">
         <div class="card">
-            <div class="card-title">📂 Cadastro (Definir Descrição)</div>
+            <div class="card-title">📂 Cadastro de Produto (PROCV)</div>
             <div class="form-grid">
                 <div class="form-group"><label>CÓDIGO</label><input type="text" id="cad_cod"></div>
                 <div class="form-group"><label>PRODUTO</label><input type="text" id="cad_prod"></div>
-                <div class="form-group" style="grid-column: span 2;"><label>DESCRIÇÃO DETALHADA</label><input type="text" id="cad_desc"></div>
+                <div class="form-group" style="grid-column: span 2;"><label>DESCRIÇÃO</label><input type="text" id="cad_desc"></div>
             </div>
-            <button class="btn-blue" onclick="salvarProduto()">SALVAR NO BANCO DE DADOS</button>
+            <button class="btn-blue" onclick="salvarProduto()">SALVAR NO BANCO</button>
         </div>
 
         <div class="card">
@@ -84,33 +84,21 @@
     </div>
 
     <div class="table-container">
-        <div class="card-title">📊 Status Atual do Stock</div>
+        <div class="card-title">📊 Saldo Atual</div>
+        <tbody id="corpoSaldo"></tbody>
         <table>
             <thead>
-                <tr>
-                    <th>CÓDIGO</th>
-                    <th>PRODUTO</th>
-                    <th>DESCRIÇÃO</th>
-                    <th>SALDO</th>
-                    <th>STATUS</th>
-                </tr>
+                <tr><th>CÓDIGO</th><th>PRODUTO</th><th>DESCRIÇÃO</th><th>SALDO</th><th>STATUS</th></tr>
             </thead>
             <tbody id="corpoSaldo"></tbody>
         </table>
     </div>
 
     <div class="table-container">
-        <div class="card-title">🕒 Histórico de Movimentações</div>
+        <div class="card-title">🕒 Últimas Movimentações</div>
         <table>
             <thead>
-                <tr>
-                    <th>DATA</th>
-                    <th>TIPO</th>
-                    <th>CÓDIGO</th>
-                    <th>PRODUTO / DESCRIÇÃO</th>
-                    <th>QTD</th>
-                    <th>OPERADOR</th>
-                </tr>
+                <tr><th>DATA</th><th>TIPO</th><th>CÓDIGO</th><th>PRODUTO / DESCRIÇÃO</th><th>QTD</th><th>OPERADOR</th></tr>
             </thead>
             <tbody id="corpoHist"></tbody>
         </table>
@@ -118,17 +106,22 @@
 </div>
 
 <script>
-    let produtos = JSON.parse(localStorage.getItem('i9_v2_produtos')) || {};
-    let historico = JSON.parse(localStorage.getItem('i9_v2_logs')) || [];
+    let produtos = JSON.parse(localStorage.getItem('i9_v3_produtos')) || {};
+    let historico = JSON.parse(localStorage.getItem('i9_v3_logs')) || [];
 
     function salvarProduto() {
         const cod = document.getElementById('cad_cod').value.trim().toUpperCase();
         const prod = document.getElementById('cad_prod').value.trim();
         const desc = document.getElementById('cad_desc').value.trim();
-        if(!cod || !prod) return alert("Preencha o código e o nome!");
+        if(!cod || !prod) return alert("Preencha os campos!");
         produtos[cod] = { prod, desc };
-        localStorage.setItem('i9_v2_produtos', JSON.stringify(produtos));
-        alert("Produto e Descrição guardados!");
+        localStorage.setItem('i9_v3_produtos', JSON.stringify(produtos));
+        
+        // Limpar campos de cadastro
+        document.getElementById('cad_cod').value = "";
+        document.getElementById('cad_prod').value = "";
+        document.getElementById('cad_desc').value = "";
+        alert("Produto registado!");
         renderizar();
     }
 
@@ -140,40 +133,51 @@
             campoNome.value = produtos[valor].prod;
             campoDesc.value = produtos[valor].desc;
         } else {
-            campoNome.value = "NÃO ENCONTRADO";
-            campoDesc.value = "Registe no Cadastro";
+            campoNome.value = "";
+            campoDesc.value = "";
         }
     }
 
     function lancar() {
-        const cod = document.getElementById('mov_cod').value.toUpperCase();
-        const qtd = parseInt(document.getElementById('mov_qtd').value);
+        const codInput = document.getElementById('mov_cod');
+        const qtdInput = document.getElementById('mov_qtd');
+        const opeInput = document.getElementById('mov_ope');
         const tipo = document.getElementById('mov_tipo').value;
-        const ope = document.getElementById('mov_ope').value;
+        
+        const cod = codInput.value.toUpperCase();
+        const qtd = parseInt(qtdInput.value);
 
-        if(!produtos[cod] || !qtd) return alert("Erro nos dados!");
+        if(!produtos[cod] || !qtd) return alert("Verifique o código e a quantidade!");
 
         const registro = {
             data: new Date().toLocaleString('pt-pt'),
             tipo, cod, 
             prod: produtos[cod].prod, 
-            desc: produtos[cod].desc, // Salva a descrição no log
-            qtd, ope
+            desc: produtos[cod].desc,
+            qtd, 
+            ope: opeInput.value
         };
 
         historico.unshift(registro);
-        localStorage.setItem('i9_v2_logs', JSON.stringify(historico));
+        localStorage.setItem('i9_v3_logs', JSON.stringify(historico));
+
+        // --- FUNÇÃO DE LIMPEZA APÓS REGISTO ---
+        codInput.value = "";
+        qtdInput.value = "";
+        opeInput.value = "";
+        document.getElementById('mov_nome').value = "";
+        document.getElementById('mov_desc_auto').value = "";
+        
         renderizar();
     }
 
     function renderizar() {
         const filtro = document.getElementById('inputPesquisa').value.toLowerCase();
         
-        // 1. Tabela Saldo
+        // Render Saldo
         const corpoSaldo = document.getElementById('corpoSaldo');
         corpoSaldo.innerHTML = '';
         const saldos = {};
-        
         historico.forEach(l => {
             if(!saldos[l.cod]) saldos[l.cod] = { prod: l.prod, desc: l.desc, e: 0, s: 0 };
             if(l.tipo === 'ENTRADA') saldos[l.cod].e += l.qtd;
@@ -182,22 +186,22 @@
 
         for(let c in saldos) {
             const saldoFinal = saldos[c].e - saldos[c].s;
-            if(c.toLowerCase().includes(filtro) || saldos[c].prod.toLowerCase().includes(filtro) || saldos[c].desc.toLowerCase().includes(filtro)) {
+            if(c.toLowerCase().includes(filtro) || saldos[c].prod.toLowerCase().includes(filtro)) {
                 corpoSaldo.innerHTML += `
                     <tr>
                         <td><b>${c}</b></td>
                         <td>${saldos[c].prod}</td>
-                        <td style="color:#777">${saldos[c].desc}</td>
-                        <td style="font-weight:bold">${saldoFinal}</td>
+                        <td style="color:#666">${saldos[c].desc}</td>
+                        <td><b>${saldoFinal}</b></td>
                         <td><span class="status-pill ${saldoFinal > 0 ? 'bg-ok' : 'bg-zero'}">${saldoFinal > 0 ? 'EM STOCK' : 'ESGOTADO'}</span></td>
                     </tr>`;
             }
         }
 
-        // 2. Tabela Histórico
+        // Render Histórico
         const corpoHist = document.getElementById('corpoHist');
         corpoHist.innerHTML = '';
-        historico.filter(l => l.cod.toLowerCase().includes(filtro) || l.prod.toLowerCase().includes(filtro)).slice(0, 10).forEach(l => {
+        historico.filter(l => l.cod.toLowerCase().includes(filtro) || l.prod.toLowerCase().includes(filtro)).slice(0, 8).forEach(l => {
             corpoHist.innerHTML += `
                 <tr>
                     <td>${l.data}</td>
