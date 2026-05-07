@@ -1,182 +1,174 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-br">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Estoque Industrial Bentes</title>
+    <meta charset="UTF-8">
+    <title>SGE - Sistema de Gestão Industrial</title>
+    <style>
+        :root { --primary: #2c3e50; --secondary: #34495e; --danger: #e74c3c; --success: #27ae60; --info: #3498db; --light: #ecf0f1; }
+        body { font-family: 'Segoe UI', sans-serif; margin: 0; background: #f4f7f6; }
+        .navbar { background: var(--primary); color: white; padding: 1rem 2rem; display: flex; justify-content: space-between; }
+        .container { max-width: 98%; margin: 20px auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        
+        /* Layout de Inputs */
+        .panel { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; background: var(--light); padding: 15px; border-radius: 8px; margin-bottom: 20px; }
+        .form-group { display: flex; flex-direction: column; }
+        label { font-size: 11px; font-weight: bold; color: var(--secondary); margin-bottom: 3px; }
+        input { padding: 8px; border: 1px solid #ccc; border-radius: 4px; }
+        
+        .button-group { margin-bottom: 20px; display: flex; gap: 10px; }
+        button { cursor: pointer; padding: 10px 15px; border: none; border-radius: 4px; font-weight: bold; color: white; }
+        .btn-add { background: var(--success); }
+        .btn-exp { background: var(--secondary); }
+        .btn-imp { background: var(--info); }
 
-<style>
-body {
-  font-family: Arial;
-  background: #f5f5f5;
-  padding: 20px;
-}
+        #busca { width: 100%; padding: 12px; border: 2px solid var(--primary); border-radius: 6px; margin-bottom: 15px; box-sizing: border-box; }
 
-.container {
-  max-width: 500px;
-  margin: auto;
-}
-
-.card {
-  background: #fff;
-  padding: 20px;
-  border-radius: 10px;
-  margin-bottom: 20px;
-}
-
-input, button {
-  width: 100%;
-  padding: 10px;
-  margin: 10px 0;
-}
-
-button {
-  background: #007aff;
-  color: white;
-  border: none;
-  cursor: pointer;
-}
-
-.hidden {
-  display: none;
-}
-</style>
+        table { width: 100%; border-collapse: collapse; font-size: 13px; }
+        th { background: var(--primary); color: white; padding: 10px; text-align: left; }
+        td { padding: 8px 10px; border-bottom: 1px solid #eee; }
+        tr:hover { background: #f9f9f9; }
+        .estoque-baixo { background-color: #ffdce0 !important; }
+        
+        #fileInput { display: none; }
+    </style>
 </head>
-
 <body>
 
+<div class="navbar">
+    <div style="font-weight: bold;">SGE - CONTROLO DE PRODUÇÃO E STOCK</div>
+    <div id="data_atual"></div>
+</div>
+
 <div class="container">
+    <div class="panel">
+        <div class="form-group"><label>CÓDIGO</label><input type="text" id="cod"></div>
+        <div class="form-group"><label>DESCRIÇÃO</label><input type="text" id="desc"></div>
+        <div class="form-group"><label>ORDEM</label><input type="text" id="ordem"></div>
+        <div class="form-group"><label>QTD</label><input type="number" id="qtd"></div>
+        <div class="form-group"><label>PESO UM</label><input type="text" id="peso"></div>
+        <div class="form-group"><label>OPERADOR</label><input type="text" id="operador"></div>
+        <div class="form-group"><label>CQ</label><input type="text" id="cq"></div>
+        <div class="form-group"><label>MÍNIMO</label><input type="number" id="min" value="100"></div>
+    </div>
 
-<!-- LOGIN -->
-<div id="login" class="card">
-  <h2>🔐 Login</h2>
-  <input id="email" placeholder="Email">
-  <input id="senha" type="password" placeholder="Senha">
-  <button onclick="login()">Entrar</button>
-  <button onclick="register()">Criar Conta</button>
+    <div class="button-group">
+        <button class="btn-add" onclick="adicionar()">➕ CADASTRAR</button>
+        <button class="btn-exp" onclick="exportarCSV()">📥 EXPORTAR EXCEL</button>
+        <button class="btn-imp" onclick="document.getElementById('fileInput').click()">📤 IMPORTAR EXCEL</button>
+        <input type="file" id="fileInput" accept=".csv" onchange="importarCSV(event)">
+    </div>
+
+    <input type="text" id="busca" placeholder="🔍 Pesquisar por Código, Operador, Ordem ou Descrição..." onkeyup="filtrar()">
+
+    <table id="tabela">
+        <thead>
+            <tr>
+                <th>CÓDIGO</th>
+                <th>DESCRIÇÃO</th>
+                <th>ORDEM</th>
+                <th>QTD</th>
+                <th>PESO UM</th>
+                <th>OPERADOR</th>
+                <th>CQ</th>
+                <th>STATUS</th>
+                <th>AÇÕES</th>
+            </tr>
+        </thead>
+        <tbody id="corpo"></tbody>
+    </table>
 </div>
 
-<!-- SISTEMA -->
-<div id="app" class="hidden">
+<script>
+    let estoque = JSON.parse(localStorage.getItem('estoque_industrial')) || [];
 
-  <div class="card">
-    <h1>📦 Estoque Industrial Bentes</h1>
-    <button onclick="logout()">Sair</button>
-  </div>
+    function salvar() {
+        localStorage.setItem('estoque_industrial', JSON.stringify(estoque));
+        render();
+    }
 
-  <!-- CADASTRO -->
-  <div class="card">
-    <h3>Adicionar Produto</h3>
-    <input id="nome" placeholder="Nome do produto">
-    <input id="qtd" type="number" placeholder="Quantidade">
-    <button onclick="addProduto()">Salvar</button>
-  </div>
+    function adicionar() {
+        const item = {
+            cod: document.getElementById('cod').value,
+            desc: document.getElementById('desc').value,
+            ordem: document.getElementById('ordem.').value || '-',
+            qtd: parseInt(document.getElementById('qtd').value) || 0,
+            peso: document.getElementById('peso').value || '0',
+            operador: document.getElementById('operador').value || '-',
+            cq: document.getElementById('cq').value || '-',
+            min: parseInt(document.getElementById('min').value) || 0
+        };
+        estoque.push(item);
+        salvar();
+    }
 
-  <!-- DASHBOARD -->
-  <div class="card">
-    <h3>Dashboard</h3>
-    <p><strong>Total de itens:</strong> <span id="total">0</span></p>
-    <ul id="lista"></ul>
-  </div>
+    function movimentar(codigo, valor) {
+        const p = estoque.find(x => x.cod === codigo);
+        if(p) { p.qtd += valor; salvar(); }
+    }
 
-</div>
+    function filtrar() {
+        const termo = document.getElementById('busca').value.toLowerCase();
+        document.querySelectorAll('#corpo tr').forEach(tr => {
+            tr.style.display = tr.innerText.toLowerCase().includes(termo) ? '' : 'none';
+        });
+    }
 
-</div>
+    function exportarCSV() {
+        let csv = 'CODIGO;PRODUTO;DESCRIÇÃO;ORDEM;QTD;PESO UM;OPERADOR;CQ;MINIMO\n';
+        estoque.forEach(p => {
+            csv += `${p.cod};-;${p.desc};${p.ordem};${p.qtd};${p.peso};${p.operador};${p.cq};${p.min}\n`;
+        });
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement("a");
+        link.href = URL.createObjectURL(blob);
+        link.download = "estoque_producao.csv";
+        link.click();
+    }
 
-<!-- APP -->
-<script type="module">
+    function importarCSV(event) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const linhas = e.target.result.split('\n').slice(1);
+            linhas.forEach(l => {
+                const d = l.split(';');
+                if(d.length > 5) {
+                    estoque.push({
+                        cod: d[0], desc: d[2], ordem: d[3],
+                        qtd: parseInt(d[4]) || 0, peso: d[5],
+                        operador: d[6], cq: d[7], min: 100
+                    });
+                }
+            });
+            salvar();
+        };
+        reader.readAsText(event.target.files[0]);
+    }
 
-import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-app.js";
-import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-auth.js";
-import { getDatabase, ref, push, onValue } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-database.js";
+    function render() {
+        const corpo = document.getElementById('corpo');
+        corpo.innerHTML = '';
+        estoque.forEach(p => {
+            const baixo = p.qtd <= p.min ? 'estoque-baixo' : '';
+            corpo.innerHTML += `
+                <tr class="${baixo}">
+                    <td>${p.cod}</td>
+                    <td>${p.desc}</td>
+                    <td>${p.ordem}</td>
+                    <td><b>${p.qtd}</b></td>
+                    <td>${p.peso}</td>
+                    <td>${p.operador}</td>
+                    <td>${p.cq}</td>
+                    <td>${p.qtd <= p.min ? '🔴 REPOR' : '🟢 OK'}</td>
+                    <td>
+                        <button onclick="movimentar('${p.cod}', 1)" style="background:var(--success);padding:2px 5px">+</button>
+                        <button onclick="movimentar('${p.cod}', -1)" style="background:var(--danger);padding:2px 5px">-</button>
+                    </td>
+                </tr>`;
+        });
+    }
 
-// CONFIG FIREBASE
-const firebaseConfig = {
-  apiKey: "AIzaSyAgBZ2zkp-7s0GGe2tt99OfNpR3FBqKopI",
-  authDomain: "estoque-bentes.firebaseapp.com",
-  databaseURL: "https://estoque-bentes-default-rtdb.firebaseio.com",
-  projectId: "estoque-bentes",
-  storageBucket: "estoque-bentes.firebasestorage.app",
-  messagingSenderId: "611827952922",
-  appId: "1:611827952922:web:989c5e956094b77dac90a3"
-};
-
-// INICIAR
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getDatabase(app);
-
-// LOGIN
-window.login = function() {
-  const email = document.getElementById('email').value;
-  const senha = document.getElementById('senha').value;
-
-  signInWithEmailAndPassword(auth, email, senha)
-    .catch(e => alert(e.message));
-}
-
-// REGISTRAR
-window.register = function() {
-  const email = document.getElementById('email').value;
-  const senha = document.getElementById('senha').value;
-
-  createUserWithEmailAndPassword(auth, email, senha)
-    .then(() => alert("Conta criada!"))
-    .catch(e => alert(e.message));
-}
-
-// LOGOUT
-window.logout = function() {
-  signOut(auth);
-}
-
-// SESSÃO
-onAuthStateChanged(auth, (user) => {
-  if (user) {
-    document.getElementById('login').classList.add('hidden');
-    document.getElementById('app').classList.remove('hidden');
-    carregar();
-  } else {
-    document.getElementById('login').classList.remove('hidden');
-    document.getElementById('app').classList.add('hidden');
-  }
-});
-
-// ADICIONAR PRODUTO
-window.addProduto = function() {
-  const nome = document.getElementById('nome').value;
-  const qtd = parseInt(document.getElementById('qtd').value);
-
-  if (!nome || !qtd) {
-    alert("Preencha tudo");
-    return;
-  }
-
-  push(ref(db, "produtos"), {
-    nome,
-    qtd
-  });
-}
-
-// DASHBOARD
-function carregar() {
-  onValue(ref(db, "produtos"), (snapshot) => {
-    const dados = snapshot.val() || {};
-    const lista = document.getElementById('lista');
-
-    lista.innerHTML = "";
-    let total = 0;
-
-    Object.values(dados).forEach(p => {
-      total += p.qtd;
-      lista.innerHTML += `<li>${p.nome} - ${p.qtd}</li>`;
-    });
-
-    document.getElementById('total').innerText = total;
-  });
-}
-
+    document.getElementById('data_atual').innerText = new Date().toLocaleDateString();
+    render();
 </script>
-
 </body>
 </html>
