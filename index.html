@@ -2,20 +2,15 @@
 <html lang="pt-pt">
 <head>
     <meta charset="UTF-8">
-    <title>SGE - I9 Industrial (Cores e Destaques)</title>
+    <title>SGE - I9 Industrial (Versão Final + Histórico)</title>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-auth-compat.js"></script>
     
     <style>
         :root { 
-            --primary: #2c3e50; 
-            --entry: #27ae60; 
-            --exit: #e67e22; 
-            --info: #3498db; 
-            --light: #f4f7f6; 
-            --danger: #e74c3c; 
-            --done: #8e44ad; 
+            --primary: #2c3e50; --entry: #27ae60; --exit: #e67e22; 
+            --info: #3498db; --light: #f4f7f6; --danger: #e74c3c; --done: #8e44ad; 
         }
         body { font-family: 'Segoe UI', sans-serif; margin: 0; background: var(--light); color: #333; font-size: 13px; }
         
@@ -33,13 +28,15 @@
         td { padding: 12px; border-bottom: 1px solid #eee; }
         
         input, select { width: 100%; padding: 10px; margin: 5px 0 12px 0; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box; }
+        input:read-only { background: #f1f2f6; }
         
         button { cursor: pointer; padding: 8px; border: none; border-radius: 5px; font-weight: bold; color: white; transition: 0.3s; }
         .btn-reg { background: var(--primary); width: 100%; margin-top: 10px; }
-        .btn-history { background: white; color: var(--primary); width: 100%; padding: 12px; font-size: 13px; margin-bottom: 20px; border: 2px solid var(--primary); }
+        .btn-history { background: white; color: var(--primary); width: 100%; padding: 12px; font-size: 13px; margin-bottom: 20px; border: 2px solid var(--primary); box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
         .btn-history:hover { background: var(--primary); color: white; }
+        .btn-action { font-size: 9px; padding: 4px 8px; margin-right: 2px; }
         
-        /* Cores de Texto Específicas */
+        /* Cores de Letras */
         .txt-entry { color: var(--entry); font-weight: bold; }
         .txt-exit { color: var(--exit); font-weight: bold; }
         .txt-order { color: var(--done); font-weight: bold; }
@@ -49,8 +46,7 @@
         .modal-content { background: white; width: 90%; margin: 50px auto; padding: 25px; border-radius: 8px; position: relative; }
         .close-modal { position: absolute; right: 20px; top: 15px; font-size: 24px; cursor: pointer; color: var(--danger); }
         
-        .stock-baixo { background-color: #fff5f5; }
-        .stock-baixo td { color: var(--danger); font-weight: bold; }
+        .stock-baixo td { color: var(--danger); font-weight: bold; background-color: #fff5f5; }
     </style>
 </head>
 <body>
@@ -60,63 +56,69 @@
         <h2 style="color: var(--primary)">I9 INDUSTRIAL</h2>
         <input type="email" id="email" placeholder="E-mail">
         <input type="password" id="password" placeholder="Palavra-passe">
-        <button style="background: var(--info); width:100%" onclick="fazerLogin()">ENTRAR</button>
+        <button style="background: var(--info); width:100%" onclick="fazerLogin()">ENTRAR NO SISTEMA</button>
     </div>
 </div>
 
 <div id="main-content">
     <div class="navbar">
-        <div><b style="color: #ecf0f1;">SGE I9</b> | <span id="user-display">---</span></div>
+        <div><b>SGE I9</b> | <span id="user-display">---</span></div>
         <button onclick="auth.signOut().then(() => location.reload())" style="background:transparent; border:1px solid white; width:auto">Sair</button>
     </div>
 
     <div class="container">
-        <button class="btn-history" onclick="abrirHistorico()">🔍 CLIQUE PARA VER HISTÓRICO DE MOVIMENTAÇÕES</button>
+        <button class="btn-history" onclick="abrirHistorico()">🕒 VER HISTÓRICO DE MOVIMENTAÇÕES E APONTAMENTOS</button>
 
         <div class="grid">
             <div id="panel-admin" class="card" style="display: none; border-top: 5px solid var(--danger);">
-                <h3 style="color: var(--danger)">📂 CONFIGURAÇÕES ADMIN</h3>
+                <h3 style="color: var(--danger)">📂 GESTÃO E CONFIGURAÇÕES</h3>
                 <select id="admin_modo" onchange="alternarFormAdmin()">
                     <option value="PROD">CADASTRO DE PRODUTOS</option>
-                    <option value="ORDEM">ORDENS DE TRABALHO</option>
+                    <option value="ORDEM">ORDENS DE TRABALHO (OF)</option>
                 </select>
+                <hr>
                 <div id="form-prod">
-                    <label>Código</label><input type="text" id="cad_cod">
-                    <label>Produto</label><input type="text" id="cad_prod">
-                    <label>Descrição</label><input type="text" id="cad_desc">
-                    <label>Mínimo</label><input type="number" id="cad_min" value="5">
-                    <button class="btn-reg" onclick="salvarProduto()">SALVAR NOVO PRODUTO</button>
+                    <label>Código Artigo</label><input type="text" id="cad_cod">
+                    <label>Nome do Produto</label><input type="text" id="cad_prod">
+                    <label>Descrição Técnica</label><input type="text" id="cad_desc">
+                    <label>Stock Mínimo</label><input type="number" id="cad_min" value="5">
+                    <button class="btn-reg" onclick="salvarProduto()">GUARDAR PRODUTO</button>
                 </div>
                 <div id="form-ordem" style="display:none">
-                    <label>Nº Ordem</label><input type="text" id="ord_id">
+                    <label>Número da Ordem</label><input type="text" id="ord_id">
                     <label>Cód. Produto</label><input type="text" id="ord_cod" oninput="procv(this.value, 'ord_nome', '')">
-                    <input type="text" id="ord_nome" readonly style="color: var(--done); font-weight: bold;">
-                    <label>Qtd. Planeada</label><input type="number" id="ord_meta">
-                    <button class="btn-reg" style="background: var(--done)" onclick="salvarOrdem()">CRIAR ORDEM</button>
+                    <input type="text" id="ord_nome" readonly placeholder="Produto selecionado..." style="color: var(--done); font-weight: bold;">
+                    <label>Quantidade Planeada</label><input type="number" id="ord_meta">
+                    <button class="btn-reg" style="background: var(--done)" onclick="salvarOrdem()">CRIAR/ATUALIZAR ORDEM</button>
                 </div>
             </div>
 
             <div class="card">
-                <h3 style="color: var(--info)">🚀 REGISTAR MOVIMENTAÇÃO</h3>
-                <label>Tipo</label>
+                <h3 style="color: var(--info)">🚀 MOVIMENTAR / APONTAR</h3>
+                <label>Tipo de Registo</label>
                 <select id="mov_modo" onchange="alternarModoMov()">
-                    <option value="STOCK">MOVIMENTAÇÃO DE STOCK (ENTRADA/SAÍDA)</option>
+                    <option value="STOCK">STOCK GERAL (ENTRADA/SAÍDA)</option>
                     <option value="ORDEM">ORDEM DE TRABALHO (PRODUÇÃO)</option>
                 </select>
+
                 <div id="mov-stock-fields">
                     <label>Operação</label>
                     <select id="mov_tipo"><option value="ENTRADA">ENTRADA (+)</option><option value="SAIDA">SAÍDA (-)</option></select>
-                    <label>Código do Artigo</label><input type="text" id="mov_cod" oninput="procv(this.value, 'nome_prod', 'desc_prod')">
+                    <label>Código</label><input type="text" id="mov_cod" oninput="procv(this.value, 'nome_prod', 'desc_prod')">
                 </div>
+
                 <div id="mov-ordem-fields" style="display:none">
-                    <label>Selecionar Ordem</label>
-                    <select id="mov_ordem_id" onchange="validarOrdem()"><option value="">Aguardando seleção...</option></select>
+                    <label>Ordem Ativa</label>
+                    <select id="mov_ordem_id" onchange="validarOrdem()"><option value="">Selecione...</option></select>
                 </div>
-                <label>Artigo Selecionado</label>
-                <input type="text" id="nome_prod" readonly style="font-weight: bold; color: var(--primary);">
-                <input type="text" id="desc_prod" readonly style="font-size: 11px;">
+
+                <label>Produto / Descrição</label>
+                <input type="text" id="nome_prod" readonly style="font-weight: bold;">
+                <input type="text" id="desc_prod" readonly style="font-size: 11px; color: #7f8c8d;">
+                
                 <label>Quantidade</label>
                 <input type="number" id="mov_qtd" oninput="validarOrdem()">
+                
                 <span id="msg-validacao" style="display:block; margin:5px 0;"></span>
                 <button id="btn-registar" class="btn-reg" onclick="lancarMovimento()">CONFIRMAR REGISTO</button>
             </div>
@@ -125,15 +127,15 @@
         <div class="card" style="margin-bottom:20px">
             <h3 style="color: var(--done)">📋 MONITORIZAÇÃO DE ORDENS</h3>
             <table>
-                <thead><tr><th>ORDEM</th><th>CÓDIGO</th><th>PRODUTO</th><th>META</th><th>REAL</th><th>ESTADO</th></tr></thead>
+                <thead><tr><th>ORDEM</th><th>CÓDIGO</th><th>PRODUTO / DESCRIÇÃO</th><th>META</th><th>REAL</th><th>%</th><th>AÇÕES</th></tr></thead>
                 <tbody id="corpoOrdens"></tbody>
             </table>
         </div>
 
         <div class="card">
-            <h3 style="color: var(--primary)">📊 STOCK EM TEMPO REAL</h3>
+            <h3 style="color: var(--primary)">📊 ESTADO ATUAL DO STOCK</h3>
             <table>
-                <thead><tr><th>CÓDIGO</th><th>PRODUTO / DESCRIÇÃO</th><th>SALDO ATUAL</th><th>MÍN.</th></tr></thead>
+                <thead><tr><th>CÓDIGO</th><th>PRODUTO / DESCRIÇÃO</th><th>SALDO</th><th>MÍN.</th></tr></thead>
                 <tbody id="corpoStock"></tbody>
             </table>
         </div>
@@ -143,19 +145,19 @@
 <div id="modal-historico">
     <div class="modal-content">
         <span class="close-modal" onclick="fecharHistorico()">&times;</span>
-        <h2 style="color: var(--primary)">🕒 REGISTO DE ATIVIDADES</h2>
-        <input type="text" id="pesquisaHist" placeholder="Filtrar por código, produto ou operador..." onkeyup="renderizarHistorial()">
+        <h2 style="color: var(--primary)">🕒 HISTÓRICO COMPLETO DE MOVIMENTAÇÕES</h2>
+        <input type="text" id="pesquisaHist" placeholder="Filtrar por Código, Produto, Ordem ou User..." onkeyup="renderizarHistorial()">
         <table>
             <thead>
-                <tr><th>DATA</th><th>CATEGORIA</th><th>CÓDIGO</th><th>PRODUTO</th><th>QTD</th><th>USER</th></tr>
+                <tr><th>DATA/HORA</th><th>CATEGORIA</th><th>CÓDIGO</th><th>PRODUTO</th><th>QTD</th><th>USER</th></tr>
             </thead>
             <tbody id="corpoHist"></tbody>
         </table>
+        <button id="btn-limpar-hist" style="background: var(--danger); margin-top:20px; display:none;" onclick="limparHistorico()">APAGAR HISTÓRICO TOTAL</button>
     </div>
 </div>
 
 <script>
-    // Configuração Firebase (Mesma das anteriores)
     const firebaseConfig = {
         apiKey: "AIzaSyAPHVbVNdYEp_b7-_bWkTyn5jCVrbZogTo",
         authDomain: "i9-industrial.firebaseapp.com",
@@ -169,6 +171,8 @@
     const db = firebase.database();
 
     const listaAdmins = ["admin@i9.com", "super@i9.com"];
+    const listaSuper = ["super@i9.com"];
+
     let produtosGlobal = {};
     let ordensGlobal = {};
     let historicoGlobal = [];
@@ -180,8 +184,9 @@
                 document.getElementById('main-content').style.display = 'block';
                 document.getElementById('user-display').innerText = res.user.email;
                 if(listaAdmins.includes(res.user.email)) document.getElementById('panel-admin').style.display = 'block';
+                if(listaSuper.includes(res.user.email)) document.getElementById('btn-limpar-hist').style.display = 'block';
                 carregarDados();
-            }).catch(() => alert("Credenciais Inválidas"));
+            }).catch(() => alert("Acesso Negado"));
     }
 
     function carregarDados() {
@@ -207,6 +212,7 @@
         const modo = document.getElementById('mov_modo').value;
         document.getElementById('mov-stock-fields').style.display = modo === 'STOCK' ? 'block' : 'none';
         document.getElementById('mov-ordem-fields').style.display = modo === 'ORDEM' ? 'block' : 'none';
+        limparCamposMov();
     }
 
     function procv(cod, idNome, idDesc) {
@@ -217,30 +223,8 @@
 
     function atualizarSelectOrdens() {
         const sel = document.getElementById('mov_ordem_id');
-        sel.innerHTML = '<option value="">Selecione a ordem...</option>';
+        sel.innerHTML = '<option value="">Selecione...</option>';
         for(let id in ordensGlobal) sel.innerHTML += `<option value="${id}">${id} - ${ordensGlobal[id].prod}</option>`;
-    }
-
-    function validarOrdem() {
-        const modo = document.getElementById('mov_modo').value;
-        if(modo !== 'ORDEM') {
-            document.getElementById('msg-validacao').innerText = "";
-            document.getElementById('btn-registar').disabled = false;
-            return;
-        }
-        const idOrd = document.getElementById('mov_ordem_id').value;
-        const qtd = parseInt(document.getElementById('mov_qtd').value) || 0;
-        if(idOrd && ordensGlobal[idOrd]) {
-            const feito = historicoGlobal.filter(h => h.ordem === idOrd).reduce((a, b) => a + b.qtd, 0);
-            const falta = ordensGlobal[idOrd].meta - feito;
-            if(qtd > falta) {
-                document.getElementById('msg-validacao').innerHTML = `<b style="color:var(--danger)">⚠️ Limite excedido! Só pode registar mais ${falta}.</b>`;
-                document.getElementById('btn-registar').disabled = true;
-            } else {
-                document.getElementById('msg-validacao').innerHTML = `<b style="color:var(--entry)">✅ Saldo disponível na Ordem: ${falta}</b>`;
-                document.getElementById('btn-registar').disabled = false;
-            }
-        }
     }
 
     function salvarProduto() {
@@ -255,7 +239,30 @@
         const id = document.getElementById('ord_id').value.toUpperCase().trim();
         const cod = document.getElementById('ord_cod').value.toUpperCase().trim();
         const meta = parseInt(document.getElementById('ord_meta').value);
-        if(id && produtosGlobal[cod]) db.ref('ordens/' + id).set({ cod, prod: produtosGlobal[cod].prod, meta });
+        if(id && produtosGlobal[cod]) {
+            db.ref('ordens/' + id).set({ cod, prod: produtosGlobal[cod].prod, desc: produtosGlobal[cod].desc || "", meta });
+            alert("Ordem Salva!");
+        }
+    }
+
+    function validarOrdem() {
+        const modo = document.getElementById('mov_modo').value;
+        if(modo !== 'ORDEM') return;
+        const idOrd = document.getElementById('mov_ordem_id').value;
+        const qtd = parseInt(document.getElementById('mov_qtd').value) || 0;
+        if(idOrd && ordensGlobal[idOrd]) {
+            const feito = historicoGlobal.filter(h => h.ordem === idOrd).reduce((a, b) => a + b.qtd, 0);
+            const falta = ordensGlobal[idOrd].meta - feito;
+            const msg = document.getElementById('msg-validacao');
+            document.getElementById('nome_prod').value = ordensGlobal[idOrd].prod;
+            if(qtd > falta) {
+                msg.innerHTML = `<b class="txt-danger">⚠️ Máximo permitido: ${falta}</b>`;
+                document.getElementById('btn-registar').disabled = true;
+            } else {
+                msg.innerHTML = `<b class="txt-entry">Saldo da OF: ${falta}</b>`;
+                document.getElementById('btn-registar').disabled = false;
+            }
+        }
     }
 
     function lancarMovimento() {
@@ -270,54 +277,65 @@
             const id = document.getElementById('mov_ordem_id').value;
             d.tipo = "ORDEM"; d.ordem = id; d.cod = ordensGlobal[id].cod; d.prod = ordensGlobal[id].prod;
         }
-        db.ref('movimentacoes').push(d).then(() => alert("Registo Efetuado!"));
+        db.ref('movimentacoes').push(d).then(() => { alert("Sucesso!"); limparCamposMov(); });
     }
 
+    function limparCamposMov() {
+        document.getElementById('mov_cod').value = ""; document.getElementById('mov_qtd').value = "";
+        document.getElementById('nome_prod').value = ""; document.getElementById('desc_prod').value = "";
+        document.getElementById('msg-validacao').innerText = "";
+    }
+
+    function editarOrdem(id) {
+        document.getElementById('admin_modo').value = 'ORDEM'; alternarFormAdmin();
+        const o = ordensGlobal[id];
+        document.getElementById('ord_id').value = id; document.getElementById('ord_cod').value = o.cod;
+        document.getElementById('ord_nome').value = o.prod; document.getElementById('ord_meta').value = o.meta;
+        window.scrollTo(0,0);
+    }
+
+    function eliminarOrdem(id) { if(confirm("Eliminar OF?")) db.ref('ordens/'+id).remove(); }
+    function limparHistorico() { if(confirm("Apagar TUDO?")) db.ref('movimentacoes').remove(); }
+
     function renderizarTudo() {
+        const isSuper = listaSuper.includes(document.getElementById('user-display').innerText);
         // Stock
         const corpoStock = document.getElementById('corpoStock'); corpoStock.innerHTML = '';
         const saldos = {}; for(let c in produtosGlobal) saldos[c] = { ...produtosGlobal[c], e:0, s:0 };
         historicoGlobal.forEach(h => { if(saldos[h.cod]) { if(h.tipo==='ENTRADA'||h.tipo==='ORDEM') saldos[h.cod].e+=h.qtd; else saldos[h.cod].s+=h.qtd; } });
         for(let c in saldos) {
             const total = saldos[c].e - saldos[c].s;
-            const critico = total <= saldos[c].min;
-            corpoStock.innerHTML += `<tr class="${critico ? 'stock-baixo' : ''}">
+            corpoStock.innerHTML += `<tr class="${total <= saldos[c].min ? 'stock-baixo' : ''}">
                 <td><b>${c}</b></td>
                 <td>${saldos[c].prod}<br><small>${saldos[c].desc || ''}</small></td>
-                <td style="font-size:15px"><b>${total}</b></td>
-                <td>${saldos[c].min}</td>
+                <td style="font-size:14px"><b>${total}</b></td><td>${saldos[c].min}</td>
             </tr>`;
         }
-
         // Ordens
         const corpoOrdens = document.getElementById('corpoOrdens'); corpoOrdens.innerHTML = '';
         for(let id in ordensGlobal) {
             const feito = historicoGlobal.filter(h => h.ordem === id).reduce((a, b) => a + b.qtd, 0);
             const perc = ((feito/ordensGlobal[id].meta)*100).toFixed(0);
             corpoOrdens.innerHTML += `<tr>
-                <td><b style="color:var(--done)">${id}</b></td>
-                <td>${ordensGlobal[id].cod}</td>
-                <td>${ordensGlobal[id].prod}</td>
-                <td>${ordensGlobal[id].meta}</td>
-                <td class="txt-order">${feito}</td>
-                <td><b style="color: ${perc >= 100 ? 'var(--entry)' : 'var(--info)'}">${perc}%</b></td>
+                <td class="txt-order">${id}</td><td>${ordensGlobal[id].cod}</td>
+                <td>${ordensGlobal[id].prod}<br><small>${ordensGlobal[id].desc || ''}</small></td>
+                <td>${ordensGlobal[id].meta}</td><td class="txt-order">${feito}</td>
+                <td><b style="color:${perc >= 100 ? 'var(--entry)' : 'var(--info)'}">${perc}%</b></td>
+                <td>${isSuper ? `<button class="btn-action" style="background:var(--info)" onclick="editarOrdem('${id}')">EDT</button><button class="btn-action" style="background:var(--danger)" onclick="eliminarOrdem('${id}')">DEL</button>` : '--'}</td>
             </tr>`;
         }
     }
 
     function renderizarHistorial() {
         const filtro = document.getElementById('pesquisaHist').value.toLowerCase();
-        const corpo = document.getElementById('corpoHist');
-        corpo.innerHTML = '';
-        historicoGlobal.filter(h => h.cod.toLowerCase().includes(filtro) || h.prod.toLowerCase().includes(filtro)).forEach(h => {
-            let classe = h.ordem ? 'txt-order' : (h.tipo === 'ENTRADA' ? 'txt-entry' : 'txt-exit');
+        const corpo = document.getElementById('corpoHist'); corpo.innerHTML = '';
+        historicoGlobal.filter(h => h.cod.toLowerCase().includes(filtro) || h.prod.toLowerCase().includes(filtro) || (h.ordem && h.ordem.toLowerCase().includes(filtro))).forEach(h => {
+            const cl = h.ordem ? 'txt-order' : (h.tipo === 'ENTRADA' ? 'txt-entry' : 'txt-exit');
             corpo.innerHTML += `<tr>
                 <td style="font-size:10px">${h.data}</td>
-                <td class="${classe}">${h.ordem || h.tipo}</td>
-                <td>${h.cod}</td>
-                <td>${h.prod}</td>
-                <td class="${classe}">${h.qtd}</td>
-                <td style="color:#7f8c8d">${h.ope.split('@')[0]}</td>
+                <td class="${cl}">${h.ordem || h.tipo}</td>
+                <td>${h.cod}</td><td>${h.prod}</td>
+                <td class="${cl}">${h.qtd}</td><td style="font-size:10px">${h.ope.split('@')[0]}</td>
             </tr>`;
         });
     }
