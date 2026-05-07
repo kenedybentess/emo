@@ -2,7 +2,7 @@
 <html lang="pt-pt">
 <head>
     <meta charset="UTF-8">
-    <title>SGE - I9 Industrial (Versão Full Edit)</title>
+    <title>SGE - I9 Industrial (Super User Mode)</title>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-auth-compat.js"></script>
@@ -10,7 +10,7 @@
     <style>
         :root { 
             --primary: #2c3e50; --entry: #27ae60; --exit: #e67e22; 
-            --info: #3498db; --light: #f4f7f6; --danger: #e74c3c; --done: #8e44ad; --edit: #f1c40f;
+            --info: #3498db; --light: #f4f7f6; --danger: #e74c3c; --done: #8e44ad; 
         }
         body { font-family: 'Segoe UI', sans-serif; margin: 0; background: var(--light); color: #333; font-size: 13px; }
         #login-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--primary); display: flex; justify-content: center; align-items: center; z-index: 1000; }
@@ -21,15 +21,15 @@
         .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px; }
         .card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
         table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-        th { background: #f8f9fa; padding: 10px; text-align: left; border-bottom: 2px solid #ddd; font-size: 11px; }
-        td { padding: 10px; border-bottom: 1px solid #eee; }
+        th { background: #f8f9fa; padding: 12px; text-align: left; border-bottom: 2px solid #ddd; font-size: 11px; }
+        td { padding: 12px; border-bottom: 1px solid #eee; }
         input, select { width: 100%; padding: 10px; margin: 5px 0 12px 0; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box; }
         button { cursor: pointer; padding: 8px; border: none; border-radius: 5px; font-weight: bold; color: white; }
         .btn-reg { background: var(--primary); width: 100%; margin-top: 10px; }
-        .btn-danger { background: var(--danger); font-size: 9px; padding: 4px 6px; }
-        .btn-edit { background: var(--edit); color: #333; font-size: 9px; padding: 4px 6px; margin-right: 2px; }
-        .btn-adj { background: #34495e; font-size: 9px; padding: 4px 6px; margin-right: 2px; }
-        .super-only { display: none; }
+        .btn-danger { background: var(--danger); font-size: 10px; padding: 4px 8px; }
+        .txt-entry { color: var(--entry); font-weight: bold; } 
+        .txt-exit { color: var(--exit); font-weight: bold; }  
+        .txt-order { color: var(--done); font-weight: bold; } 
         #modal-historico { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 2000; overflow-y: auto; }
         .modal-content { background: white; width: 95%; margin: 30px auto; padding: 25px; border-radius: 8px; position: relative; }
     </style>
@@ -52,56 +52,58 @@
     </div>
 
     <div class="container">
-        <button onclick="abrirHistorico()" style="background: white; color: var(--primary); padding:12px; width:100%; border: 2px solid var(--primary); margin-bottom:20px; font-weight:bold;">🕒 VER HISTÓRICO DE MOVIMENTOS</button>
+        <button onclick="abrirHistorico()" style="background: white; color: var(--primary); padding:15px; width:100%; border: 2px solid var(--primary); margin-bottom:20px; font-weight:bold;">🕒 HISTÓRICO COMPLETO & GESTÃO DE DADOS</button>
 
         <div class="grid">
             <div id="panel-admin" class="card" style="display: none; border-top: 5px solid var(--danger);">
-                <h3 id="titulo-admin">📂 GESTÃO E EDIÇÃO</h3>
+                <h3 style="color: var(--danger)">📂 GESTÃO DE CADASTROS</h3>
                 <select id="admin_modo" onchange="alternarFormAdmin()">
-                    <option value="PROD">CADASTRO PRODUTOS</option>
+                    <option value="PROD">ARTIGOS / PRODUTOS</option>
                     <option value="ORDEM">ORDENS DE FABRICO</option>
                 </select>
                 <div id="form-prod">
                     <label>Código</label><input type="text" id="cad_cod">
-                    <label>Nome do Produto</label><input type="text" id="cad_prod">
+                    <label>Produto</label><input type="text" id="cad_prod">
                     <label>Descrição</label><input type="text" id="cad_desc">
                     <label>Stock Mínimo</label><input type="number" id="cad_min" value="5">
-                    <button class="btn-reg" onclick="salvarProduto()">GRAVAR DADOS</button>
+                    <button class="btn-reg" onclick="salvarProduto()">GRAVAR / ATUALIZAR</button>
                 </div>
                 <div id="form-ordem" style="display:none">
                     <label>Nº OF</label><input type="text" id="ord_id">
                     <label>Cód. Artigo</label><input type="text" id="ord_cod" oninput="procv(this.value, 'ord_nome', '')">
-                    <input type="text" id="ord_nome" readonly style="font-weight: bold; color: var(--done);">
+                    <input type="text" id="ord_nome" readonly style="color: var(--done); font-weight: bold;">
                     <label>Meta Unidades</label><input type="number" id="ord_meta">
-                    <button class="btn-reg" style="background: var(--done)" onclick="salvarOrdem()">CRIAR/EDITAR OF</button>
+                    <button class="btn-reg" style="background: var(--done)" onclick="salvarOrdem()">CRIAR ORDEM</button>
                 </div>
             </div>
 
             <div class="card">
-                <h3>🚀 LANÇAR MOVIMENTO</h3>
+                <h3 style="color: var(--info)">🚀 REGISTAR MOVIMENTAÇÃO</h3>
+                <label>Tipo</label>
                 <select id="mov_tipo" onchange="alternarCamposEntrada()">
                     <option value="ENTRADA">ENTRADA (Via OF)</option>
-                    <option value="SAIDA">SAÍDA (Expedição)</option>
+                    <option value="SAIDA">SAÍDA (Venda/Ajuste)</option>
                 </select>
                 <div id="campos-entrada">
-                    <select id="mov_ordem_id" onchange="preencherPelaOrdem()"><option value="">Selecionar OF...</option></select>
+                    <label>Selecionar OF</label>
+                    <select id="mov_ordem_id" onchange="preencherPelaOrdem()"><option value="">A carregar...</option></select>
                 </div>
                 <div id="campos-saida" style="display:none">
-                    <input type="text" id="mov_cod" placeholder="Código Artigo" oninput="procv(this.value, 'nome_prod', 'desc_prod')">
+                    <label>Código Artigo</label>
+                    <input type="text" id="mov_cod" oninput="procv(this.value, 'nome_prod', 'desc_prod')">
                 </div>
-                <input type="text" id="nome_prod" readonly placeholder="Artigo">
-                <input type="text" id="desc_prod" readonly placeholder="Descrição" style="font-size:11px;">
-                <input type="number" id="mov_qtd" placeholder="Quantidade">
-                <button class="btn-reg" onclick="lancarMovimento()">REGISTAR</button>
+                <input type="text" id="nome_prod" readonly placeholder="Produto">
+                <input type="text" id="desc_prod" readonly placeholder="Descrição" style="font-size: 11px;">
+                <input type="number" id="mov_qtd" placeholder="Quantidade" oninput="validarOF()">
+                <span id="msg-validacao"></span>
+                <button id="btn-registar" class="btn-reg" onclick="lancarMovimento()">CONFIRMAR</button>
             </div>
         </div>
 
         <div class="card" style="margin-bottom:20px">
-            <h3>📋 MONITORIZAÇÃO DE ORDENS</h3>
+            <h3>📋 ORDENS EM CURSO</h3>
             <table>
-                <thead>
-                    <tr><th>OF</th><th>PRODUTO</th><th>META</th><th>REAL</th><th>%</th><th class="super-only">ADMIN</th></tr>
-                </thead>
+                <thead><tr><th>OF</th><th>CÓDIGO</th><th>PRODUTO</th><th>META</th><th>REAL</th><th>%</th><th class="super-only">AÇÃO</th></tr></thead>
                 <tbody id="corpoOrdens"></tbody>
             </table>
         </div>
@@ -109,9 +111,7 @@
         <div class="card">
             <h3>📊 STOCK ATUAL</h3>
             <table>
-                <thead>
-                    <tr><th>CÓDIGO</th><th>ARTIGO</th><th>SALDO</th><th>MÍN</th><th class="super-only">ADMIN</th></tr>
-                </thead>
+                <thead><tr><th>CÓDIGO</th><th>ARTIGO</th><th>SALDO</th><th>MÍN</th><th class="super-only">AÇÃO</th></tr></thead>
                 <tbody id="corpoStock"></tbody>
             </table>
         </div>
@@ -121,10 +121,14 @@
 <div id="modal-historico">
     <div class="modal-content">
         <span onclick="fecharHistorico()" style="position:absolute; right:20px; top:15px; cursor:pointer; font-size:24px;">&times;</span>
-        <h2>🕒 HISTÓRICO COM DESCRIÇÃO</h2>
-        <input type="text" id="pesquisaHist" placeholder="Filtrar..." onkeyup="renderizarHistorial()" style="margin-bottom:10px;">
-        <table>
-            <thead><tr><th>DATA</th><th>REF</th><th>COD</th><th>DESCRIÇÃO</th><th>QTD</th><th>USER</th><th class="super-only">ADMIN</th></tr></thead>
+        <h2>🕒 HISTÓRICO DE MOVIMENTOS</h2>
+        <div style="display:flex; gap:10px; margin-bottom:15px;">
+            <input type="text" id="pesquisaHist" placeholder="Pesquisar..." onkeyup="renderizarHistorial()">
+            <button onclick="exportarCSV()" style="background:var(--entry); white-space:nowrap;">BAIXAR CSV</button>
+            <button id="btn-limpar-tudo" class="super-only" onclick="limparHistoricoTotal()" style="background:var(--danger); display:none;">LIMPAR TUDO</button>
+        </div>
+        <table style="font-size:11px">
+            <thead><tr><th>DATA</th><th>REF</th><th>COD</th><th>PROD</th><th>QTD</th><th>USER</th><th class="super-only">AÇÃO</th></tr></thead>
             <tbody id="corpoHist"></tbody>
         </table>
     </div>
@@ -145,8 +149,8 @@
 
     let userEmail = "";
     let produtosGlobal = {};
-    let movsGlobal = {};
     let ordensGlobal = {};
+    let movsGlobal = {};
 
     function fazerLogin() {
         auth.signInWithEmailAndPassword(document.getElementById('email').value, document.getElementById('password').value)
@@ -155,14 +159,14 @@
                 document.getElementById('login-screen').style.display = 'none';
                 document.getElementById('main-content').style.display = 'block';
                 document.getElementById('user-display').innerText = userEmail;
+                
                 if(userEmail === "admin@i9.com" || userEmail === "super@i9.com") document.getElementById('panel-admin').style.display = 'block';
                 if(userEmail === "super@i9.com") {
-                    const css = document.createElement("style");
-                    css.innerHTML = ".super-only { display: table-cell !important; }";
-                    document.head.appendChild(css);
+                    document.getElementById('btn-limpar-tudo').style.display = 'block';
+                    document.querySelectorAll('.super-only').forEach(el => el.style.display = 'table-cell');
                 }
                 carregarDados();
-            }).catch(() => alert("Erro de Acesso"));
+            }).catch(() => alert("Falha no login"));
     }
 
     function carregarDados() {
@@ -171,144 +175,81 @@
         db.ref('movimentacoes').on('value', s => { movsGlobal = s.val() || {}; renderizarTudo(); renderizarHistorial(); });
     }
 
-    function renderizarTudo() {
-        const histArray = Object.values(movsGlobal);
+    // --- FUNÇÕES DE ELIMINAÇÃO (SUPER USER) ---
+    function eliminarOF(id) { if(confirm("Eliminar esta Ordem permanentemente?")) db.ref('ordens/'+id).remove(); }
+    function eliminarProduto(id) { if(confirm("Eliminar este produto do cadastro?")) db.ref('produtos/'+id).remove(); }
+    function eliminarMov(id) { if(confirm("Eliminar este registo do histórico?")) db.ref('movimentacoes/'+id).remove(); }
+    function limparHistoricoTotal() { if(confirm("ATENÇÃO: Isto apagará TODO o histórico. Confirmar?")) db.ref('movimentacoes').remove(); }
 
-        // 1. Stock
+    // --- LÓGICA DE NEGÓCIO ---
+    function renderizarTudo() {
+        const isSuper = userEmail === "super@i9.com";
+        const histArray = Object.entries(movsGlobal).map(([id, val]) => ({id, ...val}));
+
+        // Stock
         const corpoStock = document.getElementById('corpoStock'); corpoStock.innerHTML = '';
         const saldos = {};
         for(let c in produtosGlobal) saldos[c] = { ...produtosGlobal[c], total: 0 };
         histArray.forEach(h => {
             if(saldos[h.cod]) {
                 const q = parseFloat(h.qtd) || 0;
-                if(h.tipo === 'ENTRADA' || h.tipo === 'ORDEM') saldos[h.cod].total += q;
+                if(h.tipo === 'ORDEM' || h.tipo === 'ENTRADA') saldos[h.cod].total += q;
                 else saldos[h.cod].total -= q;
             }
         });
         for(let c in saldos) {
             corpoStock.innerHTML += `<tr>
-                <td><b>${c}</b></td><td>${saldos[c].prod}<br><small>${saldos[c].desc || ''}</small></td>
-                <td><b style="font-size:14px;">${saldos[c].total}</b></td><td>${saldos[c].min}</td>
-                <td class="super-only">
-                    <button class="btn-adj" onclick="ajustarSaldo('${c}', ${saldos[c].total})">SALDO</button>
-                    <button class="btn-edit" onclick="editarProduto('${c}')">EDIT</button>
-                    <button class="btn-danger" onclick="if(confirm('Apagar?')) db.ref('produtos/${c}').remove()">DEL</button>
-                </td>
+                <td><b>${c}</b></td><td>${saldos[c].prod}</td>
+                <td><b>${saldos[c].total}</b></td><td>${saldos[c].min}</td>
+                <td class="super-only">${isSuper ? `<button class="btn-danger" onclick="eliminarProduto('${c}')">DEL</button>` : ''}</td>
             </tr>`;
         }
 
-        // 2. Ordens
+        // Ordens
         const corpoOrdens = document.getElementById('corpoOrdens'); corpoOrdens.innerHTML = '';
         for(let id in ordensGlobal) {
             const feito = histArray.filter(h => h.ordem === id).reduce((a, b) => a + (parseFloat(b.qtd) || 0), 0);
             const perc = ((feito/ordensGlobal[id].meta)*100).toFixed(0);
             corpoOrdens.innerHTML += `<tr>
-                <td class="txt-order">${id}</td><td>${ordensGlobal[id].prod}</td>
-                <td>${ordensGlobal[id].meta}</td><td>${feito}</td><td>${perc}%</td>
-                <td class="super-only">
-                    <button class="btn-edit" onclick="editarOF('${id}')">EDIT</button>
-                    <button class="btn-danger" onclick="if(confirm('Apagar?')) db.ref('ordens/${id}').remove()">DEL</button>
-                </td>
+                <td class="txt-order">${id}</td><td>${ordensGlobal[id].cod}</td><td>${ordensGlobal[id].prod}</td>
+                <td>${ordensGlobal[id].meta}</td><td class="txt-order">${feito}</td><td>${perc}%</td>
+                <td class="super-only">${isSuper ? `<button class="btn-danger" onclick="eliminarOF('${id}')">DEL</button>` : ''}</td>
             </tr>`;
         }
     }
 
-    // --- FUNÇÕES DE EDIÇÃO E AJUSTE ---
-    function ajustarSaldo(cod, saldoAtual) {
-        const novo = prompt(`Ajuste para [${cod}]:\nSaldo atual: ${saldoAtual}\nNovo saldo real:`, saldoAtual);
-        if (novo !== null && novo !== "" && !isNaN(novo)) {
-            const diff = parseFloat(novo) - saldoAtual;
-            if (diff === 0) return;
-            db.ref('movimentacoes').push({
-                data: new Date().toLocaleString('pt-pt'),
-                tipo: diff > 0 ? "ENTRADA" : "SAIDA",
-                cod: cod, prod: produtosGlobal[cod].prod, desc: "AJUSTE MANUAL",
-                qtd: Math.abs(diff), ope: userEmail
-            });
-        }
-    }
-
-    function editarProduto(id) {
-        const p = produtosGlobal[id];
-        document.getElementById('admin_modo').value = 'PROD';
-        alternarFormAdmin();
-        document.getElementById('cad_cod').value = id;
-        document.getElementById('cad_prod').value = p.prod;
-        document.getElementById('cad_desc').value = p.desc || "";
-        document.getElementById('cad_min').value = p.min;
-        window.scrollTo(0,0);
-    }
-
-    function editarOF(id) {
-        const o = ordensGlobal[id];
-        document.getElementById('admin_modo').value = 'ORDEM';
-        alternarFormAdmin();
-        document.getElementById('ord_id').value = id;
-        document.getElementById('ord_cod').value = o.cod;
-        document.getElementById('ord_nome').value = o.prod;
-        document.getElementById('ord_meta').value = o.meta;
-        window.scrollTo(0,0);
-    }
-
-    // --- UTILITÁRIOS ---
-    function alternarFormAdmin() {
-        const m = document.getElementById('admin_modo').value;
-        document.getElementById('form-prod').style.display = m === 'PROD' ? 'block' : 'none';
-        document.getElementById('form-ordem').style.display = m === 'ORDEM' ? 'block' : 'none';
-    }
-
-    function salvarProduto() {
-        const c = document.getElementById('cad_cod').value.toUpperCase().trim();
-        const p = document.getElementById('cad_prod').value;
-        const d = document.getElementById('cad_desc').value;
-        const m = parseInt(document.getElementById('cad_min').value) || 0;
-        if(c && p) db.ref('produtos/'+c).set({ prod: p, desc: d, min: m }).then(() => alert("Atualizado"));
-    }
-
-    function salvarOrdem() {
-        const i = document.getElementById('ord_id').value.toUpperCase().trim();
-        const c = document.getElementById('ord_cod').value.toUpperCase().trim();
-        const m = parseInt(document.getElementById('ord_meta').value);
-        if(i && produtosGlobal[c]) db.ref('ordens/'+i).set({ cod: c, prod: produtosGlobal[c].prod, meta: m }).then(() => alert("OF Guardada"));
-    }
-
-    function lancarMovimento() {
-        const t = document.getElementById('mov_tipo').value;
-        const q = parseFloat(document.getElementById('mov_qtd').value);
-        if(!q) return;
-        let d = { data: new Date().toLocaleString('pt-pt'), qtd: q, ope: userEmail };
-        if(t === 'ENTRADA') {
-            const id = document.getElementById('mov_ordem_id').value;
-            d.tipo = "ORDEM"; d.ordem = id; d.cod = ordensGlobal[id].cod; d.prod = ordensGlobal[id].prod; d.desc = produtosGlobal[d.cod]?.desc || "";
-        } else {
-            const c = document.getElementById('mov_cod').value.toUpperCase().trim();
-            d.tipo = "SAIDA"; d.cod = c; d.prod = produtosGlobal[c].prod; d.desc = produtosGlobal[c].desc || "";
-        }
-        db.ref('movimentacoes').push(d).then(() => { document.getElementById('mov_qtd').value = ""; });
-    }
-
     function renderizarHistorial() {
+        const isSuper = userEmail === "super@i9.com";
         const f = document.getElementById('pesquisaHist').value.toLowerCase();
         const corpo = document.getElementById('corpoHist'); corpo.innerHTML = '';
         Object.entries(movsGlobal).reverse().forEach(([id, h]) => {
             if(h.cod.toLowerCase().includes(f) || h.prod.toLowerCase().includes(f)) {
+                const cl = h.ordem ? 'txt-order' : 'txt-exit';
                 corpo.innerHTML += `<tr>
-                    <td>${h.data}</td><td>${h.ordem || h.tipo}</td><td>${h.cod}</td>
-                    <td><small>${h.desc || ''}</small></td><td>${h.qtd}</td><td>${h.ope.split('@')[0]}</td>
-                    <td class="super-only">
-                        <button class="btn-danger" onclick="if(confirm('Remover?')) db.ref('movimentacoes/${id}').remove()">DEL</button>
-                    </td>
+                    <td>${h.data}</td><td class="${cl}">${h.ordem || h.tipo}</td><td>${h.cod}</td>
+                    <td>${h.prod}</td><td class="${cl}">${h.qtd}</td><td>${h.ope.split('@')[0]}</td>
+                    <td class="super-only">${isSuper ? `<button class="btn-danger" onclick="eliminarMov('${id}')">DEL</button>` : ''}</td>
                 </tr>`;
             }
         });
     }
 
+    // --- UTILITÁRIOS ---
     function abrirHistorico() { document.getElementById('modal-historico').style.display = 'block'; }
     function fecharHistorico() { document.getElementById('modal-historico').style.display = 'none'; }
-    function procv(cod, n, d) {
-        const i = produtosGlobal[cod.toUpperCase().trim()];
-        document.getElementById(n).value = i ? i.prod : "";
-        if(d) document.getElementById(d).value = i ? (i.desc || "") : "";
+    function alternarFormAdmin() {
+        const m = document.getElementById('admin_modo').value;
+        document.getElementById('form-prod').style.display = m === 'PROD' ? 'block' : 'none';
+        document.getElementById('form-ordem').style.display = m === 'ORDEM' ? 'block' : 'none';
+    }
+    function alternarCamposEntrada() {
+        const t = document.getElementById('mov_tipo').value;
+        document.getElementById('campos-entrada').style.display = t === 'ENTRADA' ? 'block' : 'none';
+        document.getElementById('campos-saida').style.display = t === 'SAIDA' ? 'block' : 'none';
+    }
+    function atualizarSelectOrdens() {
+        const sel = document.getElementById('mov_ordem_id'); sel.innerHTML = '<option value="">Selecionar...</option>';
+        for(let id in ordensGlobal) sel.innerHTML += `<option value="${id}">${id}</option>`;
     }
     function preencherPelaOrdem() {
         const id = document.getElementById('mov_ordem_id').value;
@@ -317,14 +258,55 @@
             document.getElementById('desc_prod').value = produtosGlobal[ordensGlobal[id].cod]?.desc || "";
         }
     }
-    function atualizarSelectOrdens() {
-        const sel = document.getElementById('mov_ordem_id'); sel.innerHTML = '<option value="">Selecionar OF...</option>';
-        for(let id in ordensGlobal) sel.innerHTML += `<option value="${id}">${id}</option>`;
+    function procv(cod, n, d) {
+        const i = produtosGlobal[cod.toUpperCase().trim()];
+        document.getElementById(n).value = i ? i.prod : "";
+        document.getElementById(d).value = i ? (i.desc || "") : "";
     }
-    function alternarCamposEntrada() {
+    function validarOF() {
+        const id = document.getElementById('mov_ordem_id').value;
+        const q = parseFloat(document.getElementById('mov_qtd').value) || 0;
+        if(id && document.getElementById('mov_tipo').value === 'ENTRADA') {
+            const feito = Object.values(movsGlobal).filter(h => h.ordem === id).reduce((a, b) => a + parseFloat(b.qtd), 0);
+            const resta = ordensGlobal[id].meta - feito;
+            document.getElementById('msg-validacao').innerHTML = q > resta ? `<b class="txt-danger">Máximo: ${resta}</b>` : `<b class="txt-entry">OF Resta: ${resta}</b>`;
+            document.getElementById('btn-registar').disabled = q > resta;
+        }
+    }
+    function salvarProduto() {
+        const c = document.getElementById('cad_cod').value.toUpperCase().trim();
+        const p = document.getElementById('cad_prod').value;
+        const d = document.getElementById('cad_desc').value;
+        const m = parseInt(document.getElementById('cad_min').value) || 0;
+        if(c && p) db.ref('produtos/'+c).set({ prod: p, desc: d, min: m });
+    }
+    function salvarOrdem() {
+        const i = document.getElementById('ord_id').value.toUpperCase().trim();
+        const c = document.getElementById('ord_cod').value.toUpperCase().trim();
+        const m = parseInt(document.getElementById('ord_meta').value);
+        if(i && produtosGlobal[c]) db.ref('ordens/'+i).set({ cod: c, prod: produtosGlobal[c].prod, meta: m });
+    }
+    function lancarMovimento() {
         const t = document.getElementById('mov_tipo').value;
-        document.getElementById('campos-entrada').style.display = t === 'ENTRADA' ? 'block' : 'none';
-        document.getElementById('campos-saida').style.display = t === 'SAIDA' ? 'block' : 'none';
+        const q = parseFloat(document.getElementById('mov_qtd').value);
+        if(!q) return;
+        let d = { data: new Date().toLocaleString('pt-pt'), qtd: q, ope: userEmail };
+        if(t === 'ENTRADA') {
+            const id = document.getElementById('mov_ordem_id').value;
+            d.tipo = "ORDEM"; d.ordem = id; d.cod = ordensGlobal[id].cod; d.prod = ordensGlobal[id].prod;
+        } else {
+            const c = document.getElementById('mov_cod').value.toUpperCase().trim();
+            d.tipo = "SAIDA"; d.cod = c; d.prod = produtosGlobal[c].prod;
+        }
+        db.ref('movimentacoes').push(d).then(() => { document.getElementById('mov_qtd').value = ""; });
+    }
+    function exportarCSV() {
+        let csv = "\uFEFFData;Ref;Cod;Prod;Qtd;User\n";
+        Object.values(movsGlobal).forEach(h => { csv += `${h.data};${h.ordem || h.tipo};${h.cod};${h.prod};${h.qtd};${h.ope}\n`; });
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement("a");
+        link.href = URL.createObjectURL(blob);
+        link.download = `SGE_I9_Relatorio.csv`; link.click();
     }
 </script>
 </body>
