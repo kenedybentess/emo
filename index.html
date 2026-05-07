@@ -2,7 +2,7 @@
 <html lang="pt-pt">
 <head>
     <meta charset="UTF-8">
-    <title>SGE - I9 Industrial (Descrição Total)</title>
+    <title>SGE - I9 Industrial (Super User Mode)</title>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-auth-compat.js"></script>
@@ -30,16 +30,20 @@
         .badge { padding: 3px 8px; border-radius: 4px; font-size: 10px; color: white; font-weight: bold; }
         .desc-text { color: #7f8c8d; font-size: 11px; font-style: italic; display: block; margin-top: 2px; }
         .stock-baixo { background-color: #fff5f5; color: var(--danger); font-weight: bold; }
+        
+        .header-flex { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+        .btn-danger-light { background: var(--danger); font-size: 10px; padding: 5px 12px; opacity: 0.8; }
+        .btn-danger-light:hover { opacity: 1; }
     </style>
 </head>
 <body>
 
 <div id="login-screen">
     <div class="login-card">
-        <h2>I9 INDUSTRIAL</h2>
+        <h2 style="color: var(--primary)">I9 INDUSTRIAL</h2>
         <input type="email" id="email" placeholder="E-mail">
         <input type="password" id="password" placeholder="Palavra-passe">
-        <button style="background: var(--info); width: 100%;" onclick="fazerLogin()">ENTRAR</button>
+        <button style="background: var(--info); width: 100%;" onclick="fazerLogin()">ACEDER</button>
         <div id="login-msg" style="color: red; font-size: 11px; margin-top: 10px;"></div>
     </div>
 </div>
@@ -52,7 +56,7 @@
 
     <div class="container">
         <div class="card" style="margin-bottom: 20px;">
-            <input type="text" id="inputPesquisa" placeholder="🔍 Pesquisar por código, produto ou descrição..." onkeyup="renderizarTabelas()">
+            <input type="text" id="inputPesquisa" placeholder="🔍 Pesquisar em tudo..." onkeyup="renderizarTabelas()">
         </div>
 
         <div class="grid">
@@ -72,7 +76,6 @@
                 <select id="mov_tipo"><option value="ENTRADA">ENTRADA</option><option value="SAIDA">SAÍDA</option></select>
                 <label>Código</label><input type="text" id="mov_cod" oninput="procv(this.value)">
                 <label>Produto</label><input type="text" id="mov_nome" readonly>
-                <label>Descrição</label><input type="text" id="mov_desc_auto" readonly>
                 <label>Quantidade</label><input type="number" id="mov_qtd">
                 <button class="btn-reg" onclick="lancarMovimento()">REGISTAR</button>
             </div>
@@ -87,9 +90,12 @@
         </div>
 
         <div class="card">
-            <h3>🕒 HISTÓRICO DE MOVIMENTAÇÕES</h3>
+            <div class="header-flex">
+                <h3 style="margin:0">🕒 HISTÓRICO DE MOVIMENTAÇÕES</h3>
+                <button id="btn-clear-history" class="btn-danger-light" style="display:none" onclick="apagarHistorico()">APAGAR HISTÓRICO TOTAL</button>
+            </div>
             <table>
-                <thead><tr><th>DATA</th><th>TIPO</th><th>CÓDIGO</th><th>PRODUTO / DESCRIÇÃO</th><th>QTD</th><th>OPERADOR</th></tr></thead>
+                <thead><tr><th>DATA</th><th>TIPO</th><th>CÓDIGO</th><th>PRODUTO</th><th>QTD</th><th>OPERADOR</th></tr></thead>
                 <tbody id="corpoHist"></tbody>
             </table>
         </div>
@@ -109,21 +115,27 @@
     const auth = firebase.auth();
     const db = firebase.database();
 
-    const listaAdmins = ["admin@i9.com"]; 
+    // --- CONFIGURAÇÃO DE NÍVEIS DE ACESSO ---
+    const listaAdmins = ["admin@i9.com", "super@i9.com"]; 
+    const listaSuperUsers = ["super@i9.com"]; // Este e-mail pode apagar o histórico
+
     let produtosGlobal = {};
     let historicoGlobal = [];
 
     function fazerLogin() {
         auth.signInWithEmailAndPassword(document.getElementById('email').value, document.getElementById('password').value)
             .then(res => configurarInterface(res.user.email))
-            .catch(err => document.getElementById('login-msg').innerText = "Erro no acesso.");
+            .catch(err => document.getElementById('login-msg').innerText = "Falha na autenticação.");
     }
 
     function configurarInterface(email) {
         document.getElementById('login-screen').style.display = 'none';
         document.getElementById('main-content').style.display = 'block';
         document.getElementById('user-display').innerText = email;
+        
         if (listaAdmins.includes(email)) document.getElementById('panel-admin').style.display = 'block';
+        if (listaSuperUsers.includes(email)) document.getElementById('btn-clear-history').style.display = 'block';
+        
         carregarDados();
     }
 
@@ -136,10 +148,23 @@
         });
     }
 
+    // --- FUNÇÃO DO SUPER USUÁRIO ---
+    function apagarHistorico() {
+        const confirmar1 = confirm("⚠️ ATENÇÃO: Deseja realmente APAGAR TODO o histórico de movimentações?");
+        if(confirmar1) {
+            const confirmar2 = confirm("ESTA AÇÃO NÃO PODE SER DESFEITA. O saldo dos produtos continuará baseado nos lançamentos atuais, mas o log de histórico sumirá. Confirmar limpeza total?");
+            if(confirmar2) {
+                db.ref('movimentacoes').remove()
+                .then(() => alert("Histórico limpo com sucesso!"))
+                .catch(e => alert("Erro ao limpar: " + e.message));
+            }
+        }
+    }
+
+    // --- RESTANTE DAS FUNÇÕES (IGUAL ANTERIOR COM MELHORIAS) ---
     function procv(cod) {
         const info = produtosGlobal[cod.toUpperCase().trim()];
         document.getElementById('mov_nome').value = info ? info.prod : "";
-        document.getElementById('mov_desc_auto').value = info ? info.desc : "";
     }
 
     function salvarProduto() {
@@ -147,19 +172,17 @@
         const prod = document.getElementById('cad_prod').value;
         const desc = document.getElementById('cad_desc').value;
         const min = parseInt(document.getElementById('cad_min').value) || 0;
-        if(!cod || !prod) return alert("Preencha os campos!");
+        if(!cod || !prod) return alert("Preencha Código e Produto!");
         db.ref('produtos/' + cod).set({ prod, desc, min }).then(() => resetFormAdmin());
     }
 
     function editarProduto(cod) {
         const p = produtosGlobal[cod];
         document.getElementById('titulo-admin').innerText = "✏️ EDITAR PRODUTO";
-        document.getElementById('cad_cod').value = cod;
-        document.getElementById('cad_cod').readOnly = true;
-        document.getElementById('cad_prod').value = p.prod;
-        document.getElementById('cad_desc').value = p.desc;
+        document.getElementById('cad_cod').value = cod; document.getElementById('cad_cod').readOnly = true;
+        document.getElementById('cad_prod').value = p.prod; document.getElementById('cad_desc').value = p.desc;
         document.getElementById('cad_min').value = p.min || 0;
-        document.getElementById('btn-salvar').innerText = "GUARDAR";
+        document.getElementById('btn-salvar').innerText = "GUARDAR ALTERAÇÕES";
         document.getElementById('btn-cancelar').style.display = "block";
     }
 
@@ -180,17 +203,13 @@
         const qtd = parseInt(document.getElementById('mov_qtd').value);
         const tipo = document.getElementById('mov_tipo').value;
         const ope = document.getElementById('user-display').innerText;
-
-        if(!produtosGlobal[cod] || !qtd) return alert("Erro nos dados!");
+        if(!produtosGlobal[cod] || !qtd) return alert("Erro: Dados inválidos!");
 
         db.ref('movimentacoes').push({
             data: new Date().toLocaleString('pt-pt'),
-            tipo, cod, qtd, ope, 
-            prod: produtosGlobal[cod].prod,
-            desc: produtosGlobal[cod].desc // Descrição salva no momento da mov.
+            tipo, cod, qtd, ope, prod: produtosGlobal[cod].prod, desc: produtosGlobal[cod].desc
         }).then(() => {
             document.getElementById('mov_cod').value = ""; document.getElementById('mov_qtd').value = "";
-            document.getElementById('mov_nome').value = ""; document.getElementById('mov_desc_auto').value = "";
         });
     }
 
@@ -212,7 +231,7 @@
         for(let c in saldos) {
             const total = saldos[c].e - saldos[c].s;
             const critico = total <= (saldos[c].min || 0);
-            if(c.toLowerCase().includes(filtro) || saldos[c].prod.toLowerCase().includes(filtro) || (saldos[c].desc && saldos[c].desc.toLowerCase().includes(filtro))) {
+            if(c.toLowerCase().includes(filtro) || saldos[c].prod.toLowerCase().includes(filtro)) {
                 corpoSaldo.innerHTML += `
                     <tr class="${critico ? 'stock-baixo' : ''}">
                         <td><b>${c}</b></td>
@@ -227,13 +246,13 @@
         // Render Histórico
         const corpoHist = document.getElementById('corpoHist');
         corpoHist.innerHTML = '';
-        historicoGlobal.filter(l => l.cod.toLowerCase().includes(filtro) || l.prod.toLowerCase().includes(filtro)).slice(0, 20).forEach(l => {
+        historicoGlobal.filter(l => l.cod.toLowerCase().includes(filtro) || l.prod.toLowerCase().includes(filtro)).slice(0, 30).forEach(l => {
             const cor = l.tipo === 'ENTRADA' ? 'var(--entry)' : 'var(--exit)';
             corpoHist.innerHTML += `
                 <tr>
-                    <td style="font-size:10px">${l.data}</td>
+                    <td style="font-size:10px; color:#666">${l.data}</td>
                     <td><span class="badge" style="background:${cor}">${l.tipo}</span></td>
-                    <td>${l.cod}</td>
+                    <td><b>${l.cod}</b></td>
                     <td>${l.prod}<span class="desc-text">${l.desc || ''}</span></td>
                     <td><b>${l.qtd}</b></td>
                     <td style="font-size:10px">${l.ope}</td>
