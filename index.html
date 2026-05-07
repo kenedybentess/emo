@@ -2,194 +2,195 @@
 <html lang="pt-pt">
 <head>
     <meta charset="UTF-8">
-    <title>SGE - I9 INDUSTRIAL CLOUD</title>
+    <title>SGE - I9 Industrial (Login Cloud)</title>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-auth-compat.js"></script>
     
     <style>
-        :root { --primary: #2c3e50; --entry: #27ae60; --exit: #e67e22; --danger: #e74c3c; --info: #3498db; --light: #f4f7f6; }
-        body { font-family: 'Segoe UI', sans-serif; margin: 0; background: var(--light); font-size: 13px; color: #333; }
+        :root { --primary: #2c3e50; --entry: #27ae60; --info: #3498db; --light: #f4f7f6; --danger: #e74c3c; }
+        body { font-family: 'Segoe UI', sans-serif; margin: 0; background: var(--light); color: #333; }
+        
+        /* Ecrã de Login */
+        #login-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--primary); display: flex; justify-content: center; align-items: center; z-index: 1000; }
+        .login-card { background: white; padding: 40px; border-radius: 12px; width: 350px; box-shadow: 0 10px 25px rgba(0,0,0,0.3); text-align: center; }
+        
+        /* Interface Principal */
+        #main-content { display: none; }
         .navbar { background: var(--primary); color: white; padding: 15px 25px; display: flex; justify-content: space-between; align-items: center; }
         .container { width: 96%; margin: 20px auto; }
-        .search-container { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); margin-bottom: 25px; border-top: 5px solid var(--info); }
-        .search-box input { width: 100%; padding: 12px; border: 2px solid #dfe6e9; border-radius: 8px; font-size: 15px; outline: none; }
-        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 25px; }
+        
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
         .card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
-        .card-title { font-weight: bold; margin-bottom: 15px; color: var(--primary); border-bottom: 2px solid #eee; padding-bottom: 5px; }
-        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-        .form-group { display: flex; flex-direction: column; margin-bottom: 10px; }
-        label { font-size: 11px; font-weight: bold; margin-bottom: 4px; color: #666; }
-        input, select { padding: 10px; border: 1px solid #ccc; border-radius: 5px; font-size: 13px; }
-        input:read-only { background: #f1f2f6; font-weight: bold; color: #2c3e50; }
-        button { cursor: pointer; padding: 12px; border: none; border-radius: 5px; font-weight: bold; color: white; transition: 0.3s; }
-        .btn-blue { background: var(--info); width: 100%; }
-        .btn-dark { background: var(--primary); width: 100%; margin-top: 10px; }
-        .table-container { background: white; padding: 15px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
-        table { width: 100%; border-collapse: collapse; }
-        th { background: #f8f9fa; padding: 12px; text-align: left; border-bottom: 2px solid #ddd; font-size: 11px; }
-        td { padding: 12px; border-bottom: 1px solid #eee; }
+        .admin-only { border-top: 5px solid var(--danger); } /* Destaque para área Admin */
+        
+        input, select { width: 100%; padding: 10px; margin: 8px 0; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box; }
+        button { cursor: pointer; padding: 12px; border: none; border-radius: 5px; font-weight: bold; color: white; transition: 0.3s; width: 100%; }
+        .btn-login { background: var(--info); margin-top: 15px; }
+        .btn-reg { background: var(--primary); }
+        .btn-logout { background: transparent; border: 1px solid white; width: auto; padding: 5px 15px; }
+        
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; background: white; }
+        th, td { padding: 12px; border-bottom: 1px solid #eee; text-align: left; }
         .status-pill { padding: 4px 10px; border-radius: 12px; font-size: 10px; font-weight: bold; }
         .bg-ok { background: #d4edda; color: #155724; }
-        .bg-zero { background: #f8d7da; color: #721c24; }
     </style>
 </head>
 <body>
 
-<div class="navbar">
-    <div style="font-size: 18px; font-weight: bold;">SGE - I9 INDUSTRIAL (CLOUD ATIVA ☁️)</div>
-    <div id="status-cloud" style="font-size: 11px; color: #f1c40f;">Sincronizando dados...</div>
+<div id="login-screen">
+    <div class="login-card">
+        <h2 style="color: var(--primary)">I9 INDUSTRIAL</h2>
+        <p style="font-size: 12px; color: #666;">Insira as suas credenciais</p>
+        <input type="email" id="email" placeholder="E-mail">
+        <input type="password" id="password" placeholder="Palavra-passe">
+        <button class="btn-login" onclick="fazerLogin()">ENTRAR NO SISTEMA</button>
+        <div id="login-msg" style="color: red; font-size: 11px; margin-top: 10px;"></div>
+    </div>
 </div>
 
-<div class="container">
-    <div class="search-container">
-        <input type="text" id="inputPesquisa" placeholder="🔍 Pesquisar em tempo real por código, produto ou operador..." onkeyup="renderizarTabelas()">
+<div id="main-content">
+    <div class="navbar">
+        <div><b>SGE I9</b> | Usuário: <span id="user-display">---</span></div>
+        <button class="btn-logout" onclick="fazerLogout()">Sair</button>
     </div>
 
-    <div class="grid">
-        <div class="card">
-            <div class="card-title">📂 CADASTRO DE PEÇAS (BASE)</div>
-            <div class="form-grid">
-                <div class="form-group"><label>CÓDIGO</label><input type="text" id="cad_cod"></div>
-                <div class="form-group"><label>PRODUTO</label><input type="text" id="cad_prod"></div>
-                <div class="form-group" style="grid-column: span 2;"><label>DESCRIÇÃO</label><input type="text" id="cad_desc"></div>
+    <div class="container">
+        <div class="grid">
+            <div id="panel-admin" class="card admin-only" style="display: none;">
+                <h3 style="margin-top:0">📂 CADASTRO (ADMIN)</h3>
+                <label>Código</label><input type="text" id="cad_cod">
+                <label>Produto</label><input type="text" id="cad_prod">
+                <label>Descrição</label><input type="text" id="cad_desc">
+                <button class="btn-reg" style="background: var(--danger)" onclick="salvarProduto()">CADASTRAR NA NUVEM</button>
             </div>
-            <button class="btn-blue" onclick="salvarProduto()">SALVAR NA NUVEM</button>
+
+            <div class="card">
+                <h3 style="margin-top:0">🚀 MOVIMENTAÇÃO</h3>
+                <label>Operação</label>
+                <select id="mov_tipo"><option value="ENTRADA">ENTRADA</option><option value="SAIDA">SAÍDA</option></select>
+                <label>Código</label><input type="text" id="mov_cod" oninput="procv(this.value)">
+                <label>Produto</label><input type="text" id="mov_nome" readonly>
+                <label>Quantidade</label><input type="number" id="mov_qtd">
+                <button class="btn-reg" onclick="lancarMovimento()">REGISTAR</button>
+            </div>
         </div>
 
-        <div class="card">
-            <div class="card-title">🚀 MOVIMENTAÇÃO</div>
-            <div class="form-grid">
-                <div class="form-group"><label>OPERAÇÃO</label>
-                    <select id="mov_tipo"><option value="ENTRADA">ENTRADA</option><option value="SAIDA">SAÍDA</option></select>
-                </div>
-                <div class="form-group"><label>CÓDIGO</label><input type="text" id="mov_cod" oninput="procv(this.value)"></div>
-                <div class="form-group"><label>PRODUTO (AUTO)</label><input type="text" id="mov_nome" readonly></div>
-                <div class="form-group"><label>DESCRIÇÃO (AUTO)</label><input type="text" id="mov_desc_auto" readonly></div>
-                <div class="form-group"><label>QUANTIDADE</label><input type="number" id="mov_qtd"></div>
-                <div class="form-group"><label>OPERADOR</label><input type="text" id="mov_ope"></div>
-            </div>
-            <button class="btn-dark" onclick="lancarMovimento()">REGISTAR MOVIMENTO</button>
+        <div class="card" style="margin-top: 20px;">
+            <h3>📊 STOCK ATUAL</h3>
+            <table>
+                <thead><tr><th>CÓDIGO</th><th>PRODUTO</th><th>SALDO</th><th>STATUS</th></tr></thead>
+                <tbody id="corpoSaldo"></tbody>
+            </table>
         </div>
-    </div>
-
-    <div class="table-container">
-        <div class="card-title">📊 SALDO EM TEMPO REAL (TODOS OS USUÁRIOS)</div>
-        <table>
-            <thead>
-                <tr><th>CÓDIGO</th><th>PRODUTO</th><th>DESCRIÇÃO</th><th>SALDO FINAL</th><th>STATUS</th></tr>
-            </thead>
-            <tbody id="corpoSaldo"></tbody>
-        </table>
     </div>
 </div>
 
 <script>
-    // --- SUA CONFIGURAÇÃO FIREBASE ---
+    // CONFIGURAÇÃO DO SEU FIREBASE
     const firebaseConfig = {
         apiKey: "AIzaSyAPHVbVNdYEp_b7-_bWkTyn5jCVrbZogTo",
         authDomain: "i9-industrial.firebaseapp.com",
         databaseURL: "https://i9-industrial-default-rtdb.firebaseio.com",
         projectId: "i9-industrial",
-        storageBucket: "i9-industrial.firebasestorage.app",
-        messagingSenderId: "509803480353",
         appId: "1:509803480353:web:dafdbc0fbc4b175c49aa60"
     };
 
-    // Inicializar Firebase
     firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
     const db = firebase.database();
 
+    // LISTA DE ADMINS (Coloque aqui os e-mails que podem cadastrar produtos)
+    const listaAdmins = ["admin@i9.com", "seu-email@teste.com"];
+
+    // FUNÇÃO LOGIN
+    function fazerLogin() {
+        const email = document.getElementById('email').value;
+        const pass = document.getElementById('password').value;
+        const msg = document.getElementById('login-msg');
+
+        auth.signInWithEmailAndPassword(email, pass)
+            .then((userCredential) => {
+                const user = userCredential.user;
+                configurarInterface(user.email);
+            })
+            .catch((error) => {
+                msg.innerText = "Falha no login: Verifique e-mail e senha.";
+            });
+    }
+
+    function configurarInterface(email) {
+        document.getElementById('login-screen').style.display = 'none';
+        document.getElementById('main-content').style.display = 'block';
+        document.getElementById('user-display').innerText = email;
+
+        // Verifica se é admin
+        if (listaAdmins.includes(email)) {
+            document.getElementById('panel-admin').style.display = 'block';
+        }
+        carregarDados();
+    }
+
+    function fazerLogout() {
+        auth.signOut().then(() => location.reload());
+    }
+
+    // --- LÓGICA DE DADOS ---
     let produtosGlobal = {};
     let historicoGlobal = [];
 
-    // OUVIR DADOS EM TEMPO REAL
-    db.ref('produtos').on('value', snap => {
-        produtosGlobal = snap.val() || {};
-        document.getElementById('status-cloud').innerText = "✅ ONLINE E SINCRONIZADO";
-        renderizarTabelas();
-    });
-
-    db.ref('movimentacoes').on('value', snap => {
-        const data = snap.val();
-        historicoGlobal = data ? Object.values(data) : [];
-        renderizarTabelas();
-    });
-
-    // FUNÇÕES
-    function salvarProduto() {
-        const cod = document.getElementById('cad_cod').value.trim().toUpperCase();
-        const prod = document.getElementById('cad_prod').value.trim();
-        const desc = document.getElementById('cad_desc').value.trim();
-        
-        if(!cod || !prod) return alert("Erro: Código e Produto são obrigatórios!");
-
-        db.ref('produtos/' + cod).set({ prod, desc }).then(() => {
-            document.getElementById('cad_cod').value = "";
-            document.getElementById('cad_prod').value = "";
-            document.getElementById('cad_desc').value = "";
-            alert("Produto cadastrado na nuvem!");
+    function carregarDados() {
+        db.ref('produtos').on('value', snap => { produtosGlobal = snap.val() || {}; renderizar(); });
+        db.ref('movimentacoes').on('value', snap => { 
+            const data = snap.val();
+            historicoGlobal = data ? Object.values(data) : [];
+            renderizar();
         });
     }
 
-    function procv(codigo) {
-        codigo = codigo.toUpperCase().trim();
-        const info = produtosGlobal[codigo];
-        document.getElementById('mov_nome').value = info ? info.prod : "AGUARDANDO CÓDIGO...";
-        document.getElementById('mov_desc_auto').value = info ? info.desc : "";
+    function procv(cod) {
+        const info = produtosGlobal[cod.toUpperCase()];
+        document.getElementById('mov_nome').value = info ? info.prod : "";
+    }
+
+    function salvarProduto() {
+        const cod = document.getElementById('cad_cod').value.toUpperCase();
+        const prod = document.getElementById('cad_prod').value;
+        const desc = document.getElementById('cad_desc').value;
+        db.ref('produtos/' + cod).set({ prod, desc }).then(() => alert("Cadastrado!"));
     }
 
     function lancarMovimento() {
         const cod = document.getElementById('mov_cod').value.toUpperCase();
         const qtd = parseInt(document.getElementById('mov_qtd').value);
         const tipo = document.getElementById('mov_tipo').value;
-        const ope = document.getElementById('mov_ope').value;
+        const ope = document.getElementById('user-display').innerText; // Pega o email do login
 
-        if(!produtosGlobal[cod] || !qtd || !ope) return alert("Erro: Verifique os dados e o Operador!");
+        if(!produtosGlobal[cod] || !qtd) return alert("Erro nos dados!");
 
         const registro = {
             data: new Date().toLocaleString('pt-pt'),
-            tipo, cod, qtd, ope,
-            prod: produtosGlobal[cod].prod,
-            desc: produtosGlobal[cod].desc
+            tipo, cod, qtd, ope, prod: produtosGlobal[cod].prod
         };
 
         db.ref('movimentacoes').push(registro).then(() => {
-            // LIMPEZA AUTOMÁTICA
             document.getElementById('mov_cod').value = "";
             document.getElementById('mov_qtd').value = "";
-            document.getElementById('mov_ope').value = "";
-            document.getElementById('mov_nome').value = "";
-            document.getElementById('mov_desc_auto').value = "";
-            alert("Movimentação registada com sucesso!");
+            alert("Sucesso!");
         });
     }
 
-    function renderizarTabelas() {
-        const filtro = document.getElementById('inputPesquisa').value.toLowerCase();
-        const corpoSaldo = document.getElementById('corpoSaldo');
-        corpoSaldo.innerHTML = '';
-
+    function renderizar() {
+        const corpo = document.getElementById('corpoSaldo');
+        corpo.innerHTML = '';
         const saldos = {};
         historicoGlobal.forEach(l => {
-            if(!saldos[l.cod]) saldos[l.cod] = { prod: l.prod, desc: l.desc, e: 0, s: 0 };
-            if(l.tipo === 'ENTRADA') saldos[l.cod].e += l.qtd;
-            else saldos[l.cod].s += l.qtd;
+            if(!saldos[l.cod]) saldos[l.cod] = { prod: l.prod, e: 0, s: 0 };
+            if(l.tipo === 'ENTRADA') saldos[l.cod].e += l.qtd; else saldos[l.cod].s += l.qtd;
         });
-
         for(let c in saldos) {
-            const saldoFinal = saldos[c].e - saldos[c].s;
-            if(c.toLowerCase().includes(filtro) || saldos[c].prod.toLowerCase().includes(filtro)) {
-                corpoSaldo.innerHTML += `
-                    <tr>
-                        <td><b>${c}</b></td>
-                        <td>${saldos[c].prod}</td>
-                        <td style="color:#666">${saldos[c].desc}</td>
-                        <td style="font-size:15px; font-weight:bold">${saldoFinal}</td>
-                        <td><span class="status-pill ${saldoFinal > 0 ? 'bg-ok' : 'bg-zero'}">
-                            ${saldoFinal > 0 ? 'EM STOCK' : 'ESGOTADO'}
-                        </span></td>
-                    </tr>`;
-            }
+            const total = saldos[c].e - saldos[c].s;
+            corpo.innerHTML += `<tr><td>${c}</td><td>${saldos[c].prod}</td><td>${total}</td><td><span class="status-pill bg-ok">ATIVO</span></td></tr>`;
         }
     }
 </script>
