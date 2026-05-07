@@ -2,7 +2,7 @@
 <html lang="pt-pt">
 <head>
     <meta charset="UTF-8">
-    <title>SGE - I9 Industrial (Login + Descrição)</title>
+    <title>SGE - I9 Industrial (Histórico Cloud)</title>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-auth-compat.js"></script>
@@ -11,27 +11,29 @@
         :root { --primary: #2c3e50; --entry: #27ae60; --exit: #e67e22; --info: #3498db; --light: #f4f7f6; --danger: #e74c3c; }
         body { font-family: 'Segoe UI', sans-serif; margin: 0; background: var(--light); color: #333; font-size: 13px; }
         
+        /* Login */
         #login-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--primary); display: flex; justify-content: center; align-items: center; z-index: 1000; }
         .login-card { background: white; padding: 40px; border-radius: 12px; width: 320px; box-shadow: 0 10px 25px rgba(0,0,0,0.3); text-align: center; }
         
+        /* Layout */
         #main-content { display: none; }
         .navbar { background: var(--primary); color: white; padding: 12px 25px; display: flex; justify-content: space-between; align-items: center; }
         .container { width: 96%; margin: 20px auto; }
-        
         .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-        .card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
-        .admin-only { border-top: 5px solid var(--danger); }
+        .card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); margin-bottom: 20px; }
         
+        /* UI Elements */
         input, select { width: 100%; padding: 10px; margin: 8px 0; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box; }
         input:read-only { background: #f1f2f6; font-weight: bold; }
-        
         button { cursor: pointer; padding: 12px; border: none; border-radius: 5px; font-weight: bold; color: white; width: 100%; margin-top: 5px; }
         .btn-reg { background: var(--primary); }
         .btn-logout { background: transparent; border: 1px solid white; width: auto; padding: 5px 15px; }
 
-        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
-        th { background: #f8f9fa; padding: 12px; text-align: left; border-bottom: 2px solid #ddd; font-size: 11px; }
+        /* Tabelas */
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th { background: #f8f9fa; padding: 12px; text-align: left; border-bottom: 2px solid #ddd; font-size: 11px; color: #666; }
         td { padding: 12px; border-bottom: 1px solid #eee; }
+        .badge { padding: 3px 8px; border-radius: 4px; font-size: 10px; font-weight: bold; color: white; }
     </style>
 </head>
 <body>
@@ -53,16 +55,16 @@
     </div>
 
     <div class="container">
-        <div class="card" style="margin-bottom: 20px;">
-            <input type="text" id="inputPesquisa" placeholder="🔍 Pesquisar por Código, Produto ou Descrição..." onkeyup="renderizar()">
+        <div class="card">
+            <input type="text" id="inputPesquisa" placeholder="🔍 Pesquisar em tudo (Código, Produto, Operador ou Descrição)..." onkeyup="renderizar()">
         </div>
 
         <div class="grid">
-            <div id="panel-admin" class="card admin-only" style="display: none;">
+            <div id="panel-admin" class="card" style="display: none; border-top: 5px solid var(--danger);">
                 <h3 style="margin-top:0">📂 CADASTRO DE PRODUTO</h3>
                 <label>Código</label><input type="text" id="cad_cod">
-                <label>Nome do Produto</label><input type="text" id="cad_prod">
-                <label>Descrição Detalhada</label><input type="text" id="cad_desc">
+                <label>Produto</label><input type="text" id="cad_prod">
+                <label>Descrição</label><input type="text" id="cad_desc">
                 <button class="btn-reg" style="background: var(--danger)" onclick="salvarProduto()">SALVAR NA NUVEM</button>
             </div>
 
@@ -74,29 +76,40 @@
                 <label>Produto</label><input type="text" id="mov_nome" readonly>
                 <label>Descrição</label><input type="text" id="mov_desc_auto" readonly>
                 <label>Quantidade</label><input type="number" id="mov_qtd">
-                <button class="btn-reg" onclick="lancarMovimento()">REGISTAR</button>
+                <button class="btn-reg" onclick="lancarMovimento()">REGISTAR AGORA</button>
             </div>
         </div>
 
-        <div class="card" style="margin-top: 20px;">
-            <h3>📊 STOCK EM TEMPO REAL</h3>
-            <table>
+        <div class="card">
+            <h3 style="margin:0 0 10px 0; color: var(--primary);">📊 SALDO ATUAL EM STOCK</h3>
+            <table id="tabelaSaldo">
                 <thead>
-                    <tr>
-                        <th>CÓDIGO</th>
-                        <th>PRODUTO</th>
-                        <th>DESCRIÇÃO</th>
-                        <th>SALDO</th>
-                    </tr>
+                    <tr><th>CÓDIGO</th><th>PRODUTO</th><th>DESCRIÇÃO</th><th>SALDO</th></tr>
                 </thead>
                 <tbody id="corpoSaldo"></tbody>
+            </table>
+        </div>
+
+        <div class="card">
+            <h3 style="margin:0 0 10px 0; color: var(--primary);">🕒 HISTÓRICO DE MOVIMENTAÇÕES (TEMPO REAL)</h3>
+            <table id="tabelaHist">
+                <thead>
+                    <tr>
+                        <th>DATA/HORA</th>
+                        <th>TIPO</th>
+                        <th>CÓDIGO</th>
+                        <th>PRODUTO / DESCRIÇÃO</th>
+                        <th>QTD</th>
+                        <th>OPERADOR</th>
+                    </tr>
+                </thead>
+                <tbody id="corpoHist"></tbody>
             </table>
         </div>
     </div>
 </div>
 
 <script>
-    // CONFIGURAÇÃO FIREBASE
     const firebaseConfig = {
         apiKey: "AIzaSyAPHVbVNdYEp_b7-_bWkTyn5jCVrbZogTo",
         authDomain: "i9-industrial.firebaseapp.com",
@@ -109,15 +122,14 @@
     const auth = firebase.auth();
     const db = firebase.database();
 
-    // DEFINA AQUI QUEM É ADMIN
-    const listaAdmins = ["admin@i9.com", "seu-email@teste.com"];
+    const listaAdmins = ["admin@i9.com"];
 
     function fazerLogin() {
         const email = document.getElementById('email').value;
         const pass = document.getElementById('password').value;
         auth.signInWithEmailAndPassword(email, pass)
             .then(res => configurarInterface(res.user.email))
-            .catch(err => document.getElementById('login-msg').innerText = "Acesso negado.");
+            .catch(err => document.getElementById('login-msg').innerText = "Credenciais Inválidas.");
     }
 
     function configurarInterface(email) {
@@ -137,7 +149,8 @@
         db.ref('produtos').on('value', snap => { produtosGlobal = snap.val() || {}; renderizar(); });
         db.ref('movimentacoes').on('value', snap => {
             const data = snap.val();
-            historicoGlobal = data ? Object.values(data) : [];
+            // Transforma o objeto do Firebase em array e inverte para os mais recentes aparecerem primeiro
+            historicoGlobal = data ? Object.values(data).reverse() : [];
             renderizar();
         });
     }
@@ -152,13 +165,10 @@
         const cod = document.getElementById('cad_cod').value.toUpperCase().trim();
         const prod = document.getElementById('cad_prod').value;
         const desc = document.getElementById('cad_desc').value;
-        if(!cod || !prod) return alert("Preencha Código e Produto!");
-        
+        if(!cod || !prod) return alert("Preencha Código e Nome!");
         db.ref('produtos/' + cod).set({ prod, desc }).then(() => {
-            alert("Produto e Descrição guardados!");
-            document.getElementById('cad_cod').value = "";
-            document.getElementById('cad_prod').value = "";
-            document.getElementById('cad_desc').value = "";
+            alert("Cadastrado com sucesso!");
+            document.getElementById('cad_cod').value = ""; document.getElementById('cad_prod').value = ""; document.getElementById('cad_desc').value = "";
         });
     }
 
@@ -168,13 +178,13 @@
         const tipo = document.getElementById('mov_tipo').value;
         const ope = document.getElementById('user-display').innerText;
 
-        if(!produtosGlobal[cod] || !qtd) return alert("Erro: Verifique o Código/Quantidade!");
+        if(!produtosGlobal[cod] || !qtd) return alert("Erro: Verifique Código/Quantidade!");
 
         const registro = {
             data: new Date().toLocaleString('pt-pt'),
             tipo, cod, qtd, ope, 
             prod: produtosGlobal[cod].prod,
-            desc: produtosGlobal[cod].desc // Guarda a descrição na movimentação
+            desc: produtosGlobal[cod].desc
         };
 
         db.ref('movimentacoes').push(registro).then(() => {
@@ -182,16 +192,17 @@
             document.getElementById('mov_qtd').value = "";
             document.getElementById('mov_nome').value = "";
             document.getElementById('mov_desc_auto').value = "";
-            alert("Registo concluído!");
         });
     }
 
     function renderizar() {
         const filtro = document.getElementById('inputPesquisa').value.toLowerCase();
-        const corpo = document.getElementById('corpoSaldo');
-        corpo.innerHTML = '';
         
+        // 1. Renderizar Saldo
+        const corpoSaldo = document.getElementById('corpoSaldo');
+        corpoSaldo.innerHTML = '';
         const saldos = {};
+        
         historicoGlobal.forEach(l => {
             if(!saldos[l.cod]) saldos[l.cod] = { prod: l.prod, desc: l.desc, e: 0, s: 0 };
             if(l.tipo === 'ENTRADA') saldos[l.cod].e += l.qtd; else saldos[l.cod].s += l.qtd;
@@ -199,17 +210,31 @@
 
         for(let c in saldos) {
             const total = saldos[c].e - saldos[c].s;
-            const desc = saldos[c].desc || "---";
-            if(c.toLowerCase().includes(filtro) || saldos[c].prod.toLowerCase().includes(filtro) || desc.toLowerCase().includes(filtro)) {
-                corpo.innerHTML += `
-                    <tr>
-                        <td><b>${c}</b></td>
-                        <td>${saldos[c].prod}</td>
-                        <td style="color:#666; font-style:italic">${desc}</td>
-                        <td style="font-weight:bold; color:${total <= 0 ? 'red' : 'black'}">${total}</td>
-                    </tr>`;
+            if(c.toLowerCase().includes(filtro) || saldos[c].prod.toLowerCase().includes(filtro)) {
+                corpoSaldo.innerHTML += `<tr><td><b>${c}</b></td><td>${saldos[c].prod}</td><td style="color:#777">${saldos[c].desc || ''}</td><td style="font-weight:bold">${total}</td></tr>`;
             }
         }
+
+        // 2. Renderizar Histórico (Últimos 20 movimentos)
+        const corpoHist = document.getElementById('corpoHist');
+        corpoHist.innerHTML = '';
+        
+        historicoGlobal.filter(l => 
+            l.cod.toLowerCase().includes(filtro) || 
+            l.ope.toLowerCase().includes(filtro) ||
+            l.prod.toLowerCase().includes(filtro)
+        ).slice(0, 20).forEach(l => {
+            const corBadge = l.tipo === 'ENTRADA' ? 'var(--entry)' : 'var(--exit)';
+            corpoHist.innerHTML += `
+                <tr>
+                    <td style="font-size:11px; color:#666">${l.data}</td>
+                    <td><span class="badge" style="background:${corBadge}">${l.tipo}</span></td>
+                    <td><b>${l.cod}</b></td>
+                    <td>${l.prod} <br><small style="color:#999">${l.desc || ''}</small></td>
+                    <td><b>${l.tipo === 'SAIDA' ? '-' : '+'}${l.qtd}</b></td>
+                    <td style="font-size:11px">${l.ope}</td>
+                </tr>`;
+        });
     }
 </script>
 </body>
