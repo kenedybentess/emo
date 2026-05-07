@@ -2,80 +2,75 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <title>SGE - Controle de Injeção I9 FULL2</title>
+    <title>SGE - Fluxo de Entrada e Saída I9</title>
     <style>
-        :root { --primary: #2c3e50; --secondary: #34495e; --danger: #e74c3c; --success: #27ae60; --warning: #f39c12; --light: #f4f7f6; }
+        :root { --primary: #2c3e50; --entry: #27ae60; --exit: #e67e22; --danger: #e74c3c; --light: #f4f7f6; }
         body { font-family: 'Segoe UI', sans-serif; margin: 0; background: var(--light); font-size: 13px; }
-        .navbar { background: var(--primary); color: white; padding: 10px 20px; display: flex; justify-content: space-between; align-items: center; }
+        .navbar { background: var(--primary); color: white; padding: 10px 20px; display: flex; justify-content: space-between; }
         .container { width: 98%; margin: 15px auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
         
-        .panel { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 10px; background: #eee; padding: 15px; border-radius: 6px; margin-bottom: 15px; }
+        .panel { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; background: #eee; padding: 15px; border-radius: 6px; margin-bottom: 15px; }
         .form-group { display: flex; flex-direction: column; }
         label { font-size: 10px; font-weight: bold; margin-bottom: 3px; color: #555; }
-        input { padding: 6px; border: 1px solid #ccc; border-radius: 4px; }
+        input, select { padding: 8px; border: 1px solid #ccc; border-radius: 4px; }
         
         .btns { margin-bottom: 15px; display: flex; gap: 10px; }
-        button { cursor: pointer; padding: 8px 15px; border: none; border-radius: 4px; font-weight: bold; color: white; transition: 0.2s; }
-        button:hover { opacity: 0.8; }
-        .btn-add { background: var(--success); }
+        button { cursor: pointer; padding: 10px 15px; border: none; border-radius: 4px; font-weight: bold; color: white; }
+        
+        .btn-confirm { background: var(--primary); flex-grow: 1; }
         .btn-export { background: #217346; }
-        .btn-import { background: var(--secondary); }
-
-        #busca { width: 100%; padding: 10px; border: 2px solid var(--primary); border-radius: 5px; margin-bottom: 15px; }
-
-        table { width: 100%; border-collapse: collapse; background: white; }
-        th { background: var(--primary); color: white; padding: 10px; text-align: left; position: sticky; top: 0; }
-        td { padding: 8px; border-bottom: 1px solid #ddd; }
-        tr:nth-child(even) { background: #fafafa; }
         
-        .btn-edit { background: var(--warning); padding: 4px 8px; font-size: 11px; margin-right: 5px; }
-        .btn-del { background: var(--danger); padding: 4px 8px; font-size: 11px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th { background: var(--primary); color: white; padding: 10px; text-align: left; }
+        td { padding: 10px; border-bottom: 1px solid #ddd; }
         
-        #fileInput { display: none; }
+        .tipo-entrada { color: var(--entry); font-weight: bold; }
+        .tipo-saida { color: var(--exit); font-weight: bold; }
+        .badge { padding: 4px 8px; border-radius: 4px; font-size: 10px; color: white; }
+        .bg-entry { background: var(--entry); }
+        .bg-exit { background: var(--exit); }
     </style>
 </head>
 <body>
 
 <div class="navbar">
-    <div style="font-weight: bold;">CONTROLE DE PRODUÇÃO - INJEÇÃO I9</div>
-    <div id="data"></div>
+    <div style="font-weight: bold;">GESTÃO DE MOVIMENTAÇÃO - I9 FULL2</div>
+    <div id="relogio"></div>
 </div>
 
 <div class="container">
-    <input type="hidden" id="editIndex" value="-1">
-
     <div class="panel">
-        <div class="form-group"><label>CODIGO</label><input type="text" id="cod"></div>
-        <div class="form-group"><label>PRODUTO</label><input type="text" id="prod"></div>
+        <div class="form-group">
+            <label>TIPO DE OPERAÇÃO</label>
+            <select id="tipoMov">
+                <option value="ENTRADA">➕ ENTRADA (Produção)</option>
+                <option value="SAIDA">➖ SAÍDA (Expedição/Perda)</option>
+            </select>
+        </div>
+        <div class="form-group"><label>CÓDIGO</label><input type="text" id="cod"></div>
         <div class="form-group"><label>DESCRIÇÃO</label><input type="text" id="desc"></div>
-        <div class="form-group"><label>ORDEM</label><input type="text" id="ordem"></div>
-        <div class="form-group"><label>QTD</label><input type="number" id="qtd"></div>
-        <div class="form-group"><label>PESO UM</label><input type="text" id="peso"></div>
+        <div class="form-group"><label>ORDEM / LOTE</label><input type="text" id="ordem"></div>
+        <div class="form-group"><label>QUANTIDADE</label><input type="number" id="qtd"></div>
         <div class="form-group"><label>OPERADOR</label><input type="text" id="operador"></div>
-        <div class="form-group"><label>CQ</label><input type="text" id="cq"></div>
     </div>
 
     <div class="btns">
-        <button class="btn-add" id="btnSalvar" onclick="salvarRegisto()">➕ REGISTRAR / SALVAR</button>
-        <button class="btn-export" onclick="exportarCSV()">📥 EXPORTAR EXCEL</button>
-        <button class="btn-import" onclick="document.getElementById('fileInput').click()">📤 IMPORTAR</button>
-        <input type="file" id="fileInput" accept=".csv" onchange="importarCSV(event)">
+        <button class="btn-confirm" onclick="registrar()">EFETUAR REGISTO</button>
+        <button class="btn-export" onclick="exportar()">EXPORTAR HISTÓRICO</button>
     </div>
 
-    <input type="text" id="busca" placeholder="🔍 Pesquisar em todos os campos..." onkeyup="filtrar()">
+    <input type="text" id="busca" placeholder="🔍 Filtrar histórico por código, ordem ou operador..." onkeyup="filtrar()" style="width:100%; padding:10px; margin-bottom:10px;">
 
     <table>
         <thead>
             <tr>
+                <th>DATA/HORA</th>
+                <th>TIPO</th>
                 <th>CÓDIGO</th>
-                <th>PRODUTO</th>
                 <th>DESCRIÇÃO</th>
                 <th>ORDEM</th>
                 <th>QTD</th>
-                <th>PESO UM</th>
                 <th>OPERADOR</th>
-                <th>CQ</th>
-                <th>DATA</th>
                 <th>AÇÕES</th>
             </tr>
         </thead>
@@ -84,94 +79,65 @@
 </div>
 
 <script>
-    let dados = JSON.parse(localStorage.getItem('dados_injecao_v3')) || [];
+    let historico = JSON.parse(localStorage.getItem('historico_i9')) || [];
 
-    function atualizarLocalStorage() {
-        localStorage.setItem('dados_injecao_v3', JSON.stringify(dados));
-        renderizar();
-    }
-
-    function salvarRegisto() {
-        const index = document.getElementById('editIndex').value;
-        const novo = {
+    function registrar() {
+        const mov = {
+            data: new Date().toLocaleString('pt-BR'),
+            tipo: document.getElementById('tipoMov').value,
             cod: document.getElementById('cod').value,
-            prod: document.getElementById('prod').value,
             desc: document.getElementById('desc').value,
             ordem: document.getElementById('ordem').value,
             qtd: document.getElementById('qtd').value,
-            peso: document.getElementById('peso').value,
             operador: document.getElementById('operador').value,
-            cq: document.getElementById('cq').value,
-            data: new Date().toLocaleString('pt-BR')
+            id: Date.now()
         };
 
-        if(!novo.cod || !novo.qtd) return alert("Preencha Código e Quantidade!");
+        if(!mov.cod || !mov.qtd) return alert("Preencha o Código e a Quantidade!");
 
-        if(index === "-1") {
-            dados.unshift(novo); // Novo registo no topo
-        } else {
-            dados[index] = novo; // Atualiza o existente
-            document.getElementById('editIndex').value = "-1";
-            document.getElementById('btnSalvar').innerText = "➕ REGISTRAR / SALVAR";
-            document.getElementById('btnSalvar').style.background = "#27ae60";
-        }
-
-        atualizarLocalStorage();
-        limparCampos();
+        historico.unshift(mov);
+        localStorage.setItem('historico_i9', JSON.stringify(historico));
+        renderizar();
+        limpar();
     }
 
-    function editar(index) {
-        const d = dados[index];
-        document.getElementById('cod').value = d.cod;
-        document.getElementById('prod').value = d.prod;
-        document.getElementById('desc').value = d.desc;
-        document.getElementById('ordem').value = d.ordem;
-        document.getElementById('qtd').value = d.qtd;
-        document.getElementById('peso').value = d.peso;
-        document.getElementById('operador').value = d.operador;
-        document.getElementById('cq').value = d.cq;
-        
-        document.getElementById('editIndex').value = index;
-        document.getElementById('btnSalvar').innerText = "💾 ATUALIZAR REGISTO";
-        document.getElementById('btnSalvar').style.background = "#f39c12";
-        window.scrollTo(0,0);
-    }
-
-    function excluir(index) {
-        if(confirm("Tem certeza que deseja excluir este registo?")) {
-            dados.splice(index, 1);
-            atualizarLocalStorage();
+    function excluir(id) {
+        if(confirm("Deseja apagar este registo de movimentação?")) {
+            historico = historico.filter(m => m.id !== id);
+            localStorage.setItem('historico_i9', JSON.stringify(historico));
+            renderizar();
         }
     }
 
-    function exportarCSV() {
-        let csv = '\uFEFFCODIGO;PRODUTO;DESCRIÇÃO;ORDEM;QTD;PESO UM;OPERADOR;CQ;DATA\n';
-        dados.forEach(d => {
-            csv += `${d.cod};${d.prod};${d.desc};${d.ordem};${d.qtd};${d.peso};${d.operador};${d.cq};${d.data}\n`;
+    function renderizar() {
+        const corpo = document.getElementById('corpoTabela');
+        corpo.innerHTML = '';
+        historico.forEach(m => {
+            const classeTipo = m.tipo === 'ENTRADA' ? 'bg-entry' : 'bg-exit';
+            corpo.innerHTML += `
+                <tr>
+                    <td>${m.data}</td>
+                    <td><span class="badge ${classeTipo}">${m.tipo}</span></td>
+                    <td>${m.cod}</td>
+                    <td>${m.desc}</td>
+                    <td>${m.ordem}</td>
+                    <td><b>${m.tipo === 'SAIDA' ? '-' : '+'}${m.qtd}</b></td>
+                    <td>${m.operador}</td>
+                    <td><button onclick="excluir(${m.id})" style="background:var(--danger); border-radius:3px; padding:2px 5px; border:none; color:white; cursor:pointer;">🗑️</button></td>
+                </tr>`;
+        });
+    }
+
+    function exportar() {
+        let csv = '\uFEFFDATA;TIPO;CODIGO;DESCRICAO;ORDEM;QTD;OPERADOR\n';
+        historico.forEach(m => {
+            csv += `${m.data};${m.tipo};${m.cod};${m.desc};${m.ordem};${m.qtd};${m.operador}\n`;
         });
         const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
         const link = document.createElement("a");
         link.href = URL.createObjectURL(blob);
-        link.download = "Injecao_I9_Producao.csv";
+        link.download = "Historico_Movimentacao_I9.csv";
         link.click();
-    }
-
-    function importarCSV(event) {
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            const linhas = e.target.result.split('\n').slice(1);
-            linhas.forEach(l => {
-                const c = l.split(';');
-                if(c.length >= 8) {
-                    dados.push({
-                        cod: c[0], prod: c[1], desc: c[2], ordem: c[3],
-                        qtd: c[4], peso: c[5], operador: c[6], cq: c[7], data: c[8] || '-'
-                    });
-                }
-            });
-            atualizarLocalStorage();
-        };
-        reader.readAsText(event.target.files[0]);
     }
 
     function filtrar() {
@@ -181,35 +147,11 @@
         });
     }
 
-    function renderizar() {
-        const corpo = document.getElementById('corpoTabela');
-        corpo.innerHTML = '';
-        dados.forEach((d, index) => {
-            corpo.innerHTML += `
-                <tr>
-                    <td>${d.cod}</td>
-                    <td>${d.prod}</td>
-                    <td>${d.desc}</td>
-                    <td>${d.ordem}</td>
-                    <td><b>${d.qtd}</b></td>
-                    <td>${d.peso}</td>
-                    <td>${d.operador}</td>
-                    <td>${d.cq}</td>
-                    <td>${d.data}</td>
-                    <td>
-                        <button class="btn-edit" onclick="editar(${index})">📝</button>
-                        <button class="btn-del" onclick="excluir(${index})">🗑️</button>
-                    </td>
-                </tr>`;
-        });
+    function limpar() {
+        ["cod", "desc", "ordem", "qtd", "operador"].forEach(id => document.getElementById(id).value = "");
     }
 
-    function limparCampos() {
-        ["cod", "prod", "desc", "ordem", "qtd", "peso", "operador", "cq"].forEach(id => document.getElementById(id).value = "");
-        document.getElementById('editIndex').value = "-1";
-    }
-
-    document.getElementById('data').innerText = new Date().toLocaleDateString();
+    setInterval(() => { document.getElementById('relogio').innerText = new Date().toLocaleString(); }, 1000);
     renderizar();
 </script>
 </body>
