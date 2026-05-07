@@ -2,7 +2,7 @@
 <html lang="pt-pt">
 <head>
     <meta charset="UTF-8">
-    <title>SGE - I9 Industrial (Check Descrição)</title>
+    <title>SGE - I9 Industrial (Histórico Público)</title>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-auth-compat.js"></script>
@@ -25,23 +25,26 @@
         td { padding: 12px; border-bottom: 1px solid #eee; }
         
         input, select { width: 100%; padding: 10px; margin: 5px 0 12px 0; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box; }
-        input:read-only { background: #f1f2f6; color: #555; font-style: italic; }
+        input:read-only { background: #f1f2f6; }
         
         button { cursor: pointer; padding: 10px; border: none; border-radius: 5px; font-weight: bold; color: white; transition: 0.3s; }
         .btn-reg { background: var(--primary); width: 100%; }
         .badge { padding: 3px 8px; border-radius: 4px; font-size: 10px; color: white; font-weight: bold; }
         .desc-text { color: #7f8c8d; font-size: 11px; font-style: italic; display: block; margin-top: 2px; }
         .stock-baixo { background-color: #fff5f5; color: var(--danger); font-weight: bold; }
+        
+        .header-flex { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+        .btn-clear { background: var(--danger); font-size: 10px; padding: 5px 12px; opacity: 0.8; }
     </style>
 </head>
 <body>
 
 <div id="login-screen">
     <div class="login-card">
-        <h2 style="color: var(--primary)">I9 INDUSTRIAL</h2>
+        <h2>I9 INDUSTRIAL</h2>
         <input type="email" id="email" placeholder="E-mail">
         <input type="password" id="password" placeholder="Palavra-passe">
-        <button style="background: var(--info); width: 100%;" onclick="fazerLogin()">ACEDER</button>
+        <button style="background: var(--info); width: 100%;" onclick="fazerLogin()">ENTRAR</button>
         <div id="login-msg" style="color: red; font-size: 11px; margin-top: 10px;"></div>
     </div>
 </div>
@@ -53,13 +56,17 @@
     </div>
 
     <div class="container">
+        <div class="card" style="margin-bottom: 20px;">
+            <input type="text" id="inputPesquisa" placeholder="🔍 Pesquisar em Stock ou Histórico..." onkeyup="renderizarTabelas()">
+        </div>
+
         <div class="grid">
             <div id="panel-admin" class="card" style="display: none; border-top: 5px solid var(--danger);">
                 <h3 id="titulo-admin">📂 CADASTRO / EDIÇÃO</h3>
                 <label>Código</label><input type="text" id="cad_cod">
                 <label>Produto</label><input type="text" id="cad_prod">
-                <label>Descrição Detalhada</label><input type="text" id="cad_desc">
-                <label>Stock Mínimo</label><input type="number" id="cad_min" value="5">
+                <label>Descrição</label><input type="text" id="cad_desc">
+                <label>Mínimo</label><input type="number" id="cad_min" value="5">
                 <button id="btn-salvar" class="btn-reg" style="background: var(--danger)" onclick="salvarProduto()">SALVAR PRODUTO</button>
                 <button id="btn-cancelar" class="btn-reg" style="background: #95a5a6; display:none; margin-top:5px;" onclick="resetFormAdmin()">CANCELAR</button>
             </div>
@@ -68,34 +75,38 @@
                 <h3>🚀 MOVIMENTAÇÃO</h3>
                 <label>Operação</label>
                 <select id="mov_tipo"><option value="ENTRADA">ENTRADA</option><option value="SAIDA">SAÍDA</option></select>
-                
-                <label>Código do Item</label>
-                <input type="text" id="mov_cod" placeholder="Digite o código..." oninput="procv(this.value)">
-                
-                <label>Produto Identificado</label>
-                <input type="text" id="mov_nome" readonly placeholder="---">
-                
-                <label>Descrição do Item</label>
-                <input type="text" id="mov_desc_auto" readonly placeholder="Aguardando código..." style="border-color: var(--info);">
-                
-                <label>Quantidade</label>
-                <input type="number" id="mov_qtd">
-                
-                <button class="btn-reg" onclick="lancarMovimento()">REGISTAR MOVIMENTO</button>
+                <label>Código</label><input type="text" id="mov_cod" oninput="procv(this.value)">
+                <label>Produto / Descrição</label>
+                <input type="text" id="mov_nome" readonly placeholder="Produto">
+                <input type="text" id="mov_desc_auto" readonly placeholder="Descrição Técnica">
+                <label>Quantidade</label><input type="number" id="mov_qtd">
+                <button class="btn-reg" onclick="lancarMovimento()">REGISTAR</button>
             </div>
         </div>
 
-        <div class="card">
+        <div class="card" style="margin-bottom: 20px;">
             <h3>📊 STOCK ATUAL</h3>
             <table>
                 <thead><tr><th>CÓDIGO</th><th>PRODUTO / DESCRIÇÃO</th><th>SALDO</th><th>MÍN.</th><th>AÇÕES</th></tr></thead>
                 <tbody id="corpoSaldo"></tbody>
             </table>
         </div>
+
+        <div class="card">
+            <div class="header-flex">
+                <h3 style="margin:0">🕒 HISTÓRICO DE MOVIMENTAÇÕES</h3>
+                <button id="btn-clear-history" class="btn-clear" style="display:none" onclick="apagarHistorico()">APAGAR TUDO</button>
+            </div>
+            <table>
+                <thead><tr><th>DATA</th><th>TIPO</th><th>CÓDIGO</th><th>PRODUTO / DESCRIÇÃO</th><th>QTD</th><th>USER</th></tr></thead>
+                <tbody id="corpoHist"></tbody>
+            </table>
+        </div>
     </div>
 </div>
 
 <script>
+    // --- CONFIGURAÇÃO FIREBASE ---
     const firebaseConfig = {
         apiKey: "AIzaSyAPHVbVNdYEp_b7-_bWkTyn5jCVrbZogTo",
         authDomain: "i9-industrial.firebaseapp.com",
@@ -108,7 +119,10 @@
     const auth = firebase.auth();
     const db = firebase.database();
 
+    // --- CONFIGURAÇÃO DE NÍVEIS ---
     const listaAdmins = ["admin@i9.com", "super@i9.com"]; 
+    const listaSuperUsers = ["super@i9.com"]; 
+
     let produtosGlobal = {};
     let historicoGlobal = [];
 
@@ -122,7 +136,10 @@
         document.getElementById('login-screen').style.display = 'none';
         document.getElementById('main-content').style.display = 'block';
         document.getElementById('user-display').innerText = email;
+        
         if (listaAdmins.includes(email)) document.getElementById('panel-admin').style.display = 'block';
+        if (listaSuperUsers.includes(email)) document.getElementById('btn-clear-history').style.display = 'block';
+        
         carregarDados();
     }
 
@@ -135,16 +152,10 @@
         });
     }
 
-    // A mágica acontece aqui: preenche nome e descrição ao mesmo tempo
     function procv(cod) {
         const item = produtosGlobal[cod.toUpperCase().trim()];
-        if(item) {
-            document.getElementById('mov_nome').value = item.prod;
-            document.getElementById('mov_desc_auto').value = item.desc || "Sem descrição cadastrada";
-        } else {
-            document.getElementById('mov_nome').value = "";
-            document.getElementById('mov_desc_auto').value = "";
-        }
+        document.getElementById('mov_nome').value = item ? item.prod : "";
+        document.getElementById('mov_desc_auto').value = item ? (item.desc || "---") : "";
     }
 
     function salvarProduto() {
@@ -152,7 +163,7 @@
         const prod = document.getElementById('cad_prod').value;
         const desc = document.getElementById('cad_desc').value;
         const min = parseInt(document.getElementById('cad_min').value) || 0;
-        if(!cod || !prod) return alert("Código e Produto obrigatórios!");
+        if(!cod || !prod) return alert("Erro!");
         db.ref('produtos/' + cod).set({ prod, desc, min }).then(() => resetFormAdmin());
     }
 
@@ -162,30 +173,38 @@
         const tipo = document.getElementById('mov_tipo').value;
         const ope = document.getElementById('user-display').innerText;
 
-        if(!produtosGlobal[cod] || !qtd) return alert("Erro: Dados inválidos!");
+        if(!produtosGlobal[cod] || !qtd) return alert("Erro!");
 
         db.ref('movimentacoes').push({
             data: new Date().toLocaleString('pt-pt'),
             tipo, cod, qtd, ope, 
             prod: produtosGlobal[cod].prod,
-            desc: produtosGlobal[cod].desc // Descrição salva no histórico
+            desc: produtosGlobal[cod].desc
         }).then(() => {
             document.getElementById('mov_cod').value = "";
             document.getElementById('mov_qtd').value = "";
-            document.getElementById('mov_nome').value = "";
-            document.getElementById('mov_desc_auto').value = "";
         });
     }
 
+    function apagarHistorico() {
+        if(confirm("Deseja apagar TODO o histórico? (Ação irreversível)")) {
+            db.ref('movimentacoes').remove();
+        }
+    }
+
     function resetFormAdmin() {
-        document.getElementById('titulo-admin').innerText = "📂 CADASTRO / EDIÇÃO";
-        document.getElementById('cad_cod').value = ""; document.getElementById('cad_cod').readOnly = false;
-        document.getElementById('cad_prod').value = ""; document.getElementById('cad_desc').value = "";
-        document.getElementById('btn-salvar').innerText = "SALVAR PRODUTO";
+        document.getElementById('cad_cod').value = "";
+        document.getElementById('cad_prod').value = "";
+        document.getElementById('cad_desc').value = "";
+        document.getElementById('cad_cod').readOnly = false;
         document.getElementById('btn-cancelar').style.display = "none";
     }
 
     function renderizarTabelas() {
+        const filtro = document.getElementById('inputPesquisa').value.toLowerCase();
+        const email = document.getElementById('user-display').innerText;
+        
+        // Render Stock
         const corpoSaldo = document.getElementById('corpoSaldo');
         corpoSaldo.innerHTML = '';
         const saldos = {};
@@ -199,15 +218,33 @@
         for(let c in saldos) {
             const total = saldos[c].e - saldos[c].s;
             const critico = total <= (saldos[c].min || 0);
-            corpoSaldo.innerHTML += `
-                <tr class="${critico ? 'stock-baixo' : ''}">
-                    <td><b>${c}</b></td>
-                    <td>${saldos[c].prod}<span class="desc-text">${saldos[c].desc || ''}</span></td>
-                    <td>${total} ${critico ? '⚠️' : ''}</td>
-                    <td>${saldos[c].min || 0}</td>
-                    <td>${listaAdmins.includes(document.getElementById('user-display').innerText) ? `<button onclick="editarProduto('${c}')" style="background:var(--info); font-size:9px">EDITAR</button>` : '---'}</td>
-                </tr>`;
+            if(c.toLowerCase().includes(filtro) || saldos[c].prod.toLowerCase().includes(filtro)) {
+                corpoSaldo.innerHTML += `
+                    <tr class="${critico ? 'stock-baixo' : ''}">
+                        <td><b>${c}</b></td>
+                        <td>${saldos[c].prod}<span class="desc-text">${saldos[c].desc || ''}</span></td>
+                        <td>${total} ${critico ? '⚠️' : ''}</td>
+                        <td>${saldos[c].min || 0}</td>
+                        <td>${listaAdmins.includes(email) ? 'ADMIN' : '---'}</td>
+                    </tr>`;
+            }
         }
+
+        // Render Histórico (Liberado para todos os usuários)
+        const corpoHist = document.getElementById('corpoHist');
+        corpoHist.innerHTML = '';
+        historicoGlobal.filter(l => l.cod.toLowerCase().includes(filtro) || l.prod.toLowerCase().includes(filtro)).slice(0, 30).forEach(l => {
+            const cor = l.tipo === 'ENTRADA' ? 'var(--entry)' : 'var(--exit)';
+            corpoHist.innerHTML += `
+                <tr>
+                    <td style="font-size:10px">${l.data}</td>
+                    <td><span class="badge" style="background:${cor}">${l.tipo}</span></td>
+                    <td>${l.cod}</td>
+                    <td>${l.prod}<span class="desc-text">${l.desc || ''}</span></td>
+                    <td><b>${l.qtd}</b></td>
+                    <td style="font-size:10px">${l.ope}</td>
+                </tr>`;
+        });
     }
 </script>
 </body>
