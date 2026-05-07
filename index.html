@@ -2,7 +2,7 @@
 <html lang="pt-pt">
 <head>
     <meta charset="UTF-8">
-    <title>SGE - I9 Industrial (Super User Mode)</title>
+    <title>SGE - I9 Industrial (Check Descrição)</title>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-auth-compat.js"></script>
@@ -25,15 +25,13 @@
         td { padding: 12px; border-bottom: 1px solid #eee; }
         
         input, select { width: 100%; padding: 10px; margin: 5px 0 12px 0; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box; }
+        input:read-only { background: #f1f2f6; color: #555; font-style: italic; }
+        
         button { cursor: pointer; padding: 10px; border: none; border-radius: 5px; font-weight: bold; color: white; transition: 0.3s; }
         .btn-reg { background: var(--primary); width: 100%; }
         .badge { padding: 3px 8px; border-radius: 4px; font-size: 10px; color: white; font-weight: bold; }
         .desc-text { color: #7f8c8d; font-size: 11px; font-style: italic; display: block; margin-top: 2px; }
         .stock-baixo { background-color: #fff5f5; color: var(--danger); font-weight: bold; }
-        
-        .header-flex { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
-        .btn-danger-light { background: var(--danger); font-size: 10px; padding: 5px 12px; opacity: 0.8; }
-        .btn-danger-light:hover { opacity: 1; }
     </style>
 </head>
 <body>
@@ -55,16 +53,12 @@
     </div>
 
     <div class="container">
-        <div class="card" style="margin-bottom: 20px;">
-            <input type="text" id="inputPesquisa" placeholder="🔍 Pesquisar em tudo..." onkeyup="renderizarTabelas()">
-        </div>
-
         <div class="grid">
             <div id="panel-admin" class="card" style="display: none; border-top: 5px solid var(--danger);">
                 <h3 id="titulo-admin">📂 CADASTRO / EDIÇÃO</h3>
                 <label>Código</label><input type="text" id="cad_cod">
                 <label>Produto</label><input type="text" id="cad_prod">
-                <label>Descrição</label><input type="text" id="cad_desc">
+                <label>Descrição Detalhada</label><input type="text" id="cad_desc">
                 <label>Stock Mínimo</label><input type="number" id="cad_min" value="5">
                 <button id="btn-salvar" class="btn-reg" style="background: var(--danger)" onclick="salvarProduto()">SALVAR PRODUTO</button>
                 <button id="btn-cancelar" class="btn-reg" style="background: #95a5a6; display:none; margin-top:5px;" onclick="resetFormAdmin()">CANCELAR</button>
@@ -74,29 +68,28 @@
                 <h3>🚀 MOVIMENTAÇÃO</h3>
                 <label>Operação</label>
                 <select id="mov_tipo"><option value="ENTRADA">ENTRADA</option><option value="SAIDA">SAÍDA</option></select>
-                <label>Código</label><input type="text" id="mov_cod" oninput="procv(this.value)">
-                <label>Produto</label><input type="text" id="mov_nome" readonly>
-                <label>Quantidade</label><input type="number" id="mov_qtd">
-                <button class="btn-reg" onclick="lancarMovimento()">REGISTAR</button>
+                
+                <label>Código do Item</label>
+                <input type="text" id="mov_cod" placeholder="Digite o código..." oninput="procv(this.value)">
+                
+                <label>Produto Identificado</label>
+                <input type="text" id="mov_nome" readonly placeholder="---">
+                
+                <label>Descrição do Item</label>
+                <input type="text" id="mov_desc_auto" readonly placeholder="Aguardando código..." style="border-color: var(--info);">
+                
+                <label>Quantidade</label>
+                <input type="number" id="mov_qtd">
+                
+                <button class="btn-reg" onclick="lancarMovimento()">REGISTAR MOVIMENTO</button>
             </div>
         </div>
 
-        <div class="card" style="margin-bottom: 20px;">
+        <div class="card">
             <h3>📊 STOCK ATUAL</h3>
             <table>
                 <thead><tr><th>CÓDIGO</th><th>PRODUTO / DESCRIÇÃO</th><th>SALDO</th><th>MÍN.</th><th>AÇÕES</th></tr></thead>
                 <tbody id="corpoSaldo"></tbody>
-            </table>
-        </div>
-
-        <div class="card">
-            <div class="header-flex">
-                <h3 style="margin:0">🕒 HISTÓRICO DE MOVIMENTAÇÕES</h3>
-                <button id="btn-clear-history" class="btn-danger-light" style="display:none" onclick="apagarHistorico()">APAGAR HISTÓRICO TOTAL</button>
-            </div>
-            <table>
-                <thead><tr><th>DATA</th><th>TIPO</th><th>CÓDIGO</th><th>PRODUTO</th><th>QTD</th><th>OPERADOR</th></tr></thead>
-                <tbody id="corpoHist"></tbody>
             </table>
         </div>
     </div>
@@ -115,27 +108,21 @@
     const auth = firebase.auth();
     const db = firebase.database();
 
-    // --- CONFIGURAÇÃO DE NÍVEIS DE ACESSO ---
     const listaAdmins = ["admin@i9.com", "super@i9.com"]; 
-    const listaSuperUsers = ["super@i9.com"]; // Este e-mail pode apagar o histórico
-
     let produtosGlobal = {};
     let historicoGlobal = [];
 
     function fazerLogin() {
         auth.signInWithEmailAndPassword(document.getElementById('email').value, document.getElementById('password').value)
             .then(res => configurarInterface(res.user.email))
-            .catch(err => document.getElementById('login-msg').innerText = "Falha na autenticação.");
+            .catch(err => document.getElementById('login-msg').innerText = "Erro no acesso.");
     }
 
     function configurarInterface(email) {
         document.getElementById('login-screen').style.display = 'none';
         document.getElementById('main-content').style.display = 'block';
         document.getElementById('user-display').innerText = email;
-        
         if (listaAdmins.includes(email)) document.getElementById('panel-admin').style.display = 'block';
-        if (listaSuperUsers.includes(email)) document.getElementById('btn-clear-history').style.display = 'block';
-        
         carregarDados();
     }
 
@@ -148,23 +135,16 @@
         });
     }
 
-    // --- FUNÇÃO DO SUPER USUÁRIO ---
-    function apagarHistorico() {
-        const confirmar1 = confirm("⚠️ ATENÇÃO: Deseja realmente APAGAR TODO o histórico de movimentações?");
-        if(confirmar1) {
-            const confirmar2 = confirm("ESTA AÇÃO NÃO PODE SER DESFEITA. O saldo dos produtos continuará baseado nos lançamentos atuais, mas o log de histórico sumirá. Confirmar limpeza total?");
-            if(confirmar2) {
-                db.ref('movimentacoes').remove()
-                .then(() => alert("Histórico limpo com sucesso!"))
-                .catch(e => alert("Erro ao limpar: " + e.message));
-            }
-        }
-    }
-
-    // --- RESTANTE DAS FUNÇÕES (IGUAL ANTERIOR COM MELHORIAS) ---
+    // A mágica acontece aqui: preenche nome e descrição ao mesmo tempo
     function procv(cod) {
-        const info = produtosGlobal[cod.toUpperCase().trim()];
-        document.getElementById('mov_nome').value = info ? info.prod : "";
+        const item = produtosGlobal[cod.toUpperCase().trim()];
+        if(item) {
+            document.getElementById('mov_nome').value = item.prod;
+            document.getElementById('mov_desc_auto').value = item.desc || "Sem descrição cadastrada";
+        } else {
+            document.getElementById('mov_nome').value = "";
+            document.getElementById('mov_desc_auto').value = "";
+        }
     }
 
     function salvarProduto() {
@@ -172,22 +152,29 @@
         const prod = document.getElementById('cad_prod').value;
         const desc = document.getElementById('cad_desc').value;
         const min = parseInt(document.getElementById('cad_min').value) || 0;
-        if(!cod || !prod) return alert("Preencha Código e Produto!");
+        if(!cod || !prod) return alert("Código e Produto obrigatórios!");
         db.ref('produtos/' + cod).set({ prod, desc, min }).then(() => resetFormAdmin());
     }
 
-    function editarProduto(cod) {
-        const p = produtosGlobal[cod];
-        document.getElementById('titulo-admin').innerText = "✏️ EDITAR PRODUTO";
-        document.getElementById('cad_cod').value = cod; document.getElementById('cad_cod').readOnly = true;
-        document.getElementById('cad_prod').value = p.prod; document.getElementById('cad_desc').value = p.desc;
-        document.getElementById('cad_min').value = p.min || 0;
-        document.getElementById('btn-salvar').innerText = "GUARDAR ALTERAÇÕES";
-        document.getElementById('btn-cancelar').style.display = "block";
-    }
+    function lancarMovimento() {
+        const cod = document.getElementById('mov_cod').value.toUpperCase().trim();
+        const qtd = parseInt(document.getElementById('mov_qtd').value);
+        const tipo = document.getElementById('mov_tipo').value;
+        const ope = document.getElementById('user-display').innerText;
 
-    function excluirProduto(cod) {
-        if(confirm("Excluir produto " + cod + "?")) db.ref('produtos/' + cod).remove();
+        if(!produtosGlobal[cod] || !qtd) return alert("Erro: Dados inválidos!");
+
+        db.ref('movimentacoes').push({
+            data: new Date().toLocaleString('pt-pt'),
+            tipo, cod, qtd, ope, 
+            prod: produtosGlobal[cod].prod,
+            desc: produtosGlobal[cod].desc // Descrição salva no histórico
+        }).then(() => {
+            document.getElementById('mov_cod').value = "";
+            document.getElementById('mov_qtd').value = "";
+            document.getElementById('mov_nome').value = "";
+            document.getElementById('mov_desc_auto').value = "";
+        });
     }
 
     function resetFormAdmin() {
@@ -198,26 +185,7 @@
         document.getElementById('btn-cancelar').style.display = "none";
     }
 
-    function lancarMovimento() {
-        const cod = document.getElementById('mov_cod').value.toUpperCase().trim();
-        const qtd = parseInt(document.getElementById('mov_qtd').value);
-        const tipo = document.getElementById('mov_tipo').value;
-        const ope = document.getElementById('user-display').innerText;
-        if(!produtosGlobal[cod] || !qtd) return alert("Erro: Dados inválidos!");
-
-        db.ref('movimentacoes').push({
-            data: new Date().toLocaleString('pt-pt'),
-            tipo, cod, qtd, ope, prod: produtosGlobal[cod].prod, desc: produtosGlobal[cod].desc
-        }).then(() => {
-            document.getElementById('mov_cod').value = ""; document.getElementById('mov_qtd').value = "";
-        });
-    }
-
     function renderizarTabelas() {
-        const filtro = document.getElementById('inputPesquisa').value.toLowerCase();
-        const isAdmin = listaAdmins.includes(document.getElementById('user-display').innerText);
-        
-        // Render Stock
         const corpoSaldo = document.getElementById('corpoSaldo');
         corpoSaldo.innerHTML = '';
         const saldos = {};
@@ -231,33 +199,15 @@
         for(let c in saldos) {
             const total = saldos[c].e - saldos[c].s;
             const critico = total <= (saldos[c].min || 0);
-            if(c.toLowerCase().includes(filtro) || saldos[c].prod.toLowerCase().includes(filtro)) {
-                corpoSaldo.innerHTML += `
-                    <tr class="${critico ? 'stock-baixo' : ''}">
-                        <td><b>${c}</b></td>
-                        <td>${saldos[c].prod}<span class="desc-text">${saldos[c].desc || ''}</span></td>
-                        <td>${total} ${critico ? '⚠️' : ''}</td>
-                        <td>${saldos[c].min || 0}</td>
-                        <td>${isAdmin ? `<button onclick="editarProduto('${c}')" style="background:var(--info); font-size:9px">EDITAR</button> <button onclick="excluirProduto('${c}')" style="background:var(--danger); font-size:9px">X</button>` : '---'}</td>
-                    </tr>`;
-            }
-        }
-
-        // Render Histórico
-        const corpoHist = document.getElementById('corpoHist');
-        corpoHist.innerHTML = '';
-        historicoGlobal.filter(l => l.cod.toLowerCase().includes(filtro) || l.prod.toLowerCase().includes(filtro)).slice(0, 30).forEach(l => {
-            const cor = l.tipo === 'ENTRADA' ? 'var(--entry)' : 'var(--exit)';
-            corpoHist.innerHTML += `
-                <tr>
-                    <td style="font-size:10px; color:#666">${l.data}</td>
-                    <td><span class="badge" style="background:${cor}">${l.tipo}</span></td>
-                    <td><b>${l.cod}</b></td>
-                    <td>${l.prod}<span class="desc-text">${l.desc || ''}</span></td>
-                    <td><b>${l.qtd}</b></td>
-                    <td style="font-size:10px">${l.ope}</td>
+            corpoSaldo.innerHTML += `
+                <tr class="${critico ? 'stock-baixo' : ''}">
+                    <td><b>${c}</b></td>
+                    <td>${saldos[c].prod}<span class="desc-text">${saldos[c].desc || ''}</span></td>
+                    <td>${total} ${critico ? '⚠️' : ''}</td>
+                    <td>${saldos[c].min || 0}</td>
+                    <td>${listaAdmins.includes(document.getElementById('user-display').innerText) ? `<button onclick="editarProduto('${c}')" style="background:var(--info); font-size:9px">EDITAR</button>` : '---'}</td>
                 </tr>`;
-        });
+        }
     }
 </script>
 </body>
