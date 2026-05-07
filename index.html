@@ -2,7 +2,7 @@
 <html lang="pt-pt">
 <head>
     <meta charset="UTF-8">
-    <title>SGE - I9 Industrial (Ajuste de Saldo)</title>
+    <title>SGE - I9 Industrial (Ajuste de Stock)</title>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-auth-compat.js"></script>
@@ -27,8 +27,8 @@
         button { cursor: pointer; padding: 8px; border: none; border-radius: 5px; font-weight: bold; color: white; }
         .btn-reg { background: var(--primary); width: 100%; margin-top: 10px; }
         .btn-danger { background: var(--danger); font-size: 9px; padding: 4px 6px; }
-        .btn-edit { background: var(--edit); color: #333; font-size: 9px; padding: 4px 6px; margin-right: 2px; }
-        .btn-adj { background: #34495e; font-size: 9px; padding: 4px 6px; margin-right: 2px; } /* Botão de Ajuste */
+        .btn-edit { background: var(--edit); color: #333; font-size: 9px; padding: 4px 6px; }
+        .btn-adj { background: #34495e; font-size: 9px; padding: 4px 6px; margin-right: 2px; }
         .super-only { display: none; }
     </style>
 </head>
@@ -36,7 +36,7 @@
 
 <div id="login-screen">
     <div class="login-card">
-        <h2 style="color: var(--primary)">I9 INDUSTRIAL</h2>
+        <h2>I9 INDUSTRIAL</h2>
         <input type="email" id="email" placeholder="E-mail">
         <input type="password" id="password" placeholder="Palavra-passe">
         <button style="background: var(--info); width:100%" onclick="fazerLogin()">ENTRAR</button>
@@ -52,58 +52,56 @@
     <div class="container">
         <div class="grid">
             <div id="panel-admin" class="card" style="display: none; border-top: 5px solid var(--danger);">
-                <h3 id="titulo-admin" style="color: var(--danger)">📂 CADASTRO E EDIÇÃO</h3>
+                <h3>📂 GESTÃO E EDIÇÃO</h3>
                 <select id="admin_modo" onchange="alternarFormAdmin()">
                     <option value="PROD">ARTIGOS / PRODUTOS</option>
-                    <option value="ORDEM">ORDENS DE FABRICO (OF)</option>
+                    <option value="ORDEM">ORDENS DE FABRICO</option>
                 </select>
                 <div id="form-prod">
                     <label>Código</label><input type="text" id="cad_cod">
-                    <label>Nome do Produto</label><input type="text" id="cad_prod">
-                    <label>Descrição Técnica</label><input type="text" id="cad_desc">
+                    <label>Produto</label><input type="text" id="cad_prod">
+                    <label>Descrição</label><input type="text" id="cad_desc">
                     <label>Stock Mínimo</label><input type="number" id="cad_min" value="5">
-                    <button class="btn-reg" onclick="salvarProduto()">GUARDAR DADOS</button>
+                    <button class="btn-reg" onclick="salvarProduto()">GUARDAR</button>
                 </div>
                 <div id="form-ordem" style="display:none">
                     <label>Nº OF</label><input type="text" id="ord_id">
                     <label>Cód. Artigo</label><input type="text" id="ord_cod" oninput="procv(this.value, 'ord_nome', '')">
-                    <input type="text" id="ord_nome" readonly style="color: var(--done); font-weight: bold;">
-                    <label>Meta (Qtd)</label><input type="number" id="ord_meta">
-                    <button class="btn-reg" style="background: var(--done)" onclick="salvarOrdem()">CRIAR/EDITAR OF</button>
+                    <input type="text" id="ord_nome" readonly style="font-weight: bold; color: var(--done);">
+                    <label>Meta</label><input type="number" id="ord_meta">
+                    <button class="btn-reg" style="background: var(--done)" onclick="salvarOrdem()">CRIAR OF</button>
                 </div>
             </div>
 
             <div class="card">
-                <h3 style="color: var(--info)">🚀 MOVIMENTAÇÃO RÁPIDA</h3>
+                <h3>🚀 MOVIMENTAÇÃO</h3>
                 <select id="mov_tipo" onchange="alternarCamposEntrada()">
-                    <option value="ENTRADA">ENTRADA (Via OF)</option>
+                    <option value="ENTRADA">ENTRADA (OF)</option>
                     <option value="SAIDA">SAÍDA (Expedição)</option>
                 </select>
                 <div id="campos-entrada">
-                    <label>Escolher OF</label>
-                    <select id="mov_ordem_id" onchange="preencherPelaOrdem()"><option value="">A carregar...</option></select>
+                    <select id="mov_ordem_id" onchange="preencherPelaOrdem()"><option value="">Selecionar OF...</option></select>
                 </div>
                 <div id="campos-saida" style="display:none">
-                    <label>Código Artigo</label>
-                    <input type="text" id="mov_cod" oninput="procv(this.value, 'nome_prod', 'desc_prod')">
+                    <input type="text" id="mov_cod" placeholder="Código Artigo" oninput="procv(this.value, 'nome_prod', 'desc_prod')">
                 </div>
-                <input type="text" id="nome_prod" readonly placeholder="Produto">
-                <input type="text" id="desc_prod" readonly style="font-size: 11px; color: #666;" placeholder="Descrição">
-                <input type="number" id="mov_qtd" placeholder="Qtd">
+                <input type="text" id="nome_prod" readonly placeholder="Artigo">
+                <input type="text" id="desc_prod" readonly placeholder="Descrição" style="font-size:11px;">
+                <input type="number" id="mov_qtd" placeholder="Quantidade">
                 <button class="btn-reg" onclick="lancarMovimento()">REGISTAR</button>
             </div>
         </div>
 
         <div class="card">
-            <h3>📊 STOCK ATUAL EM TEMPO REAL</h3>
+            <h3>📊 STOCK ATUAL</h3>
             <table>
                 <thead>
                     <tr>
                         <th>CÓDIGO</th>
-                        <th>ARTIGO / DESCRIÇÃO</th>
-                        <th>SALDO ATUAL</th>
+                        <th>ARTIGO</th>
+                        <th>SALDO</th>
                         <th>MÍN</th>
-                        <th class="super-only">ADMIN</th>
+                        <th class="super-only">AÇÕES ADMIN</th>
                     </tr>
                 </thead>
                 <tbody id="corpoStock"></tbody>
@@ -113,7 +111,6 @@
 </div>
 
 <script>
-    // Configurações do Firebase (mesmas do seu projeto)
     const firebaseConfig = {
         apiKey: "AIzaSyAPHVbVNdYEp_b7-_bWkTyn5jCVrbZogTo",
         authDomain: "i9-industrial.firebaseapp.com",
@@ -145,7 +142,7 @@
                     document.head.appendChild(css);
                 }
                 carregarDados();
-            }).catch(() => alert("Erro no Login"));
+            }).catch(() => alert("Erro"));
     }
 
     function carregarDados() {
@@ -154,79 +151,53 @@
         db.ref('movimentacoes').on('value', s => { movsGlobal = s.val() || {}; renderizarStock(); });
     }
 
-    // --- FUNÇÃO DE AJUSTE DIRETO DE SALDO ---
-    function ajustarSaldoDireto(cod, saldoAtual) {
-        const novoSaldo = prompt(`Ajuste Manual de Stock para [${cod}]:\nSaldo atual calculado: ${saldoAtual}\n\nIntroduza o NOVO SALDO desejado:`, saldoAtual);
-        
-        if (novoSaldo !== null && novoSaldo !== "" && !isNaN(novoSaldo)) {
-            const diff = parseFloat(novoSaldo) - saldoAtual;
+    // --- FUNÇÃO DE AJUSTE DE SALDO ---
+    function ajustarSaldo(cod, saldoAtual) {
+        const novo = prompt(`Ajuste de Stock para [${cod}]:\nSaldo atual: ${saldoAtual}\nIndique o novo saldo real:`, saldoAtual);
+        if (novo !== null && novo !== "" && !isNaN(novo)) {
+            const diff = parseFloat(novo) - saldoAtual;
             if (diff === 0) return;
 
-            const tipoAjuste = diff > 0 ? "ENTRADA" : "SAIDA";
-            const qtdAjuste = Math.abs(diff);
-
-            const confirmacao = confirm(`Isto irá gerar um lançamento automático de ${tipoAjuste} de ${qtdAjuste} unidades para corrigir o stock.\nConfirmar?`);
-            
+            const confirmacao = confirm(`Deseja criar um ajuste de ${diff > 0 ? 'ENTRADA' : 'SAÍDA'} de ${Math.abs(diff)} un?`);
             if (confirmacao) {
-                const dadosAjuste = {
+                db.ref('movimentacoes').push({
                     data: new Date().toLocaleString('pt-pt'),
-                    tipo: "AJUSTE_SUPER",
+                    tipo: diff > 0 ? "ENTRADA" : "SAIDA",
                     cod: cod,
                     prod: produtosGlobal[cod].prod,
-                    desc: produtosGlobal[cod].desc || "",
-                    qtd: qtdAjuste,
-                    ope: "SUPER_USER:" + userEmail,
-                    direcao: diff > 0 ? "SOMA" : "SUBTRAI" // Helper para o cálculo
-                };
-
-                // No sistema original, usamos 'tipo' para decidir se soma ou subtrai.
-                // Para o Ajuste, vamos forçar o comportamento:
-                if (diff < 0) {
-                    dadosAjuste.tipo = "SAIDA"; // Força subtração no cálculo global
-                } else {
-                    dadosAjuste.tipo = "ENTRADA"; // Força soma no cálculo global
-                }
-
-                db.ref('movimentacoes').push(dadosAjuste).then(() => alert("Saldo atualizado com sucesso!"));
+                    desc: "AJUSTE MANUAL SUPER",
+                    qtd: Math.abs(diff),
+                    ope: userEmail
+                }).then(() => alert("Saldo Ajustado!"));
             }
         }
     }
 
     function renderizarStock() {
-        const corpoStock = document.getElementById('corpoStock'); 
-        corpoStock.innerHTML = '';
+        const corpo = document.getElementById('corpoStock'); corpo.innerHTML = '';
         const saldos = {};
-        
         for(let c in produtosGlobal) saldos[c] = { ...produtosGlobal[c], total: 0 };
-        
         Object.values(movsGlobal).forEach(h => {
             if(saldos[h.cod]) {
                 const q = parseFloat(h.qtd) || 0;
-                if(h.tipo === 'ORDEM' || h.tipo === 'ENTRADA') saldos[h.cod].total += q;
+                if(h.tipo === 'ENTRADA' || h.tipo === 'ORDEM') saldos[h.cod].total += q;
                 else saldos[h.cod].total -= q;
             }
         });
-
         for(let c in saldos) {
-            corpoStock.innerHTML += `<tr>
+            corpo.innerHTML += `<tr>
                 <td><b>${c}</b></td>
                 <td>${saldos[c].prod}<br><small>${saldos[c].desc || ''}</small></td>
-                <td><b style="font-size:14px; color:var(--primary)">${saldos[c].total}</b></td>
+                <td><b style="font-size:14px;">${saldos[c].total}</b></td>
                 <td>${saldos[c].min}</td>
                 <td class="super-only">
-                    <button class="btn-adj" onclick="ajustarSaldoDireto('${c}', ${saldos[c].total})">AJUSTAR SALDO</button>
+                    <button class="btn-adj" onclick="ajustarSaldo('${c}', ${saldos[c].total})">AJUSTAR SALDO</button>
                     <button class="btn-edit" onclick="editarProduto('${c}')">EDIT</button>
                 </td>
             </tr>`;
         }
     }
 
-    // Funções auxiliares (mesmas das versões anteriores)
-    function alternarFormAdmin() {
-        const m = document.getElementById('admin_modo').value;
-        document.getElementById('form-prod').style.display = m === 'PROD' ? 'block' : 'none';
-        document.getElementById('form-ordem').style.display = m === 'ORDEM' ? 'block' : 'none';
-    }
     function editarProduto(id) {
         const p = produtosGlobal[id];
         document.getElementById('admin_modo').value = 'PROD';
@@ -235,25 +206,35 @@
         document.getElementById('cad_prod').value = p.prod;
         document.getElementById('cad_desc').value = p.desc || "";
         document.getElementById('cad_min').value = p.min;
-        window.scrollTo(0, 0);
+        window.scrollTo(0,0);
     }
+
+    function alternarFormAdmin() {
+        const m = document.getElementById('admin_modo').value;
+        document.getElementById('form-prod').style.display = m === 'PROD' ? 'block' : 'none';
+        document.getElementById('form-ordem').style.display = m === 'ORDEM' ? 'block' : 'none';
+    }
+
     function salvarProduto() {
         const c = document.getElementById('cad_cod').value.toUpperCase().trim();
         const p = document.getElementById('cad_prod').value;
         const d = document.getElementById('cad_desc').value;
         const m = parseInt(document.getElementById('cad_min').value) || 0;
-        if(c && p) db.ref('produtos/'+c).set({ prod: p, desc: d, min: m }).then(() => alert("Dados Guardados!"));
+        if(c && p) db.ref('produtos/'+c).set({ prod: p, desc: d, min: m }).then(() => alert("OK"));
     }
+
     function alternarCamposEntrada() {
         const t = document.getElementById('mov_tipo').value;
         document.getElementById('campos-entrada').style.display = t === 'ENTRADA' ? 'block' : 'none';
         document.getElementById('campos-saida').style.display = t === 'SAIDA' ? 'block' : 'none';
     }
+
     function procv(cod, n, d) {
         const i = produtosGlobal[cod.toUpperCase().trim()];
         document.getElementById(n).value = i ? i.prod : "";
         if(d) document.getElementById(d).value = i ? (i.desc || "") : "";
     }
+
     function preencherPelaOrdem() {
         const id = document.getElementById('mov_ordem_id').value;
         if(id && ordensGlobal[id]) {
@@ -261,6 +242,7 @@
             document.getElementById('desc_prod').value = produtosGlobal[ordensGlobal[id].cod]?.desc || "";
         }
     }
+
     function lancarMovimento() {
         const t = document.getElementById('mov_tipo').value;
         const q = parseFloat(document.getElementById('mov_qtd').value);
@@ -273,17 +255,19 @@
             const c = document.getElementById('mov_cod').value.toUpperCase().trim();
             d.tipo = "SAIDA"; d.cod = c; d.prod = produtosGlobal[c].prod;
         }
-        db.ref('movimentacoes').push(d).then(() => { document.getElementById('mov_qtd').value = ""; alert("Registo OK"); });
+        db.ref('movimentacoes').push(d).then(() => { document.getElementById('mov_qtd').value = ""; });
     }
+
     function atualizarSelectOrdens() {
         const sel = document.getElementById('mov_ordem_id'); sel.innerHTML = '<option value="">Selecionar OF...</option>';
         for(let id in ordensGlobal) sel.innerHTML += `<option value="${id}">${id}</option>`;
     }
+
     function salvarOrdem() {
         const i = document.getElementById('ord_id').value.toUpperCase().trim();
         const c = document.getElementById('ord_cod').value.toUpperCase().trim();
         const m = parseInt(document.getElementById('ord_meta').value);
-        if(i && produtosGlobal[c]) db.ref('ordens/'+i).set({ cod: c, prod: produtosGlobal[c].prod, meta: m }).then(() => alert("OF Guardada!"));
+        if(i && produtosGlobal[c]) db.ref('ordens/'+i).set({ cod: c, prod: produtosGlobal[c].prod, meta: m }).then(() => alert("OF Criada"));
     }
 </script>
 </body>
