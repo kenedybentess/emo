@@ -2,32 +2,32 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <title>SGE - Sistema de Gestão Industrial</title>
+    <title>SGE - Controle de Injeção I9 FULL2</title>
     <style>
-        :root { --primary: #2c3e50; --secondary: #34495e; --danger: #e74c3c; --success: #27ae60; --info: #3498db; --light: #ecf0f1; }
-        body { font-family: 'Segoe UI', sans-serif; margin: 0; background: #f4f7f6; }
-        .navbar { background: var(--primary); color: white; padding: 1rem 2rem; display: flex; justify-content: space-between; }
-        .container { max-width: 98%; margin: 20px auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        :root { --primary: #2c3e50; --secondary: #34495e; --danger: #e74c3c; --success: #27ae60; --light: #f4f7f6; }
+        body { font-family: 'Segoe UI', sans-serif; margin: 0; background: var(--light); font-size: 13px; }
+        .navbar { background: var(--primary); color: white; padding: 10px 20px; display: flex; justify-content: space-between; align-items: center; }
+        .container { width: 98%; margin: 15px auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
         
-        /* Layout de Inputs */
-        .panel { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; background: var(--light); padding: 15px; border-radius: 8px; margin-bottom: 20px; }
+        /* Formulário seguindo seu Excel */
+        .panel { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 10px; background: #eee; padding: 15px; border-radius: 6px; margin-bottom: 15px; }
         .form-group { display: flex; flex-direction: column; }
-        label { font-size: 11px; font-weight: bold; color: var(--secondary); margin-bottom: 3px; }
-        input { padding: 8px; border: 1px solid #ccc; border-radius: 4px; }
+        label { font-size: 10px; font-weight: bold; margin-bottom: 3px; color: #555; }
+        input { padding: 6px; border: 1px solid #ccc; border-radius: 4px; }
         
-        .button-group { margin-bottom: 20px; display: flex; gap: 10px; }
-        button { cursor: pointer; padding: 10px 15px; border: none; border-radius: 4px; font-weight: bold; color: white; }
+        .btns { margin-bottom: 15px; display: flex; gap: 10px; }
+        button { cursor: pointer; padding: 8px 15px; border: none; border-radius: 4px; font-weight: bold; color: white; }
         .btn-add { background: var(--success); }
-        .btn-exp { background: var(--secondary); }
-        .btn-imp { background: var(--info); }
+        .btn-export { background: #217346; } /* Cor do Excel */
+        .btn-import { background: var(--secondary); }
 
-        #busca { width: 100%; padding: 12px; border: 2px solid var(--primary); border-radius: 6px; margin-bottom: 15px; box-sizing: border-box; }
+        #busca { width: 100%; padding: 10px; border: 2px solid var(--primary); border-radius: 5px; margin-bottom: 15px; }
 
-        table { width: 100%; border-collapse: collapse; font-size: 13px; }
-        th { background: var(--primary); color: white; padding: 10px; text-align: left; }
-        td { padding: 8px 10px; border-bottom: 1px solid #eee; }
-        tr:hover { background: #f9f9f9; }
-        .estoque-baixo { background-color: #ffdce0 !important; }
+        table { width: 100%; border-collapse: collapse; background: white; }
+        th { background: var(--primary); color: white; padding: 10px; text-align: left; position: sticky; top: 0; }
+        td { padding: 8px; border-bottom: 1px solid #ddd; }
+        tr:nth-child(even) { background: #fafafa; }
+        .baixo-estoque { background-color: #ffebed !important; color: #c0392b; }
         
         #fileInput { display: none; }
     </style>
@@ -35,93 +35,88 @@
 <body>
 
 <div class="navbar">
-    <div style="font-weight: bold;">SGE - CONTROLO DE PRODUÇÃO E STOCK</div>
-    <div id="data_atual"></div>
+    <div style="font-weight: bold;">CONTROLE DE PRODUÇÃO - INJEÇÃO I9</div>
+    <div id="data"></div>
 </div>
 
 <div class="container">
     <div class="panel">
-        <div class="form-group"><label>CÓDIGO</label><input type="text" id="cod"></div>
+        <div class="form-group"><label>CODIGO</label><input type="text" id="cod"></div>
+        <div class="form-group"><label>PRODUTO</label><input type="text" id="prod"></div>
         <div class="form-group"><label>DESCRIÇÃO</label><input type="text" id="desc"></div>
         <div class="form-group"><label>ORDEM</label><input type="text" id="ordem"></div>
         <div class="form-group"><label>QTD</label><input type="number" id="qtd"></div>
         <div class="form-group"><label>PESO UM</label><input type="text" id="peso"></div>
         <div class="form-group"><label>OPERADOR</label><input type="text" id="operador"></div>
         <div class="form-group"><label>CQ</label><input type="text" id="cq"></div>
-        <div class="form-group"><label>MÍNIMO</label><input type="number" id="min" value="100"></div>
     </div>
 
-    <div class="button-group">
-        <button class="btn-add" onclick="adicionar()">➕ CADASTRAR</button>
-        <button class="btn-exp" onclick="exportarCSV()">📥 EXPORTAR EXCEL</button>
-        <button class="btn-imp" onclick="document.getElementById('fileInput').click()">📤 IMPORTAR EXCEL</button>
+    <div class="btns">
+        <button class="btn-add" onclick="adicionar()">➕ REGISTRAR ENTRADA/SAÍDA</button>
+        <button class="btn-export" onclick="exportarCSV()">📥 EXPORTAR PARA EXCEL (.CSV)</button>
+        <button class="btn-import" onclick="document.getElementById('fileInput').click()">📤 IMPORTAR DADOS</button>
         <input type="file" id="fileInput" accept=".csv" onchange="importarCSV(event)">
     </div>
 
-    <input type="text" id="busca" placeholder="🔍 Pesquisar por Código, Operador, Ordem ou Descrição..." onkeyup="filtrar()">
+    <input type="text" id="busca" placeholder="🔍 Filtrar por qualquer campo (Código, Ordem, Operador...)" onkeyup="filtrar()">
 
-    <table id="tabela">
+    <table>
         <thead>
             <tr>
                 <th>CÓDIGO</th>
+                <th>PRODUTO</th>
                 <th>DESCRIÇÃO</th>
                 <th>ORDEM</th>
                 <th>QTD</th>
                 <th>PESO UM</th>
                 <th>OPERADOR</th>
                 <th>CQ</th>
-                <th>STATUS</th>
-                <th>AÇÕES</th>
+                <th>DATA/HORA</th>
             </tr>
         </thead>
-        <tbody id="corpo"></tbody>
+        <tbody id="corpoTabela"></tbody>
     </table>
 </div>
 
 <script>
-    let estoque = JSON.parse(localStorage.getItem('estoque_industrial')) || [];
+    let dados = JSON.parse(localStorage.getItem('dados_injecao')) || [];
 
     function salvar() {
-        localStorage.setItem('estoque_industrial', JSON.stringify(estoque));
-        render();
+        localStorage.setItem('dados_injecao', JSON.stringify(dados));
+        renderizar();
     }
 
     function adicionar() {
-        const item = {
+        const novo = {
             cod: document.getElementById('cod').value,
+            prod: document.getElementById('prod').value,
             desc: document.getElementById('desc').value,
-            ordem: document.getElementById('ordem.').value || '-',
-            qtd: parseInt(document.getElementById('qtd').value) || 0,
-            peso: document.getElementById('peso').value || '0',
-            operador: document.getElementById('operador').value || '-',
-            cq: document.getElementById('cq').value || '-',
-            min: parseInt(document.getElementById('min').value) || 0
+            ordem: document.getElementById('ordem').value,
+            qtd: document.getElementById('qtd').value,
+            peso: document.getElementById('peso').value,
+            operador: document.getElementById('operador').value,
+            cq: document.getElementById('cq').value,
+            data: new Date().toLocaleString('pt-BR')
         };
-        estoque.push(item);
+        if(!novo.cod || !novo.qtd) return alert("Código e Quantidade são obrigatórios!");
+        dados.unshift(novo); // Adiciona no topo
         salvar();
-    }
-
-    function movimentar(codigo, valor) {
-        const p = estoque.find(x => x.cod === codigo);
-        if(p) { p.qtd += valor; salvar(); }
-    }
-
-    function filtrar() {
-        const termo = document.getElementById('busca').value.toLowerCase();
-        document.querySelectorAll('#corpo tr').forEach(tr => {
-            tr.style.display = tr.innerText.toLowerCase().includes(termo) ? '' : 'none';
-        });
+        limpar();
     }
 
     function exportarCSV() {
-        let csv = 'CODIGO;PRODUTO;DESCRIÇÃO;ORDEM;QTD;PESO UM;OPERADOR;CQ;MINIMO\n';
-        estoque.forEach(p => {
-            csv += `${p.cod};-;${p.desc};${p.ordem};${p.qtd};${p.peso};${p.operador};${p.cq};${p.min}\n`;
+        // Cabeçalho idêntico ao seu Excel
+        let csv = '\uFEFF'; // BOM para o Excel reconhecer acentos
+        csv += 'CODIGO;PRODUTO;DESCRIÇÃO;ORDEM;QTD;PESO UM;OPERADOR;CQ;DATA\n';
+        
+        dados.forEach(d => {
+            csv += `${d.cod};${d.prod};${d.desc};${d.ordem};${d.qtd};${d.peso};${d.operador};${d.cq};${d.data}\n`;
         });
+
         const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
         const link = document.createElement("a");
         link.href = URL.createObjectURL(blob);
-        link.download = "estoque_producao.csv";
+        link.download = "Injecao_I9_Export.csv";
         link.click();
     }
 
@@ -130,12 +125,11 @@
         reader.onload = function(e) {
             const linhas = e.target.result.split('\n').slice(1);
             linhas.forEach(l => {
-                const d = l.split(';');
-                if(d.length > 5) {
-                    estoque.push({
-                        cod: d[0], desc: d[2], ordem: d[3],
-                        qtd: parseInt(d[4]) || 0, peso: d[5],
-                        operador: d[6], cq: d[7], min: 100
+                const c = l.split(';');
+                if(c.length >= 8) {
+                    dados.push({
+                        cod: c[0], prod: c[1], desc: c[2], ordem: c[3],
+                        qtd: c[4], peso: c[5], operador: c[6], cq: c[7], data: c[8] || '-'
                     });
                 }
             });
@@ -144,31 +138,38 @@
         reader.readAsText(event.target.files[0]);
     }
 
-    function render() {
-        const corpo = document.getElementById('corpo');
+    function filtrar() {
+        const t = document.getElementById('busca').value.toLowerCase();
+        document.querySelectorAll('tbody tr').forEach(tr => {
+            tr.style.display = tr.innerText.toLowerCase().includes(t) ? '' : 'none';
+        });
+    }
+
+    function renderizar() {
+        const corpo = document.getElementById('corpoTabela');
         corpo.innerHTML = '';
-        estoque.forEach(p => {
-            const baixo = p.qtd <= p.min ? 'estoque-baixo' : '';
+        dados.forEach(d => {
             corpo.innerHTML += `
-                <tr class="${baixo}">
-                    <td>${p.cod}</td>
-                    <td>${p.desc}</td>
-                    <td>${p.ordem}</td>
-                    <td><b>${p.qtd}</b></td>
-                    <td>${p.peso}</td>
-                    <td>${p.operador}</td>
-                    <td>${p.cq}</td>
-                    <td>${p.qtd <= p.min ? '🔴 REPOR' : '🟢 OK'}</td>
-                    <td>
-                        <button onclick="movimentar('${p.cod}', 1)" style="background:var(--success);padding:2px 5px">+</button>
-                        <button onclick="movimentar('${p.cod}', -1)" style="background:var(--danger);padding:2px 5px">-</button>
-                    </td>
+                <tr>
+                    <td>${d.cod}</td>
+                    <td>${d.prod}</td>
+                    <td>${d.desc}</td>
+                    <td>${d.ordem}</td>
+                    <td><b>${d.qtd}</b></td>
+                    <td>${d.peso}</td>
+                    <td>${d.operador}</td>
+                    <td>${d.cq}</td>
+                    <td>${d.data}</td>
                 </tr>`;
         });
     }
 
-    document.getElementById('data_atual').innerText = new Date().toLocaleDateString();
-    render();
+    function limpar() {
+        ["cod", "prod", "desc", "ordem", "qtd", "peso", "operador", "cq"].forEach(id => document.getElementById(id).value = "");
+    }
+
+    document.getElementById('data').innerText = new Date().toLocaleDateString();
+    renderizar();
 </script>
 </body>
 </html>
