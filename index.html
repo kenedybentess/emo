@@ -2,7 +2,7 @@
 <html lang="pt-pt">
 <head>
     <meta charset="UTF-8">
-    <title>SGE - I9 Industrial (Super User Control)</title>
+    <title>SGE - I9 Industrial (Controle por Ordem)</title>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-auth-compat.js"></script>
@@ -27,106 +27,66 @@
         input, select { width: 100%; padding: 10px; margin: 5px 0 12px 0; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box; }
         input:read-only { background: #f1f2f6; }
         
-        button { cursor: pointer; padding: 8px; border: none; border-radius: 5px; font-weight: bold; color: white; transition: 0.3s; }
-        .btn-reg { background: var(--primary); width: 100%; margin-top: 10px; }
-        .btn-action { font-size: 9px; padding: 4px 8px; margin-right: 2px; }
+        button { cursor: pointer; padding: 10px; border: none; border-radius: 5px; font-weight: bold; color: white; transition: 0.3s; width: 100%; }
+        .btn-reg { background: var(--primary); }
+        .btn-reg:disabled { background: #ccc; cursor: not-allowed; }
         
         .badge { padding: 3px 8px; border-radius: 4px; font-size: 10px; color: white; font-weight: bold; }
-        .desc-text { color: #7f8c8d; font-size: 11px; font-style: italic; display: block; }
-        .stock-baixo { background-color: #fff5f5; color: var(--danger); font-weight: bold; }
+        .status-msg { font-weight: bold; font-size: 11px; margin-top: 5px; display: block; }
     </style>
 </head>
 <body>
 
 <div id="login-screen">
     <div class="login-card">
-        <h2 style="color:var(--primary)">I9 INDUSTRIAL</h2>
+        <h2>I9 INDUSTRIAL</h2>
         <input type="email" id="email" placeholder="E-mail">
         <input type="password" id="password" placeholder="Palavra-passe">
-        <button style="background: var(--info); width:100%" onclick="fazerLogin()">ENTRAR</button>
+        <button style="background: var(--info)" onclick="fazerLogin()">ENTRAR</button>
     </div>
 </div>
 
 <div id="main-content">
     <div class="navbar">
         <div><b>SGE I9</b> | <span id="user-display">---</span></div>
-        <button onclick="auth.signOut().then(() => location.reload())" style="background:transparent; border:1px solid white; width:auto">Sair</button>
+        <button onclick="auth.signOut().then(() => location.reload())" style="background:transparent; border:1px solid white; width: auto;">Sair</button>
     </div>
 
     <div class="container">
-        <div class="card" style="margin-bottom: 20px;">
-            <input type="text" id="inputPesquisa" placeholder="🔍 Pesquisar..." onkeyup="renderizarTudo()">
-        </div>
-
         <div class="grid">
-            <div id="panel-admin" class="card" style="display: none; border-top: 5px solid var(--danger);">
-                <h3 id="admin-title">📂 GESTÃO ADMIN</h3>
-                <select id="admin_modo" onchange="alternarFormAdmin()">
-                    <option value="PROD">PRODUTOS</option>
-                    <option value="ORDEM">ORDENS DE TRABALHO</option>
-                </select>
-                <hr>
-                
-                <div id="form-prod">
-                    <label>Código</label><input type="text" id="cad_cod">
-                    <label>Produto</label><input type="text" id="cad_prod">
-                    <label>Descrição</label><input type="text" id="cad_desc">
-                    <label>Mínimo</label><input type="number" id="cad_min" value="5">
-                    <button class="btn-reg" onclick="salvarProduto()">SALVAR PRODUTO</button>
-                </div>
-
-                <div id="form-ordem" style="display:none">
-                    <label>Nº Ordem</label><input type="text" id="ord_id">
-                    <label>Cód. Produto</label><input type="text" id="ord_cod" oninput="procv(this.value, 'ord_nome', '')">
-                    <input type="text" id="ord_nome" readonly placeholder="Nome automático">
-                    <label>Qtd. Planeada</label><input type="number" id="ord_meta">
-                    <button class="btn-reg" style="background: var(--done)" onclick="salvarOrdem()">SALVAR ORDEM</button>
-                </div>
+            <div id="panel-admin" class="card" style="display: none; border-top: 5px solid var(--done);">
+                <h3>📋 GERAR ORDEM DE TRABALHO</h3>
+                <label>Nº da Ordem (Ex: OF-2024-001)</label><input type="text" id="ord_id">
+                <label>Produto (Código)</label><input type="text" id="ord_cod" oninput="procvAdmin(this.value)">
+                <input type="text" id="ord_nome" readonly placeholder="Nome do Produto">
+                <label>Quantidade Planeada (Total)</label><input type="number" id="ord_meta">
+                <button class="btn-reg" style="background: var(--done)" onclick="salvarOrdem()">CRIAR ORDEM</button>
             </div>
 
             <div class="card">
-                <h3>🚀 LANÇAR MOVIMENTO</h3>
-                <label>Modo</label>
-                <select id="mov_modo" onchange="alternarModoMov()">
-                    <option value="STOCK">STOCK GERAL</option>
-                    <option value="ORDEM">ORDEM DE TRABALHO</option>
-                </select>
-
-                <div id="mov-stock-fields">
-                    <label>Operação</label>
-                    <select id="mov_tipo"><option value="ENTRADA">ENTRADA</option><option value="SAIDA">SAÍDA</option></select>
-                    <label>Código</label><input type="text" id="mov_cod" oninput="procv(this.value, 'nome_prod', 'desc_prod')">
-                </div>
-
-                <div id="mov-ordem-fields" style="display:none">
-                    <label>Selecionar Ordem</label>
-                    <select id="mov_ordem_id" onchange="validarOrdem()"><option value="">Selecione...</option></select>
-                </div>
-
-                <label>Produto</label>
-                <input type="text" id="nome_prod" readonly>
-                <input type="text" id="desc_prod" readonly>
-                <label>Quantidade</label>
-                <input type="number" id="mov_qtd" oninput="validarOrdem()">
+                <h3>🚀 APONTAMENTO / MOVIMENTAÇÃO</h3>
+                <label>Nº da Ordem</label>
+                <select id="mov_ordem" onchange="validarLimiteOrdem()"><option value="">Selecione a Ordem...</option></select>
                 
-                <span id="msg-validacao" style="color:var(--danger); font-weight:bold; display:block; margin:5px 0;"></span>
-                <button id="btn-registar" class="btn-reg" onclick="lancarMovimento()">REGISTAR</button>
+                <div id="info-ordem" style="background: #fcf8e3; padding: 10px; border-radius: 5px; margin-bottom: 10px; display:none;">
+                    <span id="txt-info-ordem"></span>
+                </div>
+
+                <label>Quantidade a Apontar</label>
+                <input type="number" id="mov_qtd" oninput="validarLimiteOrdem()">
+                
+                <span id="msg-erro" class="status-msg" style="color: var(--danger)"></span>
+                <button id="btn-registar" class="btn-reg" onclick="lancarMovimento()">REGISTAR APONTAMENTO</button>
             </div>
         </div>
 
-        <div class="card" style="margin-bottom:20px">
-            <h3>📋 MONITORIZAÇÃO DE ORDENS</h3>
-            <table>
-                <thead><tr><th>ORDEM</th><th>PRODUTO</th><th>META</th><th>REAL</th><th>PROG.</th><th>AÇÕES</th></tr></thead>
-                <tbody id="corpoOrdens"></tbody>
-            </table>
-        </div>
-
         <div class="card">
-            <h3>📊 STOCK ATUAL</h3>
+            <h3>📊 MONITORIZAÇÃO DE ORDENS</h3>
             <table>
-                <thead><tr><th>CÓDIGO</th><th>PRODUTO</th><th>SALDO</th><th>MÍN.</th></tr></thead>
-                <tbody id="corpoStock"></tbody>
+                <thead>
+                    <tr><th>ORDEM</th><th>PRODUTO</th><th>PLANEADO</th><th>REALIZADO</th><th>STATUS</th></tr>
+                </thead>
+                <tbody id="corpoOrdens"></tbody>
             </table>
         </div>
     </div>
@@ -145,200 +105,132 @@
     const auth = firebase.auth();
     const db = firebase.database();
 
-    const listaAdmins = ["admin@i9.com", "super@i9.com"];
-    const listaSuper = ["super@i9.com"];
-
+    const listaAdmins = ["admin@i9.com", "super@i9.com"]; 
     let produtosGlobal = {};
     let ordensGlobal = {};
     let historicoGlobal = [];
 
     function fazerLogin() {
         auth.signInWithEmailAndPassword(document.getElementById('email').value, document.getElementById('password').value)
-            .then(res => {
-                document.getElementById('login-screen').style.display = 'none';
-                document.getElementById('main-content').style.display = 'block';
-                document.getElementById('user-display').innerText = res.user.email;
-                if(listaAdmins.includes(res.user.email)) document.getElementById('panel-admin').style.display = 'block';
-                carregarDados();
-            }).catch(() => alert("Acesso Negado"));
+            .then(res => configurarInterface(res.user.email))
+            .catch(() => alert("Erro de Login"));
+    }
+
+    function configurarInterface(email) {
+        document.getElementById('login-screen').style.display = 'none';
+        document.getElementById('main-content').style.display = 'block';
+        document.getElementById('user-display').innerText = email;
+        if (listaAdmins.includes(email)) document.getElementById('panel-admin').style.display = 'block';
+        carregarDados();
     }
 
     function carregarDados() {
-        db.ref('produtos').on('value', s => { produtosGlobal = s.val() || {}; renderizarTudo(); });
-        db.ref('ordens').on('value', s => { ordensGlobal = s.val() || {}; atualizarSelectOrdens(); renderizarTudo(); });
-        db.ref('movimentacoes').on('value', s => { 
-            const d = s.val(); 
-            historicoGlobal = d ? Object.values(d).reverse() : []; 
-            renderizarTudo(); 
+        db.ref('produtos').on('value', snap => { produtosGlobal = snap.val() || {}; });
+        db.ref('ordens').on('value', snap => { ordensGlobal = snap.val() || {}; atualizarSelectOrdens(); renderizarOrdens(); });
+        db.ref('movimentacoes').on('value', snap => {
+            const data = snap.val();
+            historicoGlobal = data ? Object.values(data) : [];
+            renderizarOrdens();
         });
     }
 
-    function alternarFormAdmin() {
-        const modo = document.getElementById('admin_modo').value;
-        document.getElementById('form-prod').style.display = modo === 'PROD' ? 'block' : 'none';
-        document.getElementById('form-ordem').style.display = modo === 'ORDEM' ? 'block' : 'none';
-    }
-
-    function alternarModoMov() {
-        const modo = document.getElementById('mov_modo').value;
-        document.getElementById('mov-stock-fields').style.display = modo === 'STOCK' ? 'block' : 'none';
-        document.getElementById('mov-ordem-fields').style.display = modo === 'ORDEM' ? 'block' : 'none';
-        limparCamposMov();
-    }
-
-    function procv(cod, idNome, idDesc) {
+    function procvAdmin(cod) {
         const item = produtosGlobal[cod.toUpperCase().trim()];
-        if(document.getElementById(idNome)) document.getElementById(idNome).value = item ? item.prod : "";
-        if(document.getElementById(idDesc)) document.getElementById(idDesc).value = item ? (item.desc || "") : "";
-    }
-
-    function atualizarSelectOrdens() {
-        const sel = document.getElementById('mov_ordem_id');
-        sel.innerHTML = '<option value="">Selecione...</option>';
-        for(let id in ordensGlobal) sel.innerHTML += `<option value="${id}">${id}</option>`;
-    }
-
-    function salvarProduto() {
-        const cod = document.getElementById('cad_cod').value.toUpperCase().trim();
-        const prod = document.getElementById('cad_prod').value;
-        const desc = document.getElementById('cad_desc').value;
-        const min = parseInt(document.getElementById('cad_min').value) || 0;
-        if(!cod || !prod) return alert("Dados inválidos");
-        db.ref('produtos/' + cod).set({ prod, desc, min }).then(() => {
-            document.getElementById('cad_cod').value = "";
-            document.getElementById('cad_prod').value = "";
-        });
+        document.getElementById('ord_nome').value = item ? item.prod : "Não encontrado";
     }
 
     function salvarOrdem() {
         const id = document.getElementById('ord_id').value.toUpperCase().trim();
         const cod = document.getElementById('ord_cod').value.toUpperCase().trim();
         const meta = parseInt(document.getElementById('ord_meta').value);
-        if(!id || !produtosGlobal[cod] || isNaN(meta)) return alert("Verifique os dados da Ordem");
+        
+        if(!id || !produtosGlobal[cod] || !meta) return alert("Dados incompletos!");
         
         db.ref('ordens/' + id).set({ cod, prod: produtosGlobal[cod].prod, meta }).then(() => {
-            alert("Ordem Guardada!");
+            alert("Ordem Criada!");
             document.getElementById('ord_id').value = "";
             document.getElementById('ord_cod').value = "";
-            document.getElementById('ord_meta').value = "";
         });
     }
 
-    // --- FUNÇÕES EXCLUSIVAS SUPER USUÁRIO ---
-    function editarOrdem(id) {
-        const ord = ordensGlobal[id];
-        document.getElementById('admin_modo').value = 'ORDEM';
-        alternarFormAdmin();
-        document.getElementById('ord_id').value = id;
-        document.getElementById('ord_cod').value = ord.cod;
-        document.getElementById('ord_nome').value = ord.prod;
-        document.getElementById('ord_meta').value = ord.meta;
-        window.scrollTo(0,0);
-    }
-
-    function eliminarOrdem(id) {
-        if(confirm(`Deseja ELIMINAR a Ordem ${id}? Os apontamentos no histórico permanecerão, mas a ordem sumirá do controle.`)) {
-            db.ref('ordens/' + id).remove();
+    function atualizarSelectOrdens() {
+        const sel = document.getElementById('mov_ordem');
+        sel.innerHTML = '<option value="">Selecione a Ordem...</option>';
+        for(let id in ordensGlobal) {
+            sel.innerHTML += `<option value="${id}">${id} (${ordensGlobal[id].prod})</option>`;
         }
     }
 
-    function validarOrdem() {
-        const modo = document.getElementById('mov_modo').value;
-        if(modo !== 'ORDEM') return;
-        const idOrd = document.getElementById('mov_ordem_id').value;
-        const qtd = parseInt(document.getElementById('mov_qtd').value) || 0;
+    function validarLimiteOrdem() {
+        const idOrdem = document.getElementById('mov_ordem').value;
+        const qtdInserida = parseInt(document.getElementById('mov_qtd').value) || 0;
+        const btn = document.getElementById('btn-registar');
+        const msg = document.getElementById('msg-erro');
+        const infoDiv = document.getElementById('info-ordem');
         
-        if(idOrd && ordensGlobal[idOrd]) {
-            const ord = ordensGlobal[idOrd];
-            document.getElementById('nome_prod').value = ord.prod;
-            const feito = historicoGlobal.filter(h => h.ordem === idOrd).reduce((a, b) => a + b.qtd, 0);
-            const falta = ord.meta - feito;
-            if(qtd > falta) {
-                document.getElementById('btn-registar').disabled = true;
-                document.getElementById('msg-validacao').innerText = `⚠️ Máximo permitido: ${falta}`;
-            } else {
-                document.getElementById('btn-registar').disabled = false;
-                document.getElementById('msg-validacao').innerText = `Saldo da Ordem: ${falta}`;
-            }
+        if(!idOrdem) {
+            infoDiv.style.display = 'none';
+            return;
+        }
+
+        const ordem = ordensGlobal[idOrdem];
+        const realizado = historicoGlobal.filter(l => l.ordem === idOrdem).reduce((acc, cur) => acc + cur.qtd, 0);
+        const restante = ordem.meta - realizado;
+
+        infoDiv.style.display = 'block';
+        document.getElementById('txt-info-ordem').innerText = `Saldo disponível para esta Ordem: ${restante}`;
+
+        if (qtdInserida > restante) {
+            btn.disabled = true;
+            msg.innerText = `⚠️ Limite excedido! Restam apenas ${restante} unidades.`;
+        } else if (restante <= 0) {
+            btn.disabled = true;
+            msg.innerText = `✅ Ordem de trabalho concluída.`;
+        } else {
+            btn.disabled = false;
+            msg.innerText = "";
         }
     }
 
     function lancarMovimento() {
-        const modo = document.getElementById('mov_modo').value;
+        const idOrdem = document.getElementById('mov_ordem').value;
         const qtd = parseInt(document.getElementById('mov_qtd').value);
-        const user = document.getElementById('user-display').innerText;
-        if(!qtd) return alert("Insira uma quantidade");
+        const ope = document.getElementById('user-display').innerText;
 
-        let dados = { data: new Date().toLocaleString('pt-pt'), qtd, ope: user };
+        if(!idOrdem || !qtd) return alert("Preencha todos os campos!");
 
-        if(modo === 'STOCK') {
-            const cod = document.getElementById('mov_cod').value.toUpperCase().trim();
-            if(!produtosGlobal[cod]) return alert("Produto inexistente");
-            dados.tipo = document.getElementById('mov_tipo').value;
-            dados.cod = cod;
-            dados.prod = produtosGlobal[cod].prod;
-        } else {
-            const idOrd = document.getElementById('mov_ordem_id').value;
-            if(!idOrd) return alert("Selecione uma ordem");
-            dados.tipo = "ORDEM";
-            dados.ordem = idOrd;
-            dados.cod = ordensGlobal[idOrd].cod;
-            dados.prod = ordensGlobal[idOrd].prod;
-        }
-
-        db.ref('movimentacoes').push(dados).then(() => {
-            alert("Registado com sucesso!");
-            limparCamposMov();
+        db.ref('movimentacoes').push({
+            data: new Date().toLocaleString('pt-pt'),
+            ordem: idOrdem,
+            cod: ordensGlobal[idOrdem].cod,
+            prod: ordensGlobal[idOrdem].prod,
+            qtd: qtd,
+            ope: ope
+        }).then(() => {
+            document.getElementById('mov_qtd').value = "";
+            alert("Apontamento realizado!");
         });
     }
 
-    function limparCamposMov() {
-        document.getElementById('mov_cod').value = "";
-        document.getElementById('mov_qtd').value = "";
-        document.getElementById('nome_prod').value = "";
-        document.getElementById('desc_prod').value = "";
-        document.getElementById('msg-validacao').innerText = "";
-    }
+    function renderizarOrdens() {
+        const corpo = document.getElementById('corpoOrdens');
+        corpo.innerHTML = '';
 
-    function renderizarTudo() {
-        const user = document.getElementById('user-display').innerText;
-        const isSuper = listaSuper.includes(user);
-
-        // Renderizar Stock
-        const corpoStock = document.getElementById('corpoStock');
-        corpoStock.innerHTML = '';
-        const saldos = {};
-        for(let c in produtosGlobal) saldos[c] = { ...produtosGlobal[c], e:0, s:0 };
-        historicoGlobal.forEach(h => {
-            if(saldos[h.cod]) {
-                if(h.tipo === 'ENTRADA' || h.tipo === 'ORDEM') saldos[h.cod].e += h.qtd;
-                else saldos[h.cod].s += h.qtd;
-            }
-        });
-        for(let c in saldos) {
-            const total = saldos[c].e - saldos[c].s;
-            corpoStock.innerHTML += `<tr><td>${c}</td><td>${saldos[c].prod}</td><td>${total}</td><td>${saldos[c].min}</td></tr>`;
-        }
-
-        // Renderizar Ordens
-        const corpoOrdens = document.getElementById('corpoOrdens');
-        corpoOrdens.innerHTML = '';
         for(let id in ordensGlobal) {
-            const feito = historicoGlobal.filter(h => h.ordem === id).reduce((a, b) => a + b.qtd, 0);
+            const realizado = historicoGlobal.filter(l => l.ordem === id).reduce((acc, cur) => acc + cur.qtd, 0);
             const meta = ordensGlobal[id].meta;
-            const perc = ((feito/meta)*100).toFixed(0);
-            corpoOrdens.innerHTML += `
+            const percent = Math.min((realizado / meta) * 100, 100).toFixed(0);
+            
+            corpo.innerHTML += `
                 <tr>
                     <td><b>${id}</b></td>
                     <td>${ordensGlobal[id].prod}</td>
                     <td>${meta}</td>
-                    <td>${feito}</td>
-                    <td><span class="badge" style="background:var(--done)">${perc}%</span></td>
+                    <td>${realizado}</td>
                     <td>
-                        ${isSuper ? `
-                            <button class="btn-action" style="background:var(--info)" onclick="editarOrdem('${id}')">EDIT</button>
-                            <button class="btn-action" style="background:var(--danger)" onclick="eliminarOrdem('${id}')">DEL</button>
-                        ` : '--'}
+                        <span class="badge" style="background:${realizado >= meta ? 'var(--entry)' : 'var(--info)'}">
+                            ${percent}% ${realizado >= meta ? '(CONCLUÍDA)' : ''}
+                        </span>
                     </td>
                 </tr>`;
         }
