@@ -2,31 +2,32 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <title>SGE - Fluxo de Entrada e Saída I9</title>
+    <title>SGE - Fluxo Rápido I9</title>
     <style>
         :root { --primary: #2c3e50; --entry: #27ae60; --exit: #e67e22; --danger: #e74c3c; --light: #f4f7f6; }
         body { font-family: 'Segoe UI', sans-serif; margin: 0; background: var(--light); font-size: 13px; }
         .navbar { background: var(--primary); color: white; padding: 10px 20px; display: flex; justify-content: space-between; }
         .container { width: 98%; margin: 15px auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
         
-        .panel { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; background: #eee; padding: 15px; border-radius: 6px; margin-bottom: 15px; }
+        .panel { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; background: #eee; padding: 15px; border-radius: 6px; margin-bottom: 15px; border: 2px solid transparent; }
+        .panel.saida-ativa { border-color: var(--exit); background: #fff5eb; }
+        
         .form-group { display: flex; flex-direction: column; }
         label { font-size: 10px; font-weight: bold; margin-bottom: 3px; color: #555; }
         input, select { padding: 8px; border: 1px solid #ccc; border-radius: 4px; }
+        input:disabled { background: #ddd; cursor: not-allowed; }
         
         .btns { margin-bottom: 15px; display: flex; gap: 10px; }
-        button { cursor: pointer; padding: 10px 15px; border: none; border-radius: 4px; font-weight: bold; color: white; }
+        button { cursor: pointer; padding: 10px 15px; border: none; border-radius: 4px; font-weight: bold; color: white; transition: 0.3s; }
         
-        .btn-confirm { background: var(--primary); flex-grow: 1; }
-        .btn-export { background: #217346; }
+        .btn-confirm { background: var(--primary); flex-grow: 1; font-size: 16px; }
+        .btn-confirm:hover { filter: brightness(1.2); }
         
         table { width: 100%; border-collapse: collapse; margin-top: 10px; }
         th { background: var(--primary); color: white; padding: 10px; text-align: left; }
         td { padding: 10px; border-bottom: 1px solid #ddd; }
         
-        .tipo-entrada { color: var(--entry); font-weight: bold; }
-        .tipo-saida { color: var(--exit); font-weight: bold; }
-        .badge { padding: 4px 8px; border-radius: 4px; font-size: 10px; color: white; }
+        .badge { padding: 4px 8px; border-radius: 4px; font-size: 10px; color: white; font-weight: bold; }
         .bg-entry { background: var(--entry); }
         .bg-exit { background: var(--exit); }
     </style>
@@ -34,32 +35,33 @@
 <body>
 
 <div class="navbar">
-    <div style="font-weight: bold;">GESTÃO DE MOVIMENTAÇÃO - I9 FULL2</div>
+    <div style="font-weight: bold;">SISTEMA I9 - MOVIMENTAÇÃO RÁPIDA</div>
     <div id="relogio"></div>
 </div>
 
 <div class="container">
-    <div class="panel">
+    <div class="panel" id="painelCampos">
         <div class="form-group">
             <label>TIPO DE OPERAÇÃO</label>
-            <select id="tipoMov">
-                <option value="ENTRADA">➕ ENTRADA (Produção)</option>
-                <option value="SAIDA">➖ SAÍDA (Expedição/Perda)</option>
+            <select id="tipoMov" onchange="ajustarCampos()">
+                <option value="ENTRADA">➕ ENTRADA (Completo)</option>
+                <option value="SAIDA">➖ SAÍDA (Rápido)</option>
             </select>
         </div>
-        <div class="form-group"><label>CÓDIGO</label><input type="text" id="cod"></div>
-        <div class="form-group"><label>DESCRIÇÃO</label><input type="text" id="desc"></div>
-        <div class="form-group"><label>ORDEM / LOTE</label><input type="text" id="ordem"></div>
-        <div class="form-group"><label>QUANTIDADE</label><input type="number" id="qtd"></div>
-        <div class="form-group"><label>OPERADOR</label><input type="text" id="operador"></div>
+        <div class="form-group"><label>CÓDIGO *</label><input type="text" id="cod" placeholder="Obrigatório"></div>
+        <div class="form-group"><label>QUANTIDADE *</label><input type="number" id="qtd" placeholder="Obrigatório"></div>
+        
+        <div class="form-group"><label>DESCRIÇÃO</label><input type="text" id="desc" class="opcional"></div>
+        <div class="form-group"><label>ORDEM / LOTE</label><input type="text" id="ordem" class="opcional"></div>
+        <div class="form-group"><label>OPERADOR</label><input type="text" id="operador" class="opcional"></div>
     </div>
 
     <div class="btns">
-        <button class="btn-confirm" onclick="registrar()">EFETUAR REGISTO</button>
-        <button class="btn-export" onclick="exportar()">EXPORTAR HISTÓRICO</button>
+        <button id="btnAcao" class="btn-confirm" onclick="registrar()">EFETUAR REGISTO</button>
+        <button onclick="exportar()" style="background: #217346;">📥 EXCEL</button>
     </div>
 
-    <input type="text" id="busca" placeholder="🔍 Filtrar histórico por código, ordem ou operador..." onkeyup="filtrar()" style="width:100%; padding:10px; margin-bottom:10px;">
+    <input type="text" id="busca" placeholder="🔍 Filtrar histórico..." onkeyup="filtrar()" style="width:100%; padding:10px; margin-bottom:10px; border-radius:5px; border:1px solid #ccc;">
 
     <table>
         <thead>
@@ -67,9 +69,8 @@
                 <th>DATA/HORA</th>
                 <th>TIPO</th>
                 <th>CÓDIGO</th>
-                <th>DESCRIÇÃO</th>
-                <th>ORDEM</th>
                 <th>QTD</th>
+                <th>ORDEM</th>
                 <th>OPERADOR</th>
                 <th>AÇÕES</th>
             </tr>
@@ -79,32 +80,59 @@
 </div>
 
 <script>
-    let historico = JSON.parse(localStorage.getItem('historico_i9')) || [];
+    let historico = JSON.parse(localStorage.getItem('historico_i9_v4')) || [];
+
+    function ajustarCampos() {
+        const tipo = document.getElementById('tipoMov').value;
+        const opcionais = document.querySelectorAll('.opcional');
+        const painel = document.getElementById('painelCampos');
+        const btn = document.getElementById('btnAcao');
+
+        if (tipo === 'SAIDA') {
+            opcionais.forEach(el => { el.disabled = true; el.value = "---"; });
+            painel.classList.add('saida-ativa');
+            btn.style.background = "var(--exit)";
+            btn.innerText = "CONFIRMAR SAÍDA RÁPIDA";
+        } else {
+            opcionais.forEach(el => { el.disabled = false; el.value = ""; });
+            painel.classList.remove('saida-ativa');
+            btn.style.background = "var(--primary)";
+            btn.innerText = "EFETUAR REGISTO";
+        }
+    }
 
     function registrar() {
+        const tipo = document.getElementById('tipoMov').value;
+        const cod = document.getElementById('cod').value.trim();
+        const qtd = document.getElementById('qtd').value;
+
+        if(!cod || !qtd) return alert("Erro: Código e Quantidade são obrigatórios!");
+
         const mov = {
             data: new Date().toLocaleString('pt-BR'),
-            tipo: document.getElementById('tipoMov').value,
-            cod: document.getElementById('cod').value,
-            desc: document.getElementById('desc').value,
-            ordem: document.getElementById('ordem').value,
-            qtd: document.getElementById('qtd').value,
-            operador: document.getElementById('operador').value,
+            tipo: tipo,
+            cod: cod,
+            desc: tipo === 'SAIDA' ? "Saída Rápida" : document.getElementById('desc').value,
+            ordem: tipo === 'SAIDA' ? "---" : document.getElementById('ordem').value,
+            qtd: qtd,
+            operador: tipo === 'SAIDA' ? "Sist. Rápido" : document.getElementById('operador').value,
             id: Date.now()
         };
 
-        if(!mov.cod || !mov.qtd) return alert("Preencha o Código e a Quantidade!");
-
         historico.unshift(mov);
-        localStorage.setItem('historico_i9', JSON.stringify(historico));
+        localStorage.setItem('historico_i9_v4', JSON.stringify(historico));
         renderizar();
-        limpar();
+        
+        // Limpa apenas o necessário
+        document.getElementById('cod').value = "";
+        document.getElementById('qtd').value = "";
+        document.getElementById('cod').focus(); // Foca no código para a próxima bipagem
     }
 
     function excluir(id) {
-        if(confirm("Deseja apagar este registo de movimentação?")) {
+        if(confirm("Deseja apagar este registro?")) {
             historico = historico.filter(m => m.id !== id);
-            localStorage.setItem('historico_i9', JSON.stringify(historico));
+            localStorage.setItem('historico_i9_v4', JSON.stringify(historico));
             renderizar();
         }
     }
@@ -119,24 +147,21 @@
                     <td>${m.data}</td>
                     <td><span class="badge ${classeTipo}">${m.tipo}</span></td>
                     <td>${m.cod}</td>
-                    <td>${m.desc}</td>
-                    <td>${m.ordem}</td>
                     <td><b>${m.tipo === 'SAIDA' ? '-' : '+'}${m.qtd}</b></td>
+                    <td>${m.ordem}</td>
                     <td>${m.operador}</td>
-                    <td><button onclick="excluir(${m.id})" style="background:var(--danger); border-radius:3px; padding:2px 5px; border:none; color:white; cursor:pointer;">🗑️</button></td>
+                    <td><button onclick="excluir(${m.id})" style="background:var(--danger); border:none; color:white; cursor:pointer; padding:2px 5px; border-radius:3px;">🗑️</button></td>
                 </tr>`;
         });
     }
 
     function exportar() {
-        let csv = '\uFEFFDATA;TIPO;CODIGO;DESCRICAO;ORDEM;QTD;OPERADOR\n';
-        historico.forEach(m => {
-            csv += `${m.data};${m.tipo};${m.cod};${m.desc};${m.ordem};${m.qtd};${m.operador}\n`;
-        });
+        let csv = '\uFEFFDATA;TIPO;CODIGO;QTD;ORDEM;OPERADOR\n';
+        historico.forEach(m => { csv += `${m.data};${m.tipo};${m.cod};${m.qtd};${m.ordem};${m.operador}\n`; });
         const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
         const link = document.createElement("a");
         link.href = URL.createObjectURL(blob);
-        link.download = "Historico_Movimentacao_I9.csv";
+        link.download = "Fluxo_I9_Producao.csv";
         link.click();
     }
 
@@ -145,10 +170,6 @@
         document.querySelectorAll('tbody tr').forEach(tr => {
             tr.style.display = tr.innerText.toLowerCase().includes(t) ? '' : 'none';
         });
-    }
-
-    function limpar() {
-        ["cod", "desc", "ordem", "qtd", "operador"].forEach(id => document.getElementById(id).value = "");
     }
 
     setInterval(() => { document.getElementById('relogio').innerText = new Date().toLocaleString(); }, 1000);
