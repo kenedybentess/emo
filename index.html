@@ -13,39 +13,40 @@
         }
         body { font-family: 'Segoe UI', sans-serif; margin: 0; background: var(--light); color: #333; font-size: 13px; }
         
+        /* Navbar e Containers */
         #login-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--primary); display: flex; justify-content: center; align-items: center; z-index: 1000; }
         .login-card { background: white; padding: 40px; border-radius: 12px; width: 320px; text-align: center; }
         #main-content { display: none; }
         .navbar { background: var(--primary); color: white; padding: 12px 25px; display: flex; justify-content: space-between; align-items: center; }
         .container { width: 96%; margin: 20px auto; }
         
+        /* Estilo dos Cards e Tabelas conforme Fotos */
         .card { background: white; padding: 20px; border-radius: 4px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); margin-bottom: 25px; }
         .section-header { border-left: 4px solid var(--info); padding-left: 15px; margin-bottom: 20px; }
         .section-header h3 { margin: 0; text-transform: uppercase; color: var(--done); font-size: 16px; }
+        .section-header p { margin: 5px 0 0 0; color: #7f8c8d; font-size: 12px; }
 
         table { width: 100%; border-collapse: collapse; }
         th { background: #f8f9fa; padding: 12px; text-align: left; border-bottom: 2px solid #eee; font-size: 11px; color: #555; text-transform: uppercase; }
         td { padding: 12px; border-bottom: 1px solid #eee; vertical-align: middle; }
         
+        /* Alerta visual da foto (fundo rosado para stock baixo) */
+        .stock-baixo { background-color: #fff5f5 !important; }
+
+        /* Texto do Artigo e PESO (Conforme Foto) */
         .item-nome { color: var(--orange); font-weight: bold; font-size: 13px; display: block; }
         .item-desc { color: #d35400; font-size: 10px; font-weight: bold; text-transform: uppercase; display: block; }
-        
-        /* ESTILO DO HISTÓRICO (CONFORME IMAGEM) */
-        #modal-historico { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 2000; overflow-y: auto; }
-        .modal-content { background: white; width: 95%; margin: 20px auto; padding: 25px; border-radius: 8px; position: relative; min-height: 90vh; }
-        
-        .search-bar { width: 100%; padding: 15px; border: 2px solid var(--info); border-radius: 8px; font-size: 16px; margin-bottom: 20px; box-sizing: border-box; }
-        
-        .resumo-black { 
-            background: var(--dark-card); color: white; padding: 20px; border-radius: 8px;
-            display: flex; justify-content: space-around; margin-bottom: 20px;
-            border-left: 6px solid var(--info);
-        }
-        .resumo-item { text-align: center; flex: 1; }
-        .resumo-label { font-size: 10px; text-transform: uppercase; opacity: 0.7; display: block; margin-bottom: 5px; }
-        .resumo-val { font-size: 22px; font-weight: bold; }
+        .item-peso-sub { color: #7f8c8d; font-size: 10px; font-style: italic; display: block; margin-top: 2px; }
 
-        .btn-del { background: var(--danger); color: white; padding: 4px 10px; border-radius: 4px; font-size: 10px; cursor: pointer; border:none; }
+        /* Botões */
+        .btn-edit { background: var(--info); color: white; padding: 5px 10px; border-radius: 4px; font-size: 10px; border:none; cursor: pointer; margin-right: 4px; text-transform: uppercase; font-weight: bold;}
+        .btn-del { background: var(--danger); color: white; padding: 5px 10px; border-radius: 4px; font-size: 10px; border:none; cursor: pointer; text-transform: uppercase; font-weight: bold;}
+        
+        /* Histórico */
+        #modal-historico { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 2000; overflow-y: auto; }
+        .modal-content { background: white; width: 95%; margin: 20px auto; padding: 25px; border-radius: 8px; position: relative; }
+        .resumo-black { background: var(--dark-card); color: white; padding: 20px; border-radius: 8px; display: flex; justify-content: space-around; border-left: 6px solid var(--info); }
+        
         input, select { width: 100%; padding: 10px; margin: 5px 0 12px 0; border: 1px solid #ccc; border-radius: 5px; }
         .btn-reg { background: var(--primary); color: white; width: 100%; padding: 12px; border: none; border-radius: 4px; font-weight: bold; cursor: pointer; }
     </style>
@@ -57,7 +58,7 @@
         <h2>I9 INDUSTRIAL</h2>
         <input type="email" id="email" placeholder="E-mail">
         <input type="password" id="password" placeholder="Palavra-passe">
-        <button style="background: var(--info); width:100%; color:white; padding:12px; border:none; border-radius:4px;" onclick="fazerLogin()">ENTRAR</button>
+        <button onclick="fazerLogin()" style="background: var(--info); width:100%; color:white; padding:12px; border:none; border-radius:4px; cursor:pointer;">ENTRAR</button>
     </div>
 </div>
 
@@ -79,17 +80,17 @@
                 </select>
                 <div id="form-prod">
                     <input type="text" id="cad_cod" placeholder="Código" oninput="verificarExistencia(this.value)">
-                    <input type="text" id="cad_prod" placeholder="Nome">
-                    <input type="text" id="cad_desc" placeholder="Descrição">
+                    <input type="text" id="cad_prod" placeholder="Nome (Ex: I9 FULL2)">
+                    <input type="text" id="cad_desc" placeholder="Descrição Técnica">
                     <input type="number" step="0.001" id="cad_peso" placeholder="Peso Unitário (kg)">
-                    <input type="number" id="cad_min" placeholder="Alerta Mínimo">
-                    <button class="btn-reg" onclick="salvarProduto()">GRAVAR ARTIGO</button>
+                    <input type="number" id="cad_min" placeholder="Stock Mínimo Alerta">
+                    <button class="btn-reg" onclick="salvarProduto()">GRAVAR / ATUALIZAR ARTIGO</button>
                 </div>
                 <div id="form-ordem" style="display:none">
                     <input type="text" id="ord_id" placeholder="Nº da OF">
-                    <input type="text" id="ord_cod" placeholder="Código Artigo" oninput="procv(this.value, 'ord_nome', '')">
+                    <input type="text" id="ord_cod" placeholder="Código do Artigo" oninput="procv(this.value, 'ord_nome')">
                     <input type="text" id="ord_nome" readonly placeholder="Artigo Automático">
-                    <input type="number" id="ord_meta" placeholder="Meta">
+                    <input type="number" id="ord_meta" placeholder="Meta Unidades">
                     <button class="btn-reg" style="background: var(--done)" onclick="salvarOrdem()">ATIVAR OF</button>
                 </div>
             </div>
@@ -104,26 +105,32 @@
                     <select id="mov_ordem_id" onchange="preencherPelaOrdem()"></select>
                 </div>
                 <div id="campos-saida" style="display:none">
-                    <input type="text" id="mov_cod" placeholder="Cód. Artigo" oninput="procv(this.value, 'nome_prod', 'desc_prod')">
+                    <input type="text" id="mov_cod" placeholder="Código Artigo" oninput="procv(this.value, 'nome_prod')">
                 </div>
                 <input type="text" id="nome_prod" readonly placeholder="Produto">
-                <input type="number" id="mov_qtd" placeholder="Quantidade" oninput="calcularPesoTotal()">
+                <input type="number" id="mov_qtd" placeholder="Quantidade">
                 <button class="btn-reg" onclick="lancarMovimento()">CONFIRMAR REGISTO</button>
             </div>
         </div>
 
         <div class="card">
-            <div class="section-header"><h3>📋 ORDENS EM CURSO</h3></div>
+            <div class="section-header">
+                <h3>📋 ORDENS EM CURSO</h3>
+                <p>Monitorização do progresso produtivo. Compara o objetivo definido na OF com o que já foi produzido.</p>
+            </div>
             <table>
-                <thead><tr><th>OF</th><th>CÓDIGO</th><th>ARTIGO</th><th>META</th><th>REAL</th><th>%</th></tr></thead>
+                <thead><tr><th>OF</th><th>CÓDIGO</th><th>ARTIGO</th><th>META</th><th>REAL</th><th>% PROGRESSO</th><th>AÇÕES</th></tr></thead>
                 <tbody id="corpoOrdens"></tbody>
             </table>
         </div>
 
         <div class="card">
-            <div class="section-header"><h3>📊 STOCK ATUAL</h3></div>
+            <div class="section-header">
+                <h3>📊 STOCK ATUAL</h3>
+                <p>Inventário em tempo real disponível no armazém. O saldo é recalculado a cada movimento.</p>
+            </div>
             <table>
-                <thead><tr><th>CÓDIGO</th><th>ARTIGO</th><th>SALDO</th><th>ALERTA MÍN</th></tr></thead>
+                <thead><tr><th>CÓDIGO</th><th>ARTIGO</th><th>SALDO</th><th>MIN</th><th>AÇÕES</th></tr></thead>
                 <tbody id="corpoStock"></tbody>
             </table>
         </div>
@@ -133,29 +140,15 @@
 <div id="modal-historico">
     <div class="modal-content">
         <span onclick="fecharHistorico()" style="position:absolute; right:20px; top:15px; cursor:pointer; font-size:28px;">&times;</span>
-        <h2 style="display:flex; align-items:center; gap:10px;"><span style="font-size:24px">🕒</span> HISTÓRICO DE MOVIMENTOS</h2>
-        
-        <input type="text" id="inputFiltro" class="search-bar" placeholder="Pesquisar por Artigo, OF, Código..." oninput="renderizarHistorial()">
-
+        <h2 style="display:flex; align-items:center; gap:10px;">🕒 HISTÓRICO DE MOVIMENTOS</h2>
+        <input type="text" id="inputFiltro" style="padding:15px; border:2px solid var(--info); border-radius:8px; font-size:16px; margin-bottom:20px; width:100%; box-sizing: border-box;" placeholder="Pesquisar por Artigo, OF, Código..." oninput="renderizarHistorial()">
         <div class="resumo-black">
-            <div class="resumo-item">
-                <span class="resumo-label">REGISTOS</span>
-                <span id="soma-count" class="resumo-val">0</span>
-            </div>
-            <div class="resumo-item">
-                <span class="resumo-label">QTD TOTAL</span>
-                <span id="soma-qtd" class="resumo-val">0</span>
-            </div>
-            <div class="resumo-item">
-                <span class="resumo-label">PESO TOTAL (KG)</span>
-                <span id="soma-peso" class="resumo-val">0.000</span>
-            </div>
+            <div style="text-align:center"><span>REGISTOS</span><br><b id="soma-count" style="font-size:22px">0</b></div>
+            <div style="text-align:center"><span>QTD TOTAL</span><br><b id="soma-qtd" style="font-size:22px">0</b></div>
+            <div style="text-align:center"><span>PESO TOTAL (KG)</span><br><b id="soma-peso" style="font-size:22px">0.000</b></div>
         </div>
-
         <table>
-            <thead>
-                <tr><th>DATA</th><th>REF</th><th>COD</th><th>ARTIGO</th><th>QTD</th><th>PESO TOTAL</th><th>USER</th><th>AÇÃO</th></tr>
-            </thead>
+            <thead><tr><th>DATA</th><th>REF</th><th>COD</th><th>ARTIGO</th><th>QTD</th><th>PESO TOTAL</th><th>USER</th><th>AÇÃO</th></tr></thead>
             <tbody id="corpoHist"></tbody>
         </table>
     </div>
@@ -177,7 +170,6 @@
     let produtosGlobal = {};
     let ordensGlobal = {};
     let movsGlobal = {};
-    let pesoUnitarioAtual = 0;
 
     function fazerLogin() {
         auth.signInWithEmailAndPassword(document.getElementById('email').value, document.getElementById('password').value)
@@ -188,19 +180,21 @@
                 document.getElementById('user-display').innerText = userEmail;
                 if(userEmail.includes("admin") || userEmail.includes("super")) document.getElementById('panel-admin').style.display = 'block';
                 carregarDados();
-            }).catch(() => alert("Erro de Login"));
+            }).catch(() => alert("Acesso Negado"));
     }
 
     function carregarDados() {
-        db.ref('produtos').on('value', s => { produtosGlobal = s.val() || {}; renderizarPrincipal(); });
-        db.ref('ordens').on('value', s => { ordensGlobal = s.val() || {}; renderizarPrincipal(); atualizarSelectOrdens(); });
-        db.ref('movimentacoes').on('value', s => { movsGlobal = s.val() || {}; renderizarPrincipal(); renderizarHistorial(); });
+        db.ref('produtos').on('value', s => { produtosGlobal = s.val() || {}; renderizarTudo(); });
+        db.ref('ordens').on('value', s => { ordensGlobal = s.val() || {}; renderizarTudo(); atualizarSelectOrdens(); });
+        db.ref('movimentacoes').on('value', s => { movsGlobal = s.val() || {}; renderizarTudo(); renderizarHistorial(); });
     }
 
-    function renderizarPrincipal() {
+    function renderizarTudo() {
+        const isSuper = userEmail === "super@i9.com";
+        const isAdmin = userEmail.includes("admin") || isSuper;
         const movs = Object.values(movsGlobal);
-        
-        // Stock
+
+        // STOCK
         const corpoStock = document.getElementById('corpoStock');
         corpoStock.innerHTML = '';
         for(let c in produtosGlobal) {
@@ -209,15 +203,26 @@
                 if(h.tipo === 'ENTRADA') saldo += parseFloat(h.qtd);
                 else saldo -= parseFloat(h.qtd);
             });
-            corpoStock.innerHTML += `<tr>
+            const min = parseFloat(produtosGlobal[c].min) || 0;
+            const classeAlerta = (saldo <= min) ? 'stock-baixo' : '';
+            
+            corpoStock.innerHTML += `<tr class="${classeAlerta}">
                 <td><b>${c}</b></td>
-                <td><span class="item-nome">${produtosGlobal[c].prod}</span></td>
-                <td><b>${saldo}</b></td>
-                <td>${produtosGlobal[c].min || 0}</td>
+                <td>
+                    <span class="item-nome">${produtosGlobal[c].prod}</span>
+                    <span class="item-desc">${produtosGlobal[c].desc || ""}</span>
+                    <span class="item-peso-sub">Peso Unit.: ${produtosGlobal[c].peso || "0"} kg</span>
+                </td>
+                <td><b style="font-size:15px">${saldo}</b></td>
+                <td>${min}</td>
+                <td>
+                    ${isAdmin ? `<button class="btn-edit" onclick="carregarParaEditar('${c}')">EDITAR</button>` : ''}
+                    ${isSuper ? `<button class="btn-del" onclick="db.ref('produtos/${c}').remove()">DEL</button>` : ''}
+                </td>
             </tr>`;
         }
 
-        // Ordens
+        // ORDENS
         const corpoOrdens = document.getElementById('corpoOrdens');
         corpoOrdens.innerHTML = '';
         for(let id in ordensGlobal) {
@@ -231,6 +236,7 @@
                 <td>${meta}</td>
                 <td><b style="color:var(--done)">${realizado}</b></td>
                 <td>${perc}%</td>
+                <td>${isSuper ? `<button class="btn-del" onclick="db.ref('ordens/${id}').remove()">DEL</button>` : ''}</td>
             </tr>`;
         }
     }
@@ -239,40 +245,33 @@
         const filtro = document.getElementById('inputFiltro').value.toLowerCase();
         const corpo = document.getElementById('corpoHist');
         corpo.innerHTML = '';
-        
         let tCount = 0, tQtd = 0, tPeso = 0;
 
         Object.entries(movsGlobal).reverse().forEach(([id, h]) => {
-            const texto = (h.prod + h.cod + (h.ordem || 'SAIDA') + h.ope).toLowerCase();
-            if (texto.includes(filtro)) {
+            if(JSON.stringify(h).toLowerCase().includes(filtro)) {
                 const q = parseFloat(h.qtd) || 0;
                 const p = parseFloat(h.peso_total) || 0;
-                
-                tCount++;
-                tQtd += q;
-                tPeso += p;
-
+                tCount++; tQtd += q; tPeso += p;
                 corpo.innerHTML += `<tr>
-                    <td>${h.data}</td>
-                    <td style="color:var(--info); font-weight:bold">${h.ordem || 'SAIDA'}</td>
-                    <td>${h.cod}</td>
-                    <td><span class="item-nome">${h.prod}</span></td>
-                    <td><b>${q}</b></td>
-                    <td><b>${p.toFixed(3)}</b></td>
-                    <td>${h.ope.split('@')[0]}</td>
+                    <td>${h.data}</td><td style="color:var(--info); font-weight:bold">${h.ordem || 'SAIDA'}</td>
+                    <td>${h.cod}</td><td><span class="item-nome">${h.prod}</span></td>
+                    <td><b>${q}</b></td><td><b>${p.toFixed(3)}</b></td><td>${h.ope.split('@')[0]}</td>
                     <td><button class="btn-del" onclick="db.ref('movimentacoes/${id}').remove()">DEL</button></td>
                 </tr>`;
             }
         });
-
         document.getElementById('soma-count').innerText = tCount;
         document.getElementById('soma-qtd').innerText = tQtd;
         document.getElementById('soma-peso').innerText = tPeso.toFixed(3);
     }
 
-    // Funções de Operação
-    function abrirHistorico() { document.getElementById('modal-historico').style.display = 'block'; renderizarHistorial(); }
-    function fecharHistorico() { document.getElementById('modal-historico').style.display = 'none'; }
+    function carregarParaEditar(cod) {
+        document.getElementById('admin_modo').value = "PROD";
+        alternarFormAdmin();
+        document.getElementById('cad_cod').value = cod;
+        verificarExistencia(cod);
+        window.scrollTo(0,0);
+    }
 
     function verificarExistencia(cod) {
         const p = produtosGlobal[cod.toUpperCase().trim()];
@@ -284,88 +283,69 @@
         }
     }
 
-    function procv(cod, n, d) {
-        const p = produtosGlobal[cod.toUpperCase().trim()];
-        if(p) {
-            document.getElementById(n).value = p.prod;
-            pesoUnitarioAtual = parseFloat(p.peso) || 0;
-        }
-    }
-
-    function preencherPelaOrdem() {
-        const of = document.getElementById('mov_ordem_id').value;
-        if(of) {
-            document.getElementById('nome_prod').value = ordensGlobal[of].prod;
-            const cod = ordensGlobal[of].cod;
-            pesoUnitarioAtual = parseFloat(produtosGlobal[cod]?.peso) || 0;
-        }
-    }
-
-    function calcularPesoTotal() {
-        const q = parseFloat(document.getElementById('mov_qtd').value) || 0;
-        // Opcional: mostrar peso em algum lugar antes de confirmar
+    function salvarProduto() {
+        const c = document.getElementById('cad_cod').value.toUpperCase().trim();
+        if(!c) return;
+        db.ref('produtos/'+c).set({
+            prod: document.getElementById('cad_prod').value,
+            desc: document.getElementById('cad_desc').value,
+            peso: document.getElementById('cad_peso').value,
+            min: document.getElementById('cad_min').value
+        }).then(() => { alert("OK!"); document.getElementById('cad_cod').value = ""; });
     }
 
     function lancarMovimento() {
         const q = parseFloat(document.getElementById('mov_qtd').value);
         if(!q) return;
         const tipo = document.getElementById('mov_tipo').value;
+        const cod = (tipo === 'ENTRADA') ? ordensGlobal[document.getElementById('mov_ordem_id').value].cod : document.getElementById('mov_cod').value.toUpperCase();
+        const pUnit = parseFloat(produtosGlobal[cod]?.peso) || 0;
+        
         let d = {
             data: new Date().toLocaleString('pt-pt'),
             qtd: q,
             ope: userEmail,
-            peso_total: (q * pesoUnitarioAtual).toFixed(3),
-            tipo: tipo
+            peso_total: (q * pUnit).toFixed(3),
+            tipo: tipo,
+            cod: cod,
+            prod: produtosGlobal[cod].prod
         };
-
-        if(tipo === 'ENTRADA') {
-            const of = document.getElementById('mov_ordem_id').value;
-            d.ordem = of; d.cod = ordensGlobal[of].cod; d.prod = ordensGlobal[of].prod;
-        } else {
-            const c = document.getElementById('mov_cod').value.toUpperCase();
-            d.cod = c; d.prod = produtosGlobal[c].prod;
-        }
-
-        db.ref('movimentacoes').push(d).then(() => {
-            alert("Sucesso!");
-            document.getElementById('mov_qtd').value = "";
-        });
+        if(tipo === 'ENTRADA') d.ordem = document.getElementById('mov_ordem_id').value;
+        
+        db.ref('movimentacoes').push(d).then(() => { alert("Lançado!"); document.getElementById('mov_qtd').value = ""; });
     }
 
-    function salvarProduto() {
-        const c = document.getElementById('cad_cod').value.toUpperCase();
-        db.ref('produtos/'+c).set({
-            prod: document.getElementById('cad_prod').value,
-            desc: document.getElementById('cad_desc').value,
-            peso: document.getElementById('cad_peso').value,
-            min: document.getElementById('cad_min').value
-        }).then(() => alert("Artigo Guardado"));
+    function procv(cod, n) {
+        const p = produtosGlobal[cod.toUpperCase().trim()];
+        if(p) document.getElementById(n).value = p.prod;
     }
 
-    function salvarOrdem() {
-        const id = document.getElementById('ord_id').value;
-        const c = document.getElementById('ord_cod').value.toUpperCase();
-        db.ref('ordens/'+id).set({
-            cod: c, prod: produtosGlobal[c].prod, meta: document.getElementById('ord_meta').value
-        }).then(() => alert("OF Ativa"));
+    function preencherPelaOrdem() {
+        const of = document.getElementById('mov_ordem_id').value;
+        if(of) document.getElementById('nome_prod').value = ordensGlobal[of].prod;
     }
 
-    function atualizarSelectOrdens() {
-        const s = document.getElementById('mov_ordem_id');
-        s.innerHTML = '<option value="">Selecionar OF...</option>';
-        for(let id in ordensGlobal) s.innerHTML += `<option value="${id}">${id}</option>`;
-    }
-
+    function abrirHistorico() { document.getElementById('modal-historico').style.display = 'block'; }
+    function fecharHistorico() { document.getElementById('modal-historico').style.display = 'none'; }
     function alternarFormAdmin() {
         const m = document.getElementById('admin_modo').value;
         document.getElementById('form-prod').style.display = m === 'PROD' ? 'block' : 'none';
         document.getElementById('form-ordem').style.display = m === 'ORDEM' ? 'block' : 'none';
     }
-
     function alternarCamposEntrada() {
         const t = document.getElementById('mov_tipo').value;
         document.getElementById('campos-entrada').style.display = t === 'ENTRADA' ? 'block' : 'none';
         document.getElementById('campos-saida').style.display = t === 'SAIDA' ? 'block' : 'none';
+    }
+    function atualizarSelectOrdens() {
+        const s = document.getElementById('mov_ordem_id');
+        s.innerHTML = '<option value="">Selecionar OF...</option>';
+        for(let id in ordensGlobal) s.innerHTML += `<option value="${id}">${id}</option>`;
+    }
+    function salvarOrdem() {
+        const id = document.getElementById('ord_id').value;
+        const c = document.getElementById('ord_cod').value.toUpperCase();
+        db.ref('ordens/'+id).set({ cod: c, prod: produtosGlobal[c].prod, meta: document.getElementById('ord_meta').value }).then(() => alert("OF Ativa"));
     }
 </script>
 </body>
