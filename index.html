@@ -400,45 +400,69 @@
         }).then(() => { alert("Ordem de Fabrico Ativada!"); document.getElementById('ord_id').value = ""; });
     }
 
-    function lancarMovimento() {
-        const q = parseFloat(document.getElementById('mov_qtd').value);
-        if(!q || q <= 0) return alert("Quantidade inválida");
+  function lancarMovimento() {
+    const q = parseFloat(document.getElementById('mov_qtd').value);
+    if (!q || q <= 0) return alert("Quantidade inválida");
 
-        const tipo = document.getElementById('mov_tipo').value;
-        let cod = "";
-        if(tipo === 'ENTRADA') {
-            const of = document.getElementById('mov_ordem_id').value;
-            if(!of) return alert("Selecione a OF");
-            cod = ordensGlobal[of].cod;
-        } else {
-            cod = document.getElementById('mov_cod').value.toUpperCase();
+    const tipo = document.getElementById('mov_tipo').value;
+    let cod = "";
+    
+    // --- BLOCO DE VALIDAÇÃO DE META PARA ENTRADAS ---
+    if (tipo === 'ENTRADA') {
+        const ofId = document.getElementById('mov_ordem_id').value;
+        if (!ofId) return alert("Selecione a OF");
+
+        const ordem = ordensGlobal[ofId];
+        const meta = parseFloat(ordem.meta) || 0;
+        
+        // Calcular quanto já foi produzido para esta OF
+        const realizado = Object.values(movsGlobal)
+            .filter(h => h.ordem === ofId)
+            .reduce((a, b) => a + parseFloat(b.qtd), 0);
+
+        // Verificar se a nova quantidade ultrapassa a meta
+        if (realizado >= meta) {
+            alert(`⛔ BLOQUEIO: A Ordem ${ofId} já atingiu 100% da meta (${meta} un). Não são permitidos novos registos.`);
+            return; // Interrompe a função aqui
         }
 
-        const p = produtosGlobal[cod];
-        if(!p) return alert("Erro: Artigo não localizado");
+        if (realizado + q > meta) {
+            const restante = meta - realizado;
+            alert(`⚠️ QUANTIDADE EXCEDIDA: Esta entrada de ${q} ultrapassa a meta. Só restam ${restante} unidades para completar a OF.`);
+            return; // Interrompido para evitar que ultrapasse o 100%
+        }
 
-        const pu = parseFloat(p.peso) || 0;
-        
-        const dados = {
-            data: new Date().toLocaleString('pt-pt'),
-            qtd: q,
-            ope: userEmail,
-            tipo: tipo,
-            cod: cod,
-            prod: p.prod,
-            desc: p.desc || "",
-            peso_unit: pu,
-            peso_total: q * pu
-        };
-        if(tipo === 'ENTRADA') dados.ordem = document.getElementById('mov_ordem_id').value;
-
-        db.ref('movimentacoes').push(dados).then(() => {
-            alert("Movimento Registado!");
-            resetCamposMov();
-            document.getElementById('mov_cod').value = "";
-        });
+        cod = ordem.cod;
+    } else {
+        cod = document.getElementById('mov_cod').value.toUpperCase();
     }
+    // --- FIM DO BLOCO DE VALIDAÇÃO ---
 
+    const p = produtosGlobal[cod];
+    if (!p) return alert("Erro: Artigo não localizado");
+
+    const pu = parseFloat(p.peso) || 0;
+    
+    const dados = {
+        data: new Date().toLocaleString('pt-pt'),
+        qtd: q,
+        ope: userEmail,
+        tipo: tipo,
+        cod: cod,
+        prod: p.prod,
+        desc: p.desc || "",
+        peso_unit: pu,
+        peso_total: q * pu
+    };
+    
+    if (tipo === 'ENTRADA') dados.ordem = document.getElementById('mov_ordem_id').value;
+
+    db.ref('movimentacoes').push(dados).then(() => {
+        alert("✅ Movimento Registado com Sucesso!");
+        resetCamposMov();
+        document.getElementById('mov_cod').value = "";
+    });
+}
     function carregarParaEditar(cod) {
         document.getElementById('admin_modo').value = "PROD";
         alternarFormAdmin();
