@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SGE - I9 Industrial (v3.2)</title>
+    <title>SGE - I9 Industrial (v3.3)</title>
     
     <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
@@ -37,18 +37,17 @@
         td { padding: 12px; border-bottom: 1px solid #eee; vertical-align: middle; }
         tr:hover { background-color: #f9fbff; }
 
-        /* Elementos UI */
         .item-nome { color: var(--orange); font-weight: bold; font-size: 13px; display: block; }
         .item-desc { color: #636e72; font-size: 11px; display: block; margin-top: 2px; }
         .stock-baixo { background-color: #fff5f5 !important; color: var(--danger); font-weight: bold; }
         
-        input, select { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid var(--border); border-radius: 6px; box-sizing: border-box; transition: 0.3s; }
-        input:focus { border-color: var(--info); outline: none; box-shadow: 0 0 0 3px rgba(52,152,219,0.1); }
-        input[readonly] { background-color: #f1f2f6; cursor: not-allowed; }
+        input, select { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid var(--border); border-radius: 6px; box-sizing: border-box; }
+        input:focus { border-color: var(--info); outline: none; }
 
         .btn-reg { background: var(--primary); color: white; width: 100%; padding: 14px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; transition: 0.3s; text-transform: uppercase; }
-        .btn-reg:hover { background: #1e272e; transform: translateY(-1px); }
-        .btn-reg:disabled { background: #ccc; cursor: not-allowed; }
+        .btn-reg:hover { background: #1e272e; }
+        .btn-reg:disabled { background: #ccc !important; cursor: not-allowed; }
+        
         .btn-edit { background: var(--info); color: white; padding: 6px 12px; border-radius: 4px; border:none; cursor: pointer; font-size: 10px; }
         .btn-del { background: var(--danger); color: white; padding: 6px 12px; border-radius: 4px; border:none; cursor: pointer; font-size: 10px; }
 
@@ -69,76 +68,76 @@
     <div class="login-card">
         <h1 style="color: var(--primary); margin-bottom: 5px;">I9 INDUSTRIAL</h1>
         <p style="color: #666; margin-bottom: 25px;">Sistema de Gestão de Produção</p>
-        <input type="email" id="email" placeholder="E-mail do Utilizador">
-        <input type="password" id="password" placeholder="Palavra-passe">
-        <button onclick="fazerLogin()" class="btn-reg" style="background: var(--info); margin-top: 10px;">Entrar no Sistema</button>
+        <input type="email" id="email" placeholder="E-mail">
+        <input type="password" id="password" placeholder="Senha">
+        <button onclick="fazerLogin()" class="btn-reg" style="background: var(--info); margin-top: 10px;">Entrar</button>
     </div>
 </div>
 
 <div id="main-content">
     <div class="navbar">
-        <div><span style="opacity: 0.8;">SGE</span> <b>I9 INDUSTRIAL</b> | <span id="user-display">---</span></div>
-        <button onclick="auth.signOut().then(() => location.reload())" style="background:transparent; border:1px solid rgba(255,255,255,0.5); color:white; padding:6px 15px; cursor:pointer; border-radius:4px; font-size:11px;">Terminar Sessão</button>
+        <div><b>I9 INDUSTRIAL</b> | <span id="user-display">---</span></div>
+        <button onclick="auth.signOut().then(() => location.reload())" style="background:transparent; border:1px solid white; color:white; padding:5px 10px; border-radius:4px; cursor:pointer;">Sair</button>
     </div>
 
     <div class="container">
-        <button onclick="abrirHistorico()" style="background: white; color: var(--primary); padding:18px; width:100%; border: 2px solid var(--primary); margin-bottom:25px; font-weight:bold; cursor:pointer; border-radius:10px; display: flex; justify-content: center; align-items: center; gap: 12px; transition: 0.3s;">
-            <span>🕒</span> CONSULTAR HISTÓRICO E MOVIMENTAÇÕES TÉCNICAS
+        <button onclick="abrirHistorico()" style="background: white; color: var(--primary); padding:15px; width:100%; border: 2px solid var(--primary); margin-bottom:20px; font-weight:bold; cursor:pointer; border-radius:8px;">
+            🕒 CONSULTAR HISTÓRICO E MOVIMENTAÇÕES
         </button>
 
         <div class="flex-row">
             <!-- PAINEL ADMIN -->
             <div id="panel-admin" class="card" style="display:none; border-top: 4px solid var(--danger);">
-                <div class="section-header"><h3>🛠️ Gestão Administrativa</h3></div>
+                <div class="section-header"><h3>🛠️ Configurações</h3></div>
                 <select id="admin_modo" onchange="alternarFormAdmin()">
-                    <option value="PROD">CADASTRO DE ARTIGOS (BASE)</option>
-                    <option value="ORDEM">ORDENS DE FABRICO (ATIVAS)</option>
+                    <option value="PROD">CADASTRO DE ARTIGOS</option>
+                    <option value="ORDEM">LANÇAR ORDEM DE FABRICO (OF)</option>
                 </select>
 
                 <div id="form-prod">
-                    <input type="text" id="cad_cod" placeholder="Código Único do Artigo" oninput="verificarExistencia(this.value)">
-                    <input type="text" id="cad_prod" placeholder="Nome Comercial">
-                    <input type="text" id="cad_desc" placeholder="Especificação Técnica / Material">
-                    <input type="number" step="0.001" id="cad_peso" placeholder="Peso Unitário Real (kg)">
-                    <input type="number" id="cad_min" placeholder="Limite Mínimo de Stock">
-                    <button class="btn-reg" onclick="salvarProduto()" style="background: var(--danger)">Guardar Artigo</button>
+                    <input type="text" id="cad_cod" placeholder="Código" oninput="verificarExistencia(this.value)">
+                    <input type="text" id="cad_prod" placeholder="Artigo">
+                    <input type="text" id="cad_desc" placeholder="Descrição">
+                    <input type="number" step="0.001" id="cad_weight" placeholder="Peso Unitário (kg)">
+                    <input type="number" id="cad_min" placeholder="Stock Mínimo">
+                    <button class="btn-reg" onclick="salvarProduto()" style="background: var(--danger)">Salvar Artigo</button>
                 </div>
 
                 <div id="form-ordem" style="display:none">
-                    <input type="text" id="ord_id" placeholder="ID da Ordem de Fabrico">
+                    <input type="text" id="ord_id" placeholder="Nº da OF">
                     <input type="text" id="ord_cod" placeholder="Código do Artigo" oninput="procv(this.value, 'ord_nome')">
-                    <input type="text" id="ord_nome" readonly placeholder="Produto Identificado">
-                    <input type="number" id="ord_meta" placeholder="Quantidade a Produzir (Meta)">
-                    <button class="btn-reg" style="background: var(--done)" onclick="salvarOrdem()">Lançar Ordem de Fabrico</button>
+                    <input type="text" id="ord_nome" readonly placeholder="Artigo Identificado">
+                    <input type="number" id="ord_meta" placeholder="Meta Total">
+                    <button class="btn-reg" style="background: var(--done)" onclick="salvarOrdem()">Abrir Ordem</button>
                 </div>
             </div>
 
             <!-- PAINEL OPERAÇÃO -->
             <div class="card" style="border-top: 4px solid var(--info);">
-                <div class="section-header"><h3>📦 Lançamento de Movimentos</h3></div>
+                <div class="section-header"><h3>📦 Registo de Movimento</h3></div>
                 <select id="mov_tipo" onchange="alternarCamposEntrada()">
-                    <option value="ENTRADA">ENTRADA: PRODUÇÃO FINALIZADA</option>
-                    <option value="SAIDA">SAÍDA: EXPEDIÇÃO / CLIENTE</option>
+                    <option value="ENTRADA">ENTRADA (PRODUÇÃO)</option>
+                    <option value="SAIDA">SAÍDA (EXPEDIÇÃO)</option>
                 </select>
 
                 <div id="campos-entrada">
                     <select id="mov_ordem_id" onchange="preencherPelaOrdem()"></select>
                 </div>
                 <div id="campos-saida" style="display:none">
-                    <input type="text" id="mov_cod" placeholder="Código do Artigo para Saída" oninput="procv(this.value, 'nome_prod')">
+                    <input type="text" id="mov_cod" placeholder="Código do Artigo" oninput="procv(this.value, 'nome_prod')">
                 </div>
 
-                <input type="text" id="nome_prod" readonly placeholder="Artigo">
-                <input type="text" id="desc_prod" readonly placeholder="Descrição Técnica" style="font-size: 11px; color: #666;">
+                <input type="text" id="nome_prod" readonly placeholder="Produto">
+                <input type="text" id="desc_prod" readonly placeholder="Descrição">
                 
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
                     <input type="number" id="mov_qtd" placeholder="Quantidade" oninput="calcularPesoDinamico()">
-                    <input type="text" id="mov_peso_unit" readonly placeholder="Peso Unit. (kg)">
+                    <input type="text" id="mov_peso_unit" readonly placeholder="Peso Unit.">
                 </div>
 
-                <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 15px; border: 1px solid #eee; text-align: center;">
-                    <span style="font-size: 10px; color: #95a5a6; font-weight: bold; text-transform: uppercase;">Massa Total Estimada</span><br>
-                    <b id="display_peso_total" style="font-size: 24px; color: var(--primary);">0.000</b> <small>kg</small>
+                <div style="background: #f8f9fa; padding: 10px; border-radius: 8px; margin-bottom: 15px; text-align: center; border: 1px solid #ddd;">
+                    <span style="font-size: 10px; color: #7f8c8d;">MASSA TOTAL (KG)</span><br>
+                    <b id="display_peso_total" style="font-size: 20px; color: var(--primary);">0.000</b>
                 </div>
 
                 <button id="btn-salvar-mov" class="btn-reg" style="background: var(--success)" onclick="lancarMovimento()">Confirmar Registo</button>
@@ -147,29 +146,20 @@
 
         <!-- MONITORIZAÇÃO -->
         <div class="card">
-            <div class="section-header"><h3>📋 Ordens de Fabrico em Monitorização</h3></div>
+            <div class="section-header"><h3>📋 Monitorização de Ordens (Meta)</h3></div>
             <div style="overflow-x: auto;">
                 <table>
-                    <thead><tr><th>OF</th><th>CÓDIGO</th><th>ARTIGO</th><th>META</th><th>CONCLUÍDO</th><th>EFICIÊNCIA</th><th>AÇÕES</th></tr></thead>
+                    <thead><tr><th>OF</th><th>CÓDIGO</th><th>ARTIGO</th><th>META</th><th>REALIZADO</th><th>PROGRESSO</th><th>AÇÃO</th></tr></thead>
                     <tbody id="corpoOrdens"></tbody>
                 </table>
             </div>
         </div>
 
         <div class="card">
-            <div class="section-header"><h3>📊 Inventário Geral de Stock</h3></div>
+            <div class="section-header"><h3>📊 Stock Geral</h3></div>
             <div style="overflow-x: auto;">
                 <table>
-                    <thead>
-                        <tr>
-                            <th>CÓDIGO</th>
-                            <th>ARTIGO / DESCRIÇÃO</th>
-                            <th>PESO UNIT.</th>
-                            <th>SALDO ATUAL</th>
-                            <th>MÍN.</th>
-                            <th>ESTADO</th>
-                        </tr>
-                    </thead>
+                    <thead><tr><th>CÓDIGO</th><th>ARTIGO / DESCRIÇÃO</th><th>PESO UNIT.</th><th>SALDO</th><th>MÍN.</th><th>ESTADO</th></tr></thead>
                     <tbody id="corpoStock"></tbody>
                 </table>
             </div>
@@ -180,27 +170,25 @@
 <!-- MODAL HISTÓRICO -->
 <div id="modal-historico">
     <div class="modal-content">
-        <span onclick="fecharHistorico()" style="position:absolute; right:25px; top:20px; cursor:pointer; font-size:30px; color: #bbb;">&times;</span>
-        <h2 style="margin-top: 0; color: var(--primary);">🕒 Histórico de Movimentação</h2>
-        <input type="text" id="inputFiltro" style="padding:15px; border:2px solid var(--info); margin-bottom:25px;" placeholder="Pesquisar..." oninput="renderizarHistorial()">
+        <span onclick="fecharHistorico()" style="position:absolute; right:20px; top:15px; cursor:pointer; font-size:25px;">&times;</span>
+        <h2>Histórico Detalhado</h2>
+        <input type="text" id="inputFiltro" placeholder="Filtrar por código, OF ou produto..." oninput="renderizarHistorial()">
         
         <div class="resumo-black">
-            <div style="text-align:center"><span>MOVIMENTOS</span><br><b id="soma-count" style="font-size:24px">0</b></div>
-            <div style="text-align:center"><span>QTD TOTAL</span><br><b id="soma-qtd" style="font-size:24px">0</b></div>
-            <div style="text-align:center"><span>PESO TOTAL</span><br><b id="soma-peso" style="font-size:24px">0.000</b> kg</div>
+            <div style="text-align:center"><span>MOVIMENTOS</span><br><b id="soma-count">0</b></div>
+            <div style="text-align:center"><span>QTD TOTAL</span><br><b id="soma-qtd">0</b></div>
+            <div style="text-align:center"><span>PESO TOTAL</span><br><b id="soma-peso">0.000</b> kg</div>
         </div>
 
-        <div style="overflow-x: auto;">
-            <table>
-                <thead><tr><th>DATA</th><th>DOC/OF</th><th>COD</th><th>ARTIGO</th><th>TIPO</th><th>QTD</th><th>PESO UNIT.</th><th>TOTAL (KG)</th><th>OP</th><th>-</th></tr></thead>
-                <tbody id="corpoHist"></tbody>
-            </table>
-        </div>
+        <table>
+            <thead><tr><th>DATA</th><th>OF/DOC</th><th>COD</th><th>ARTIGO</th><th>TIPO</th><th>QTD</th><th>PESO T.</th><th>OP</th><th>-</th></tr></thead>
+            <tbody id="corpoHist"></tbody>
+        </table>
     </div>
 </div>
 
 <script>
-    // Firebase Config
+    // Configurações Firebase
     const firebaseConfig = {
         apiKey: "AIzaSyAPHVbVNdYEp_b7-_bWkTyn5jCVrbZogTo",
         authDomain: "i9-industrial.firebaseapp.com",
@@ -219,51 +207,44 @@
 
     // --- AUTENTICAÇÃO ---
     function fazerLogin() {
-        const email = document.getElementById('email').value;
-        const pass = document.getElementById('password').value;
-        auth.signInWithEmailAndPassword(email, pass).then(res => {
+        const e = document.getElementById('email').value;
+        const p = document.getElementById('password').value;
+        auth.signInWithEmailAndPassword(e, p).then(res => {
             userEmail = res.user.email;
             document.getElementById('login-screen').style.display = 'none';
             document.getElementById('main-content').style.display = 'block';
             document.getElementById('user-display').innerText = userEmail;
             if(userEmail.match(/admin|super/)) document.getElementById('panel-admin').style.display = 'block';
             carregarDados();
-        }).catch(err => alert("Acesso Negado"));
+        }).catch(() => alert("Falha no login"));
     }
 
     function carregarDados() {
-        db.ref('produtos').on('value', s => { produtosGlobal = s.val() || {}; atualizarInterface(); });
-        db.ref('ordens').on('value', s => { ordensGlobal = s.val() || {}; atualizarInterface(); atualizarSelectOrdens(); });
-        db.ref('movimentacoes').on('value', s => { movsGlobal = s.val() || {}; atualizarInterface(); renderizarHistorial(); });
+        db.ref('produtos').on('value', s => { produtosGlobal = s.val() || {}; atualizarUI(); });
+        db.ref('ordens').on('value', s => { ordensGlobal = s.val() || {}; atualizarUI(); atualizarSelectOrdens(); });
+        db.ref('movimentacoes').on('value', s => { movsGlobal = s.val() || {}; atualizarUI(); renderizarHistorial(); });
     }
 
-    function atualizarInterface() {
-        renderizarStock();
-        renderizarOrdens();
-    }
+    function atualizarUI() { renderizarStock(); renderizarOrdens(); }
 
     function renderizarStock() {
         const corpo = document.getElementById('corpoStock');
         corpo.innerHTML = '';
-        const movs = Object.values(movsGlobal);
-
+        const movsArr = Object.values(movsGlobal);
         for(let c in produtosGlobal) {
             let saldo = 0;
-            movs.filter(h => h.cod === c).forEach(h => {
+            movsArr.filter(h => h.cod === c).forEach(h => {
                 if(h.tipo === 'ENTRADA') saldo += parseFloat(h.qtd);
                 else saldo -= parseFloat(h.qtd);
             });
-
             const p = produtosGlobal[c];
             const min = parseFloat(p.min) || 0;
             const pu = parseFloat(p.peso) || 0;
-            const alerta = saldo <= min ? 'stock-baixo' : '';
-
-            corpo.innerHTML += `<tr class="${alerta}">
+            corpo.innerHTML += `<tr class="${saldo <= min ? 'stock-baixo' : ''}">
                 <td><b>${c}</b></td>
                 <td><span class="item-nome">${p.prod}</span><span class="item-desc">${p.desc || ''}</span></td>
-                <td style="color:#7f8c8d">${pu.toFixed(3)} kg</td>
-                <td><b style="font-size:15px">${saldo}</b></td>
+                <td>${pu.toFixed(3)} kg</td>
+                <td><b>${saldo}</b></td>
                 <td>${min}</td>
                 <td>${userEmail.match(/admin|super/) ? `<button class="btn-edit" onclick="carregarParaEditar('${c}')">EDITAR</button>` : 'OK'}</td>
             </tr>`;
@@ -273,70 +254,53 @@
     function renderizarOrdens() {
         const corpo = document.getElementById('corpoOrdens');
         corpo.innerHTML = '';
-        const movs = Object.values(movsGlobal);
+        const movsArr = Object.values(movsGlobal);
         for(let id in ordensGlobal) {
-            const realizado = movs.filter(h => h.ordem === id).reduce((a, b) => a + parseFloat(b.qtd), 0);
+            const feito = movsArr.filter(h => h.ordem === id).reduce((a, b) => a + parseFloat(b.qtd), 0);
             const meta = parseFloat(ordensGlobal[id].meta) || 1;
-            const perc = Math.min(100, ((realizado/meta)*100)).toFixed(0);
+            const perc = Math.min(100, (feito/meta)*100).toFixed(0);
             corpo.innerHTML += `<tr>
-                <td style="color:var(--done); font-weight:bold">${id}</td>
+                <td style="font-weight:bold">${id}</td>
                 <td>${ordensGlobal[id].cod}</td>
-                <td><span class="item-nome">${ordensGlobal[id].prod}</span></td>
+                <td>${ordensGlobal[id].prod}</td>
                 <td>${meta}</td>
-                <td><b style="color:var(--done)">${realizado}</b></td>
-                <td>
-                    <div style="width:100%; background:#eee; height:8px; border-radius:4px; margin-top:5px">
-                        <div style="width:${perc}%; background:var(--success); height:100%; border-radius:4px"></div>
-                    </div>
-                </td>
-                <td>${userEmail.includes("super") ? `<button class="btn-del" onclick="fecharOrdem('${id}')">FECHAR</button>` : '-'}</td>
+                <td style="color:var(--success); font-weight:bold">${feito}</td>
+                <td><div style="width:100%; background:#eee; height:10px; border-radius:5px"><div style="width:${perc}%; background:var(--success); height:100%; border-radius:5px"></div></div></td>
+                <td>${userEmail.includes("super") ? `<button class="btn-del" onclick="fecharOrdem('${id}')">DEL</button>` : '-'}</td>
             </tr>`;
         }
     }
 
-    function renderizarHistorial() {
-        const filtro = document.getElementById('inputFiltro').value.toLowerCase();
-        const corpo = document.getElementById('corpoHist');
-        corpo.innerHTML = '';
-        let tCount = 0, tQtd = 0, tPeso = 0;
-        Object.entries(movsGlobal).reverse().forEach(([id, h]) => {
-            if(JSON.stringify(h).toLowerCase().includes(filtro)) {
-                const q = parseFloat(h.qtd) || 0;
-                const pt = parseFloat(h.peso_total) || 0;
-                tCount++; tQtd += q; tPeso += pt;
-                corpo.innerHTML += `<tr>
-                    <td><small>${h.data}</small></td>
-                    <td>${h.ordem || 'EXP'}</td>
-                    <td>${h.cod}</td>
-                    <td><span class="item-nome" style="font-size:11px">${h.prod}</span></td>
-                    <td style="color:${h.tipo === 'ENTRADA' ? 'green':'red'}">${h.tipo}</td>
-                    <td><b>${q}</b></td>
-                    <td>${h.peso_unit || 0}</td>
-                    <td><b>${pt.toFixed(3)}</b></td>
-                    <td><small>${h.ope.split('@')[0]}</small></td>
-                    <td>${userEmail.includes("super") ? `<button class="btn-del" onclick="reverterMov('${id}')">REV</button>` : ''}</td>
-                </tr>`;
-            }
-        });
-        document.getElementById('soma-count').innerText = tCount;
-        document.getElementById('soma-qtd').innerText = tQtd;
-        document.getElementById('soma-peso').innerText = tPeso.toFixed(3);
-    }
-
-    // --- LÓGICA ---
+    // --- BLOQUEIO 100% E LANÇAMENTO ---
     function lancarMovimento() {
         const btn = document.getElementById('btn-salvar-mov');
         const tipo = document.getElementById('mov_tipo').value;
         const qtd = parseFloat(document.getElementById('mov_qtd').value);
         if(!qtd || qtd <= 0) return alert("Qtd Inválida");
 
-        let cod = (tipo === 'ENTRADA') ? ordensGlobal[document.getElementById('mov_ordem_id').value]?.cod : document.getElementById('mov_cod').value.toUpperCase().trim();
-        if(!cod || !produtosGlobal[cod]) return alert("Artigo não identificado");
+        let cod = "";
+        let ofId = "";
 
-        const ofId = (tipo === 'ENTRADA') ? document.getElementById('mov_ordem_id').value : "";
-        if(tipo === 'ENTRADA' && !ofId) return alert("Selecione a OF");
+        if(tipo === 'ENTRADA') {
+            ofId = document.getElementById('mov_ordem_id').value;
+            if(!ofId) return alert("Selecione a OF");
+
+            // REGRA DE BLOQUEIO 100%
+            const meta = parseFloat(ordensGlobal[ofId].meta);
+            const realizado = Object.values(movsGlobal)
+                .filter(h => h.ordem === ofId)
+                .reduce((a, b) => a + parseFloat(b.qtd), 0);
+
+            if (realizado >= meta) return alert("🚫 BLOQUEIO: Meta 100% atingida.");
+            if (realizado + qtd > meta) return alert(`⚠️ EXCESSO: Só restam ${meta - realizado} un.`);
+
+            cod = ordensGlobal[ofId].cod;
+        } else {
+            cod = document.getElementById('mov_cod').value.toUpperCase().trim();
+        }
 
         const p = produtosGlobal[cod];
+        if(!p) return alert("Artigo não existe");
         const pu = parseFloat(p.peso) || 0;
 
         btn.disabled = true;
@@ -353,18 +317,16 @@
         }).then(() => { btn.disabled = false; resetCamposMov(); });
     }
 
+    // --- UTILITÁRIOS ---
     function procv(cod, targetId) {
         const p = produtosGlobal[cod.toUpperCase().trim()];
-        const target = document.getElementById(targetId);
         if(p) {
-            target.value = p.prod;
+            document.getElementById(targetId).value = p.prod;
             if(targetId === 'nome_prod') {
                 document.getElementById('desc_prod').value = p.desc || "";
                 document.getElementById('mov_peso_unit').value = p.peso || 0;
                 calcularPesoDinamico();
             }
-        } else {
-            target.value = "";
         }
     }
 
@@ -393,7 +355,10 @@
     }
 
     function resetCamposMov() {
-        ["mov_qtd", "mov_cod", "nome_prod", "desc_prod", "mov_peso_unit"].forEach(id => { if(document.getElementById(id)) document.getElementById(id).value = ""; });
+        ["mov_qtd", "mov_cod", "nome_prod", "desc_prod", "mov_peso_unit"].forEach(id => {
+            const el = document.getElementById(id);
+            if(el) el.value = "";
+        });
         document.getElementById('display_peso_total').innerText = "0.000";
     }
 
@@ -402,9 +367,9 @@
         db.ref('produtos/'+c).set({
             prod: document.getElementById('cad_prod').value,
             desc: document.getElementById('cad_desc').value,
-            peso: document.getElementById('cad_peso').value,
+            peso: document.getElementById('cad_weight').value,
             min: document.getElementById('cad_min').value
-        }).then(() => alert("Atualizado"));
+        }).then(() => alert("Salvo"));
     }
 
     function salvarOrdem() {
@@ -414,15 +379,15 @@
             cod: c,
             prod: produtosGlobal[c].prod,
             meta: document.getElementById('ord_meta').value
-        }).then(() => { alert("OF Lançada"); document.getElementById('ord_id').value = ""; });
+        }).then(() => alert("OF Aberta"));
     }
 
     function atualizarSelectOrdens() {
         const s = document.getElementById('mov_ordem_id');
-        const val = s.value;
+        const v = s.value;
         s.innerHTML = '<option value="">-- Selecionar OF --</option>';
         for(let id in ordensGlobal) s.innerHTML += `<option value="${id}">${id} | ${ordensGlobal[id].prod}</option>`;
-        s.value = val;
+        s.value = v;
     }
 
     function carregarParaEditar(c) {
@@ -432,21 +397,47 @@
         document.getElementById('cad_cod').value = c;
         document.getElementById('cad_prod').value = p.prod;
         document.getElementById('cad_desc').value = p.desc;
-        document.getElementById('cad_peso').value = p.peso;
+        document.getElementById('cad_weight').value = p.peso;
         document.getElementById('cad_min').value = p.min;
         window.scrollTo(0,0);
     }
 
     function verificarExistencia(c) {
-        const p = produtosGlobal[c.toUpperCase()];
-        if(p) carregarParaEditar(c.toUpperCase());
+        if(produtosGlobal[c.toUpperCase()]) carregarParaEditar(c.toUpperCase());
     }
 
-    function fecharOrdem(id) { if(confirm("Fechar OF?")) db.ref('ordens/'+id).remove(); }
-    function reverterMov(id) { if(confirm("Reverter?")) db.ref('movimentacoes/'+id).remove(); }
+    function renderizarHistorial() {
+        const f = document.getElementById('inputFiltro').value.toLowerCase();
+        const corpo = document.getElementById('corpoHist');
+        corpo.innerHTML = '';
+        let tc = 0, tq = 0, tp = 0;
+        Object.entries(movsGlobal).reverse().forEach(([id, h]) => {
+            if(JSON.stringify(h).toLowerCase().includes(f)) {
+                const qtd = parseFloat(h.qtd);
+                const pt = parseFloat(h.peso_total || 0);
+                tc++; tq += qtd; tp += pt;
+                corpo.innerHTML += `<tr>
+                    <td><small>${h.data}</small></td>
+                    <td>${h.ordem || 'EXP'}</td>
+                    <td>${h.cod}</td>
+                    <td>${h.prod}</td>
+                    <td style="color:${h.tipo==='ENTRADA'?'green':'red'}">${h.tipo}</td>
+                    <td>${qtd}</td>
+                    <td>${pt.toFixed(2)}</td>
+                    <td><small>${h.ope.split('@')[0]}</small></td>
+                    <td>${userEmail.includes("super") ? `<button onclick="reverterMov('${id}')">X</button>` : ''}</td>
+                </tr>`;
+            }
+        });
+        document.getElementById('soma-count').innerText = tc;
+        document.getElementById('soma-qtd').innerText = tq;
+        document.getElementById('soma-peso').innerText = tp.toFixed(3);
+    }
+
+    function fecharOrdem(id) { if(confirm("Eliminar OF?")) db.ref('ordens/'+id).remove(); }
+    function reverterMov(id) { if(confirm("Reverter movimento?")) db.ref('movimentacoes/'+id).remove(); }
     function abrirHistorico() { document.getElementById('modal-historico').style.display = 'block'; }
     function fecharHistorico() { document.getElementById('modal-historico').style.display = 'none'; }
 </script>
-
 </body>
 </html>
