@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SGE - I9 Industrial (v3.0)</title>
+    <title>SGE - I9 Industrial (v3.1)</title>
     
     <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
@@ -19,15 +19,16 @@
 
         body { font-family: 'Segoe UI', system-ui, sans-serif; margin: 0; background: var(--light); color: #2d3436; font-size: 13px; }
         
-        /* Layout & Login */
+        /* Login Screen */
         #login-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(135deg, var(--primary), #1a252f); display: flex; justify-content: center; align-items: center; z-index: 1000; }
         .login-card { background: white; padding: 40px; border-radius: 15px; width: 320px; text-align: center; box-shadow: 0 15px 35px rgba(0,0,0,0.4); }
         #main-content { display: none; animation: fadeIn 0.5s; }
 
+        /* Navigation */
         .navbar { background: var(--primary); color: white; padding: 12px 25px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
         .container { width: 96%; max-width: 1400px; margin: 20px auto; }
         
-        /* Cards e Tabelas */
+        /* Cards & Tables */
         .card { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 25px; border: 1px solid var(--border); }
         .section-header { border-left: 5px solid var(--info); padding-left: 15px; margin-bottom: 20px; }
         .section-header h3 { margin: 0; text-transform: uppercase; color: var(--primary); letter-spacing: 1px; }
@@ -37,23 +38,25 @@
         td { padding: 12px; border-bottom: 1px solid #eee; vertical-align: middle; }
         tr:hover { background-color: #f9fbff; }
 
-        /* Componentes de UI */
+        /* UI Components */
         .item-nome { color: var(--orange); font-weight: bold; font-size: 13px; display: block; }
         .item-desc { color: #636e72; font-size: 11px; display: block; margin-top: 2px; }
-        .stock-baixo { background-color: #fff5f5 !important; color: var(--danger); }
+        .stock-baixo { background-color: #fff5f5 !important; color: var(--danger); font-weight: bold; }
         
-        input, select { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid var(--border); border-radius: 6px; box-sizing: border-box; transition: 0.3s; }
+        input, select { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid var(--border); border-radius: 6px; box-sizing: border-box; transition: 0.3s; font-family: inherit; }
         input:focus { border-color: var(--info); outline: none; box-shadow: 0 0 0 3px rgba(52,152,219,0.1); }
         input[readonly] { background-color: #f1f2f6; cursor: not-allowed; }
 
         .btn-reg { background: var(--primary); color: white; width: 100%; padding: 14px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; transition: 0.3s; text-transform: uppercase; }
         .btn-reg:hover { background: #1e272e; transform: translateY(-1px); }
+        .btn-reg:disabled { background: #ccc; cursor: not-allowed; transform: none; }
         .btn-edit { background: var(--info); color: white; padding: 6px 12px; border-radius: 4px; border:none; cursor: pointer; font-size: 10px; }
         .btn-del { background: var(--danger); color: white; padding: 6px 12px; border-radius: 4px; border:none; cursor: pointer; font-size: 10px; }
 
         .flex-row { display: grid; grid-template-columns: 1fr 1fr; gap: 25px; }
         @media (max-width: 900px) { .flex-row { grid-template-columns: 1fr; } }
 
+        /* Modal */
         #modal-historico { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 2000; overflow-y: auto; backdrop-filter: blur(5px); }
         .modal-content { background: white; width: 95%; max-width: 1200px; margin: 30px auto; padding: 30px; border-radius: 12px; position: relative; }
 
@@ -66,8 +69,8 @@
 
 <div id="login-screen">
     <div class="login-card">
-        <h1 style="color: var(--primary); margin-bottom: 5px;">I9 INDUSTRIAL</h1>
-        <p style="color: #666; margin-bottom: 25px;">Sistema de Gestão de Produção</p>
+        <h1 style="color: var(--primary); margin-bottom: 5px; letter-spacing: -1px;">I9 INDUSTRIAL</h1>
+        <p style="color: #666; margin-bottom: 25px; font-size: 12px;">SISTEMA DE GESTÃO DE PRODUÇÃO</p>
         <input type="email" id="email" placeholder="E-mail do Utilizador">
         <input type="password" id="password" placeholder="Palavra-passe">
         <button onclick="fazerLogin()" class="btn-reg" style="background: var(--info); margin-top: 10px;">Entrar no Sistema</button>
@@ -76,17 +79,18 @@
 
 <div id="main-content">
     <div class="navbar">
-        <div><span style="opacity: 0.8;">SGE</span> <b>I9 INDUSTRIAL</b> | <span id="user-display">---</span></div>
-        <button onclick="auth.signOut().then(() => location.reload())" style="background:transparent; border:1px solid rgba(255,255,255,0.5); color:white; padding:6px 15px; cursor:pointer; border-radius:4px; font-size:11px;">Terminar Sessão</button>
+        <div><span style="opacity: 0.7; font-weight: 300;">SGE</span> <b>I9 INDUSTRIAL</b> | <span id="user-display" style="font-size: 11px; opacity: 0.9;">---</span></div>
+        <button onclick="auth.signOut().then(() => location.reload())" style="background:transparent; border:1px solid rgba(255,255,255,0.4); color:white; padding:6px 15px; cursor:pointer; border-radius:4px; font-size:11px; transition: 0.3s;">Sair</button>
     </div>
 
     <div class="container">
+        <!-- Acesso Rápido -->
         <button onclick="abrirHistorico()" style="background: white; color: var(--primary); padding:18px; width:100%; border: 2px solid var(--primary); margin-bottom:25px; font-weight:bold; cursor:pointer; border-radius:10px; display: flex; justify-content: center; align-items: center; gap: 12px; transition: 0.3s;">
             <span>🕒</span> CONSULTAR HISTÓRICO E MOVIMENTAÇÕES TÉCNICAS
         </button>
 
         <div class="flex-row">
-            <!-- PAINEL DE GESTÃO (ADMIN) -->
+            <!-- PAINEL DE GESTÃO (Visível para Admin) -->
             <div id="panel-admin" class="card" style="display:none; border-top: 4px solid var(--danger);">
                 <div class="section-header"><h3>🛠️ Gestão Administrativa</h3></div>
                 <select id="admin_modo" onchange="alternarFormAdmin()">
@@ -140,11 +144,11 @@
                     <b id="display_peso_total" style="font-size: 24px; color: var(--primary);">0.000</b> <small>kg</small>
                 </div>
 
-                <button class="btn-reg" style="background: var(--success)" onclick="lancarMovimento()">Confirmar Registo</button>
+                <button id="btn-confirmar-mov" class="btn-reg" style="background: var(--success)" onclick="lancarMovimento()">Confirmar Registo</button>
             </div>
         </div>
 
-        <!-- TABELAS DE MONITORIZAÇÃO -->
+        <!-- Tabelas de Monitorização -->
         <div class="card">
             <div class="section-header"><h3>📋 Ordens de Fabrico em Monitorização</h3></div>
             <div style="overflow-x: auto;">
@@ -167,6 +171,7 @@
     </div>
 </div>
 
+<!-- Modal Histórico -->
 <div id="modal-historico">
     <div class="modal-content">
         <span onclick="fecharHistorico()" style="position:absolute; right:25px; top:20px; cursor:pointer; font-size:30px; color: #bbb;">&times;</span>
@@ -190,7 +195,7 @@
 </div>
 
 <script>
-    // Configuração Firebase (Database Realtime)
+    // Configuração Firebase
     const firebaseConfig = {
         apiKey: "AIzaSyAPHVbVNdYEp_b7-_bWkTyn5jCVrbZogTo",
         authDomain: "i9-industrial.firebaseapp.com",
@@ -256,7 +261,7 @@
                 <td><b style="font-size:15px">${saldo}</b></td>
                 <td>${min}</td>
                 <td>
-                    ${userEmail.match(/admin|super/) ? `<button class="btn-edit" onclick="carregarParaEditar('${c}')">EDITAR</button>` : ''}
+                    ${userEmail.match(/admin|super/) ? `<button class="btn-edit" onclick="carregarParaEditar('${c}')">EDITAR</button>` : 'OK'}
                 </td>
             </tr>`;
         }
@@ -284,7 +289,7 @@
                     </div>
                     <small>${perc}% concluído</small>
                 </td>
-                <td>${userEmail.includes("super") ? `<button class="btn-del" onclick="fecharOrdem('${id}')">FECHAR</button>` : '-'}</td>
+                <td>${userEmail.includes("super") || userEmail.includes("admin") ? `<button class="btn-del" onclick="fecharOrdem('${id}')">FECHAR</button>` : '-'}</td>
             </tr>`;
         }
     }
@@ -322,8 +327,10 @@
 
     // --- LÓGICA DE LANÇAMENTOS ---
     function lancarMovimento() {
+        const btn = document.getElementById('btn-confirmar-mov');
         const tipo = document.getElementById('mov_tipo').value;
         const qtd = parseFloat(document.getElementById('mov_qtd').value);
+        
         if(!qtd || qtd <= 0) return alert("Quantidade Inválida");
 
         let cod = "";
@@ -333,7 +340,6 @@
             ofId = document.getElementById('mov_ordem_id').value;
             if(!ofId) return alert("Selecione uma Ordem de Fabrico");
             
-            // Validação de Meta
             const meta = parseFloat(ordensGlobal[ofId].meta);
             const realizado = Object.values(movsGlobal).filter(h => h.ordem === ofId).reduce((a, b) => a + parseFloat(b.qtd), 0);
             if(realizado + qtd > meta) return alert(`BLOQUEIO: Quantidade excede a meta da OF (Restante: ${meta - realizado})`);
@@ -341,12 +347,12 @@
             cod = ordensGlobal[ofId].cod;
         } else {
             cod = document.getElementById('mov_cod').value.toUpperCase().trim();
-            // Validação de Stock Negativo
             const saldo = calcularSaldoLocal(cod);
             if(qtd > saldo) return alert(`STOCK INSUFICIENTE: Saldo atual de ${saldo} unidades.`);
         }
 
         const p = produtosGlobal[cod];
+        if(!p) return alert("Artigo não encontrado no sistema!");
         const pu = parseFloat(p.peso) || 0;
 
         const dados = {
@@ -358,16 +364,25 @@
             prod: p.prod,
             peso_unit: pu,
             peso_total: (qtd * pu),
-            ordem: ofId
+            ordem: ofId || "EXPEDIÇÃO"
         };
 
+        // Bloqueio Anti-Duplicado
+        btn.disabled = true;
+        btn.innerText = "A GRAVAR...";
+
         db.ref('movimentacoes').push(dados).then(() => {
-            alert("Sucesso!");
+            btn.disabled = false;
+            btn.innerText = "Confirmar Registo";
             resetCamposMov();
+        }).catch(() => {
+            btn.disabled = false;
+            btn.innerText = "Confirmar Registo";
+            alert("Erro ao gravar dados.");
         });
     }
 
-    // --- AUXILIARES ---
+    // --- AUXILIARES TÉCNICOS ---
     function calcularSaldoLocal(cod) {
         let s = 0;
         Object.values(movsGlobal).filter(h => h.cod === cod).forEach(h => {
@@ -377,13 +392,23 @@
     }
 
     function procv(cod, targetId) {
-        const p = produtosGlobal[cod.toUpperCase().trim()];
+        const codigoLimpo = cod.toUpperCase().trim();
+        const p = produtosGlobal[codigoLimpo];
+        const target = document.getElementById(targetId);
+        
         if(p) {
-            document.getElementById(targetId).value = p.prod;
+            target.value = p.prod;
             if(targetId === 'nome_prod') {
                 document.getElementById('desc_prod').value = p.desc || "";
                 document.getElementById('mov_peso_unit').value = p.peso || 0;
                 calcularPesoDinamico();
+            }
+        } else {
+            target.value = "";
+            if(targetId === 'nome_prod') {
+                document.getElementById('desc_prod').value = "";
+                document.getElementById('mov_peso_unit').value = "";
+                document.getElementById('display_peso_total').innerText = "0.000";
             }
         }
     }
@@ -428,18 +453,22 @@
             desc: document.getElementById('cad_desc').value,
             peso: document.getElementById('cad_peso').value,
             min: document.getElementById('cad_min').value
-        }).then(() => alert("Artigo Atualizado"));
+        }).then(() => alert("Artigo Atualizado com Sucesso"));
     }
 
     function salvarOrdem() {
-        const id = document.getElementById('ord_id').value;
+        const id = document.getElementById('ord_id').value.toUpperCase().trim();
         const c = document.getElementById('ord_cod').value.toUpperCase().trim();
-        if(!id || !c) return;
+        if(!id || !c || !produtosGlobal[c]) return alert("Código de Artigo inválido ou campos vazios.");
+        
         db.ref('ordens/'+id).set({
             cod: c,
             prod: produtosGlobal[c].prod,
             meta: document.getElementById('ord_meta').value
-        }).then(() => { alert("Ordem Ativada"); document.getElementById('ord_id').value = ""; });
+        }).then(() => { 
+            alert("Ordem de Fabrico Ativada!"); 
+            document.getElementById('ord_id').value = ""; 
+        });
     }
 
     function atualizarSelectOrdens() {
@@ -463,12 +492,18 @@
     }
 
     function verificarExistencia(c) {
-        const p = produtosGlobal[c.toUpperCase()];
-        if(p) carregarParaEditar(c.toUpperCase());
+        const p = produtosGlobal[c.toUpperCase().trim()];
+        if(p && document.activeElement.id === 'cad_cod') {
+            // Se o código já existe, preenche para editar
+            document.getElementById('cad_prod').value = p.prod;
+            document.getElementById('cad_desc').value = p.desc;
+            document.getElementById('cad_peso').value = p.peso;
+            document.getElementById('cad_min').value = p.min;
+        }
     }
 
-    function fecharOrdem(id) { if(confirm("Fechar esta OF?")) db.ref('ordens/'+id).remove(); }
-    function reverterMov(id) { if(confirm("Reverter movimento?")) db.ref('movimentacoes/'+id).remove(); }
+    function fecharOrdem(id) { if(confirm("Deseja fechar e arquivar esta OF?")) db.ref('ordens/'+id).remove(); }
+    function reverterMov(id) { if(confirm("CUIDADO: Reverter este movimento irá alterar o stock. Confirmar?")) db.ref('movimentacoes/'+id).remove(); }
     function abrirHistorico() { document.getElementById('modal-historico').style.display = 'block'; }
     function fecharHistorico() { document.getElementById('modal-historico').style.display = 'none'; }
 </script>
