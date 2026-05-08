@@ -181,6 +181,14 @@
     function eliminarMov(id) { if(confirm("Eliminar este registo do histórico?")) db.ref('movimentacoes/'+id).remove(); }
     function limparHistoricoTotal() { if(confirm("ATENÇÃO: Isto apagará TODO o histórico. Confirmar?")) db.ref('movimentacoes').remove(); }
 
+    // --- FUNÇÃO DE LIMPEZA DE CAMPOS ---
+    function limparCamposAdmin() {
+        const inputs = document.querySelectorAll('#panel-admin input');
+        inputs.forEach(i => i.value = "");
+        // Reset do stock mínimo padrão após limpeza
+        if(document.getElementById('cad_min')) document.getElementById('cad_min').value = "5";
+    }
+
     // --- LÓGICA DE NEGÓCIO ---
     function renderizarTudo() {
         const isSuper = userEmail === "super@i9.com";
@@ -241,11 +249,16 @@
         const m = document.getElementById('admin_modo').value;
         document.getElementById('form-prod').style.display = m === 'PROD' ? 'block' : 'none';
         document.getElementById('form-ordem').style.display = m === 'ORDEM' ? 'block' : 'none';
+        limparCamposAdmin();
     }
     function alternarCamposEntrada() {
         const t = document.getElementById('mov_tipo').value;
         document.getElementById('campos-entrada').style.display = t === 'ENTRADA' ? 'block' : 'none';
         document.getElementById('campos-saida').style.display = t === 'SAIDA' ? 'block' : 'none';
+        // Limpar campos de visualização ao trocar tipo
+        document.getElementById('nome_prod').value = "";
+        document.getElementById('desc_prod').value = "";
+        document.getElementById('mov_qtd').value = "";
     }
     function atualizarSelectOrdens() {
         const sel = document.getElementById('mov_ordem_id'); sel.innerHTML = '<option value="">Selecionar...</option>';
@@ -261,7 +274,7 @@
     function procv(cod, n, d) {
         const i = produtosGlobal[cod.toUpperCase().trim()];
         document.getElementById(n).value = i ? i.prod : "";
-        document.getElementById(d).value = i ? (i.desc || "") : "";
+        if(d) document.getElementById(d).value = i ? (i.desc || "") : "";
     }
     function validarOF() {
         const id = document.getElementById('mov_ordem_id').value;
@@ -269,7 +282,7 @@
         if(id && document.getElementById('mov_tipo').value === 'ENTRADA') {
             const feito = Object.values(movsGlobal).filter(h => h.ordem === id).reduce((a, b) => a + parseFloat(b.qtd), 0);
             const resta = ordensGlobal[id].meta - feito;
-            document.getElementById('msg-validacao').innerHTML = q > resta ? `<b class="txt-danger">Máximo: ${resta}</b>` : `<b class="txt-entry">OF Resta: ${resta}</b>`;
+            document.getElementById('msg-validacao').innerHTML = q > resta ? `<b style="color:var(--danger)">Máximo: ${resta}</b>` : `<b class="txt-entry">OF Resta: ${resta}</b>`;
             document.getElementById('btn-registar').disabled = q > resta;
         }
     }
@@ -278,13 +291,23 @@
         const p = document.getElementById('cad_prod').value;
         const d = document.getElementById('cad_desc').value;
         const m = parseInt(document.getElementById('cad_min').value) || 0;
-        if(c && p) db.ref('produtos/'+c).set({ prod: p, desc: d, min: m });
+        if(c && p) {
+            db.ref('produtos/'+c).set({ prod: p, desc: d, min: m }).then(() => {
+                alert("Artigo " + c + " guardado com sucesso!");
+                limparCamposAdmin();
+            });
+        }
     }
     function salvarOrdem() {
         const i = document.getElementById('ord_id').value.toUpperCase().trim();
         const c = document.getElementById('ord_cod').value.toUpperCase().trim();
         const m = parseInt(document.getElementById('ord_meta').value);
-        if(i && produtosGlobal[c]) db.ref('ordens/'+i).set({ cod: c, prod: produtosGlobal[c].prod, meta: m });
+        if(i && produtosGlobal[c]) {
+            db.ref('ordens/'+i).set({ cod: c, prod: produtosGlobal[c].prod, meta: m }).then(() => {
+                alert("Ordem de Fabrico " + i + " criada!");
+                limparCamposAdmin();
+            });
+        }
     }
     function lancarMovimento() {
         const t = document.getElementById('mov_tipo').value;
@@ -296,9 +319,17 @@
             d.tipo = "ORDEM"; d.ordem = id; d.cod = ordensGlobal[id].cod; d.prod = ordensGlobal[id].prod;
         } else {
             const c = document.getElementById('mov_cod').value.toUpperCase().trim();
+            if(!produtosGlobal[c]) { alert("Código não encontrado!"); return; }
             d.tipo = "SAIDA"; d.cod = c; d.prod = produtosGlobal[c].prod;
         }
-        db.ref('movimentacoes').push(d).then(() => { document.getElementById('mov_qtd').value = ""; });
+        db.ref('movimentacoes').push(d).then(() => { 
+            alert("Movimentação registada!");
+            document.getElementById('mov_qtd').value = ""; 
+            if(t === 'SAIDA') document.getElementById('mov_cod').value = "";
+            document.getElementById('nome_prod').value = "";
+            document.getElementById('desc_prod').value = "";
+            document.getElementById('msg-validacao').innerHTML = "";
+        });
     }
     function exportarCSV() {
         let csv = "\uFEFFData;Ref;Cod;Prod;Qtd;User\n";
