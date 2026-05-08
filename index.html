@@ -23,7 +23,6 @@
         
         .item-nome { color: #e67e22; font-weight: bold; font-size: 14px; display: block; margin-bottom: 2px; }
         .item-desc { color: #d35400; font-size: 11px; font-weight: bold; text-transform: uppercase; display: block; }
-        .item-peso { color: #7f8c8d; font-size: 10px; font-style: italic; display: block; margin-top: 2px; }
 
         table { width: 100%; border-collapse: collapse; margin-top: 10px; }
         th { background: #f8f9fa; padding: 12px; text-align: left; border-bottom: 2px solid #ddd; font-size: 11px; color: #555; }
@@ -33,15 +32,22 @@
         .btn-reg { background: var(--primary); width: 100%; margin-top: 10px; padding: 12px; }
         .btn-danger { background: var(--danger); font-size: 10px; padding: 4px 8px; }
         .btn-edit { background: var(--info); font-size: 10px; padding: 4px 8px; margin-right: 5px; }
-        
-        #calc-peso-container { background: #e8f4fd; padding: 10px; border-radius: 5px; margin-bottom: 10px; border: 1px dashed var(--info); display: none; }
 
         #modal-historico { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 2000; overflow-y: auto; }
         .modal-content { background: white; width: 95%; margin: 30px auto; padding: 25px; border-radius: 8px; position: relative; min-height: 80vh; }
         
-        /* ESTILO DO FILTRO */
+        /* ESTILO DOS TOTAIS NO FILTRO */
+        .resumo-filtro { 
+            background: var(--primary); color: white; padding: 15px; 
+            border-radius: 8px; display: flex; justify-content: space-around; 
+            margin-bottom: 15px; font-size: 14px; border-left: 5px solid var(--info);
+        }
+        .resumo-item { text-align: center; }
+        .resumo-val { display: block; font-size: 18px; font-weight: bold; color: #fff; }
+        .resumo-label { font-size: 10px; text-transform: uppercase; opacity: 0.8; }
+
         .filtro-container { background: #f1f2f6; padding: 15px; border-radius: 8px; margin-bottom: 15px; display: flex; align-items: center; gap: 10px; }
-        .filtro-input { margin: 0 !important; flex: 1; border: 2px solid var(--info) !important; }
+        .filtro-input { margin: 0 !important; flex: 1; border: 2px solid var(--info) !important; font-size: 14px; }
     </style>
 </head>
 <body>
@@ -62,7 +68,7 @@
     </div>
 
     <div class="container">
-        <button onclick="abrirHistorico()" style="background: white; color: var(--primary); padding:15px; width:100%; border: 2px solid var(--primary); margin-bottom:20px; font-weight:bold;">🕒 VER HISTÓRICO DE MOVIMENTOS</button>
+        <button onclick="abrirHistorico()" style="background: white; color: var(--primary); padding:15px; width:100%; border: 2px solid var(--primary); margin-bottom:20px; font-weight:bold;">🕒 ABRIR HISTÓRICO COM TOTAIS</button>
 
         <div class="grid">
             <div id="panel-admin" class="card" style="display: none; border-top: 5px solid var(--danger);">
@@ -72,19 +78,19 @@
                     <option value="ORDEM">ORDENS DE FABRICO</option>
                 </select>
                 <div id="form-prod">
-                    <label>Código</label><input type="text" id="cad_cod" oninput="verificarExistencia(this.value)">
-                    <label>Nome</label><input type="text" id="cad_prod">
-                    <label>Descrição</label><input type="text" id="cad_desc">
-                    <label>Peso (kg)</label><input type="number" step="0.001" id="cad_peso">
-                    <label>Min</label><input type="number" id="cad_min" value="5">
-                    <button id="btn-salvar-prod" class="btn-reg" onclick="salvarProduto()">GRAVAR</button>
+                    <input type="text" id="cad_cod" placeholder="Código" oninput="verificarExistencia(this.value)">
+                    <input type="text" id="cad_prod" placeholder="Nome">
+                    <input type="text" id="cad_desc" placeholder="Descrição">
+                    <input type="number" step="0.001" id="cad_peso" placeholder="Peso Unitário (kg)">
+                    <input type="number" id="cad_min" value="5" placeholder="Mínimo">
+                    <button id="btn-salvar-prod" class="btn-reg" onclick="salvarProduto()">GRAVAR / ATUALIZAR</button>
                     <button id="btn-limpar-cad" style="background:#95a5a6; width:100%; margin-top:5px; display:none;" onclick="limparCamposCad()">CANCELAR</button>
                 </div>
                 <div id="form-ordem" style="display:none">
-                    <label>Nº OF</label><input type="text" id="ord_id">
-                    <label>Artigo</label><input type="text" id="ord_cod" oninput="procv(this.value, 'ord_nome', '')">
-                    <input type="text" id="ord_nome" readonly>
-                    <label>Meta</label><input type="number" id="ord_meta">
+                    <input type="text" id="ord_id" placeholder="Nº OF">
+                    <input type="text" id="ord_cod" placeholder="Cód. Artigo" oninput="procv(this.value, 'ord_nome', '')">
+                    <input type="text" id="ord_nome" readonly placeholder="Nome automático">
+                    <input type="number" id="ord_meta" placeholder="Meta Unidades">
                     <button class="btn-reg" style="background: var(--done)" onclick="salvarOrdem()">CRIAR OF</button>
                 </div>
             </div>
@@ -96,16 +102,16 @@
                     <option value="SAIDA">SAÍDA (Expedição)</option>
                 </select>
                 <div id="campos-entrada">
-                    <label>OF</label><select id="mov_ordem_id" onchange="preencherPelaOrdem()"></select>
+                    <select id="mov_ordem_id" onchange="preencherPelaOrdem()"></select>
                 </div>
                 <div id="campos-saida" style="display:none">
-                    <label>Código</label><input type="text" id="mov_cod" oninput="procv(this.value, 'nome_prod', 'desc_prod')">
+                    <input type="text" id="mov_cod" placeholder="Código Artigo" oninput="procv(this.value, 'nome_prod', 'desc_prod')">
                 </div>
                 <input type="text" id="nome_prod" readonly placeholder="Produto">
                 <input type="text" id="desc_prod" readonly placeholder="Descrição">
-                <input type="number" id="mov_qtd" placeholder="Qtd" oninput="calcularPesoTotal()">
-                <div id="calc-peso-container">
-                    Peso Total: <span id="display-peso-total">0.000</span> kg
+                <input type="number" id="mov_qtd" placeholder="Quantidade" oninput="calcularPesoTotal()">
+                <div id="calc-peso-container" style="display:none; color: var(--info); font-weight: bold; margin-bottom: 10px;">
+                    Peso do Lançamento: <span id="display-peso-total">0.000</span> kg
                 </div>
                 <button class="btn-reg" onclick="lancarMovimento()">CONFIRMAR</button>
             </div>
@@ -114,7 +120,7 @@
         <div class="card">
             <h3>📊 STOCK ATUAL</h3>
             <table>
-                <thead><tr><th>CÓDIGO</th><th>ARTIGO</th><th>SALDO</th><th>MÍN</th><th>AÇÕES</th></tr></thead>
+                <thead><tr><th>REF</th><th>ARTIGO</th><th>SALDO</th><th>AÇÕES</th></tr></thead>
                 <tbody id="corpoStock"></tbody>
             </table>
         </div>
@@ -127,12 +133,26 @@
         <h2>🕒 HISTÓRICO DE MOVIMENTOS</h2>
         
         <div class="filtro-container">
-            <span>🔍 Filtrar:</span>
-            <input type="text" id="inputFiltro" class="filtro-input" placeholder="Pesquisar por Artigo, OF, Código ou Utilizador..." oninput="renderizarHistorial()">
+            <input type="text" id="inputFiltro" class="filtro-input" placeholder="Filtrar por OF, Artigo, Código ou Operador..." oninput="renderizarHistorial()">
+        </div>
+
+        <div class="resumo-filtro">
+            <div class="resumo-item">
+                <span class="resumo-label">Registos Encontrados</span>
+                <span id="soma-count" class="resumo-val">0</span>
+            </div>
+            <div class="resumo-item">
+                <span class="resumo-label">Quantidade Total (Pçs)</span>
+                <span id="soma-qtd" class="resumo-val">0</span>
+            </div>
+            <div class="resumo-item">
+                <span class="resumo-label">Peso Total (kg)</span>
+                <span id="soma-peso" class="resumo-val">0.000</span>
+            </div>
         </div>
 
         <table style="font-size:11px">
-            <thead><tr><th>DATA</th><th>REF/OF</th><th>COD</th><th>ARTIGO</th><th>QTD</th><th>PESO TOTAL</th><th>USER</th><th class="super-only">AÇÃO</th></tr></thead>
+            <thead><tr><th>DATA</th><th>REF/OF</th><th>COD</th><th>ARTIGO</th><th>QTD</th><th>PESO</th><th>USER</th><th class="super-only">AÇÃO</th></tr></thead>
             <tbody id="corpoHist"></tbody>
         </table>
     </div>
@@ -166,7 +186,7 @@
                 document.getElementById('user-display').innerText = userEmail;
                 if(userEmail.includes("admin") || userEmail.includes("super")) document.getElementById('panel-admin').style.display = 'block';
                 carregarDados();
-            }).catch(() => alert("Erro no Login"));
+            }).catch(() => alert("Erro"));
     }
 
     function carregarDados() {
@@ -175,35 +195,50 @@
         db.ref('movimentacoes').on('value', s => { movsGlobal = s.val() || {}; renderizarHistorial(); renderizarTudo(); });
     }
 
-    // FILTRO DE HISTÓRICO
+    // LÓGICA DE FILTRO COM SOMA
     function renderizarHistorial() {
         const filtro = document.getElementById('inputFiltro').value.toLowerCase();
         const corpo = document.getElementById('corpoHist'); 
         corpo.innerHTML = '';
         
+        let totalQtd = 0;
+        let totalPeso = 0;
+        let contador = 0;
+
         const isSuper = userEmail === "super@i9.com";
         const lista = Object.entries(movsGlobal).reverse();
 
         lista.forEach(([id, h]) => {
-            // Lógica de busca em múltiplos campos
             const termo = (h.prod + h.cod + (h.ordem || h.tipo) + h.ope).toLowerCase();
             
             if (termo.includes(filtro)) {
+                const q = parseFloat(h.qtd) || 0;
+                const p = parseFloat(h.peso_total) || 0;
+                
+                totalQtd += q;
+                totalPeso += p;
+                contador++;
+
                 corpo.innerHTML += `<tr>
                     <td>${h.data}</td>
                     <td style="color:var(--info); font-weight:bold">${h.ordem || h.tipo}</td>
                     <td>${h.cod}</td>
                     <td><span class="item-nome" style="font-size:12px">${h.prod}</span></td>
-                    <td><b>${h.qtd}</b></td>
-                    <td style="color:var(--info)"><b>${h.peso_total || "0.000"} kg</b></td>
+                    <td><b>${q}</b></td>
+                    <td style="color:var(--info)"><b>${p.toFixed(3)}</b></td>
                     <td>${h.ope.split('@')[0]}</td>
                     <td class="super-only">${isSuper ? `<button class="btn-danger" onclick="db.ref('movimentacoes/${id}').remove()">DEL</button>` : ''}</td>
                 </tr>`;
             }
         });
+
+        // Atualizar Quadro de Totais
+        document.getElementById('soma-count').innerText = contador;
+        document.getElementById('soma-qtd').innerText = totalQtd;
+        document.getElementById('soma-peso').innerText = totalPeso.toFixed(3);
     }
 
-    // RESTANTE DAS FUNÇÕES (EDIÇÃO, CADASTRO, MOVIMENTAÇÃO)
+    // Funções de Cadastro e Edição
     function verificarExistencia(cod) {
         const p = produtosGlobal[cod.toUpperCase().trim()];
         const btn = document.getElementById('btn-salvar-prod');
@@ -212,11 +247,55 @@
             document.getElementById('cad_desc').value = p.desc || "";
             document.getElementById('cad_peso').value = p.peso || "";
             document.getElementById('cad_min').value = p.min || "5";
-            btn.innerHTML = "ATUALIZAR"; btn.style.background = "#e67e22";
+            btn.innerHTML = "ATUALIZAR ARTIGO"; btn.style.background = "#e67e22";
             document.getElementById('btn-limpar-cad').style.display = "block";
         } else {
-            btn.innerHTML = "GRAVAR"; btn.style.background = "";
+            btn.innerHTML = "GRAVAR NOVO ARTIGO"; btn.style.background = "";
             document.getElementById('btn-limpar-cad').style.display = "none";
+        }
+    }
+
+    function salvarProduto() {
+        const c = document.getElementById('cad_cod').value.toUpperCase().trim();
+        const p = document.getElementById('cad_prod').value;
+        if(c && p) {
+            db.ref('produtos/'+c).set({ 
+                prod: p, desc: document.getElementById('cad_desc').value, 
+                peso: document.getElementById('cad_peso').value, min: document.getElementById('cad_min').value 
+            }).then(() => { alert("OK!"); limparCamposCad(); });
+        }
+    }
+
+    function limparCamposCad() {
+        document.getElementById('cad_cod').value = "";
+        document.getElementById('cad_prod').value = "";
+        document.getElementById('cad_desc').value = "";
+        document.getElementById('cad_peso').value = "";
+        verificarExistencia("");
+    }
+
+    function renderizarTudo() {
+        const isAdmin = userEmail.includes("admin") || userEmail.includes("super");
+        const corpoStock = document.getElementById('corpoStock'); corpoStock.innerHTML = '';
+        const histArray = Object.values(movsGlobal);
+
+        for(let c in produtosGlobal) {
+            let saldo = 0;
+            histArray.filter(h => h.cod === c).forEach(h => {
+                if(h.tipo === 'ORDEM' || h.tipo === 'ENTRADA') saldo += parseFloat(h.qtd);
+                else saldo -= parseFloat(h.qtd);
+            });
+            corpoStock.innerHTML += `<tr>
+                <td><b>${c}</b></td>
+                <td>
+                    <span class="item-nome">${produtosGlobal[c].prod}</span>
+                    <span class="item-peso">Unit: ${produtosGlobal[c].peso || "0"} kg</span>
+                </td>
+                <td style="font-size:16px"><b>${saldo}</b></td>
+                <td>
+                    ${isAdmin ? `<button class="btn-edit" onclick="carregarParaEditar('${c}')">EDITAR</button>` : ''}
+                </td>
+            </tr>`;
         }
     }
 
@@ -228,59 +307,10 @@
         window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
-    function limparCamposCad() {
-        document.getElementById('cad_cod').value = "";
-        document.getElementById('cad_prod').value = "";
-        document.getElementById('cad_desc').value = "";
-        document.getElementById('cad_peso').value = "";
-        verificarExistencia("");
-    }
-
-    function salvarProduto() {
-        const c = document.getElementById('cad_cod').value.toUpperCase().trim();
-        const p = document.getElementById('cad_prod').value;
-        if(c && p) {
-            db.ref('produtos/'+c).set({ 
-                prod: p, 
-                desc: document.getElementById('cad_desc').value, 
-                peso: document.getElementById('cad_peso').value, 
-                min: document.getElementById('cad_min').value 
-            }).then(() => { alert("Sucesso!"); limparCamposCad(); });
-        }
-    }
-
-    function renderizarTudo() {
-        const isAdmin = userEmail.includes("admin") || userEmail.includes("super");
-        const isSuper = userEmail === "super@i9.com";
-        const histArray = Object.values(movsGlobal);
-
-        // STOCK
-        const corpoStock = document.getElementById('corpoStock'); corpoStock.innerHTML = '';
-        for(let c in produtosGlobal) {
-            let saldo = 0;
-            histArray.filter(h => h.cod === c).forEach(h => {
-                if(h.tipo === 'ORDEM' || h.tipo === 'ENTRADA') saldo += parseFloat(h.qtd);
-                else saldo -= parseFloat(h.qtd);
-            });
-            corpoStock.innerHTML += `<tr>
-                <td><b>${c}</b></td>
-                <td>
-                    <span class="item-nome">${produtosGlobal[c].prod}</span>
-                    <span class="item-desc">${produtosGlobal[c].desc || ""}</span>
-                    <span class="item-peso">Unit: ${produtosGlobal[c].peso || "0"} kg</span>
-                </td>
-                <td><b>${saldo}</b></td><td>${produtosGlobal[c].min}</td>
-                <td>
-                    ${isAdmin ? `<button class="btn-edit" onclick="carregarParaEditar('${c}')">EDITAR</button>` : ''}
-                    ${isSuper ? `<button class="btn-danger" onclick="db.ref('produtos/${c}').remove()">DEL</button>` : ''}
-                </td>
-            </tr>`;
-        }
-    }
-
     function calcularPesoTotal() {
         const q = parseFloat(document.getElementById('mov_qtd').value) || 0;
-        document.getElementById('display-peso-total').innerText = (q * pesoUnitarioAtual).toFixed(3);
+        const total = (q * pesoUnitarioAtual).toFixed(3);
+        document.getElementById('display-peso-total').innerText = total;
         document.getElementById('calc-peso-container').style.display = pesoUnitarioAtual > 0 ? 'block' : 'none';
     }
 
@@ -343,7 +373,7 @@
         const i = document.getElementById('ord_id').value.toUpperCase().trim();
         const c = document.getElementById('ord_cod').value.toUpperCase().trim();
         const m = document.getElementById('ord_meta').value;
-        if(i && produtosGlobal[c]) db.ref('ordens/'+i).set({ cod: c, prod: produtosGlobal[c].prod, meta: m }).then(() => alert("OF Ativa!"));
+        if(i && produtosGlobal[c]) db.ref('ordens/'+i).set({ cod: c, prod: produtosGlobal[c].prod, meta: m }).then(() => alert("OF Criada"));
     }
 </script>
 </body>
