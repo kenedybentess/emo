@@ -3,35 +3,38 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SGE - I9 Industrial (v3.1)</title>
-    
+    <title>SGE - I9 Industrial (v3.2)</title>
+
     <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-auth-compat.js"></script>
-    
+
     <style>
-        :root { 
-            --primary: #2c3e50; --info: #3498db; --light: #f4f7f6; --danger: #e74c3c; 
+        :root {
+            --primary: #2c3e50; --info: #3498db; --light: #f4f7f6; --danger: #e74c3c;
             --done: #8e44ad; --orange: #e67e22; --dark-card: #34495e; --success: #27ae60;
             --border: #dfe6e9;
         }
 
         body { font-family: 'Segoe UI', system-ui, sans-serif; margin: 0; background: var(--light); color: #2d3436; font-size: 13px; }
-        
+
         /* Login Screen */
         #login-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(135deg, var(--primary), #1a252f); display: flex; justify-content: center; align-items: center; z-index: 1000; }
-        .login-card { background: white; padding: 40px; border-radius: 15px; width: 320px; text-align: center; box-shadow: 0 15px 35px rgba(0,0,0,0.4); }
+       .login-card { background: white; padding: 40px; border-radius: 15px; width: 320px; text-align: center; box-shadow: 0 15px 35px rgba(0,0,0,0.4); }
         #main-content { display: none; animation: fadeIn 0.5s; }
 
         /* Navigation */
-        .navbar { background: var(--primary); color: white; padding: 12px 25px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
-        .container { width: 96%; max-width: 1400px; margin: 20px auto; }
-        
+       .navbar { background: var(--primary); color: white; padding: 12px 25px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+       .container { width: 96%; max-width: 1400px; margin: 20px auto; }
+       .status-conn { font-size: 10px; padding: 3px 8px; border-radius: 10px; margin-left: 10px; }
+       .status-online { background: var(--success); }
+       .status-offline { background: var(--danger); }
+
         /* Cards & Tables */
-        .card { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 25px; border: 1px solid var(--border); }
-        .section-header { border-left: 5px solid var(--info); padding-left: 15px; margin-bottom: 20px; }
-        .section-header h3 { margin: 0; text-transform: uppercase; color: var(--primary); letter-spacing: 1px; }
+       .card { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 25px; border: 1px solid var(--border); }
+       .section-header { border-left: 5px solid var(--info); padding-left: 15px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; }
+       .section-header h3 { margin: 0; text-transform: uppercase; color: var(--primary); letter-spacing: 1px; }
 
         table { width: 100%; border-collapse: collapse; margin-top: 10px; }
         th { background: #f8f9fa; padding: 12px; text-align: left; border-bottom: 2px solid var(--border); font-size: 11px; color: #636e72; text-transform: uppercase; }
@@ -39,29 +42,30 @@
         tr:hover { background-color: #f9fbff; }
 
         /* UI Components */
-        .item-nome { color: var(--orange); font-weight: bold; font-size: 13px; display: block; }
-        .item-desc { color: #636e72; font-size: 11px; display: block; margin-top: 2px; }
-        .stock-baixo { background-color: #fff5f5 !important; color: var(--danger); font-weight: bold; }
-        
+       .item-nome { color: var(--orange); font-weight: bold; font-size: 13px; display: block; }
+       .item-desc { color: #636e72; font-size: 11px; display: block; margin-top: 2px; }
+       .stock-baixo { background-color: #fff5f5!important; color: var(--danger); font-weight: bold; }
+
         input, select { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid var(--border); border-radius: 6px; box-sizing: border-box; transition: 0.3s; font-family: inherit; }
         input:focus { border-color: var(--info); outline: none; box-shadow: 0 0 0 3px rgba(52,152,219,0.1); }
         input[readonly] { background-color: #f1f2f6; cursor: not-allowed; }
 
-        .btn-reg { background: var(--primary); color: white; width: 100%; padding: 14px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; transition: 0.3s; text-transform: uppercase; }
-        .btn-reg:hover { background: #1e272e; transform: translateY(-1px); }
-        .btn-reg:disabled { background: #ccc; cursor: not-allowed; transform: none; }
-        .btn-edit { background: var(--info); color: white; padding: 6px 12px; border-radius: 4px; border:none; cursor: pointer; font-size: 10px; }
-        .btn-del { background: var(--danger); color: white; padding: 6px 12px; border-radius: 4px; border:none; cursor: pointer; font-size: 10px; }
+       .btn-reg { background: var(--primary); color: white; width: 100%; padding: 14px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; transition: 0.3s; text-transform: uppercase; }
+       .btn-reg:hover { background: #1e272e; transform: translateY(-1px); }
+       .btn-reg:disabled { background: #ccc; cursor: not-allowed; transform: none; }
+       .btn-edit { background: var(--info); color: white; padding: 6px 12px; border-radius: 4px; border:none; cursor: pointer; font-size: 10px; }
+       .btn-del { background: var(--danger); color: white; padding: 6px 12px; border-radius: 4px; border:none; cursor: pointer; font-size: 10px; }
+       .btn-secondary { background: #95a5a6; color: white; padding: 8px 15px; border-radius: 4px; border:none; cursor: pointer; font-size: 11px; }
 
-        .flex-row { display: grid; grid-template-columns: 1fr 1fr; gap: 25px; }
-        @media (max-width: 900px) { .flex-row { grid-template-columns: 1fr; } }
+       .flex-row { display: grid; grid-template-columns: 1fr 1fr; gap: 25px; }
+        @media (max-width: 900px) {.flex-row { grid-template-columns: 1fr; } }
 
         /* Modal */
         #modal-historico { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 2000; overflow-y: auto; backdrop-filter: blur(5px); }
-        .modal-content { background: white; width: 95%; max-width: 1200px; margin: 30px auto; padding: 30px; border-radius: 12px; position: relative; }
+       .modal-content { background: white; width: 95%; max-width: 1200px; margin: 30px auto; padding: 30px; border-radius: 12px; position: relative; }
 
-        .resumo-black { background: var(--dark-card); color: white; padding: 25px; border-radius: 10px; display: flex; justify-content: space-around; margin-bottom: 25px; border-bottom: 4px solid var(--info); }
-        
+       .resumo-black { background: var(--dark-card); color: white; padding: 25px; border-radius: 10px; display: flex; justify-content: space-around; margin-bottom: 25px; border-bottom: 4px solid var(--info); }
+
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
     </style>
 </head>
@@ -70,16 +74,20 @@
 <div id="login-screen">
     <div class="login-card">
         <h1 style="color: var(--primary); margin-bottom: 5px; letter-spacing: -1px;">I9 INDUSTRIAL</h1>
-        <p style="color: #666; margin-bottom: 25px; font-size: 12px;">SISTEMA DE GESTÃO DE PRODUÇÃO</p>
+        <p style="color: #666; margin-bottom: 25px; font-size: 12px;">SISTEMA DE GESTÃO DE PRODUÇÃO v3.2</p>
         <input type="email" id="email" placeholder="E-mail do Utilizador">
-        <input type="password" id="password" placeholder="Palavra-passe">
+        <input type="password" id="password" placeholder="Palavra-passe" onkeypress="if(event.key==='Enter') fazerLogin()">
         <button onclick="fazerLogin()" class="btn-reg" style="background: var(--info); margin-top: 10px;">Entrar no Sistema</button>
     </div>
 </div>
 
 <div id="main-content">
     <div class="navbar">
-        <div><span style="opacity: 0.7; font-weight: 300;">SGE</span> <b>I9 INDUSTRIAL</b> | <span id="user-display" style="font-size: 11px; opacity: 0.9;">---</span></div>
+        <div>
+            <span style="opacity: 0.7; font-weight: 300;">SGE</span> <b>I9 INDUSTRIAL</b> |
+            <span id="user-display" style="font-size: 11px; opacity: 0.9;">---</span>
+            <span id="status-conn" class="status-conn status-offline">OFFLINE</span>
+        </div>
         <button onclick="auth.signOut().then(() => location.reload())" style="background:transparent; border:1px solid rgba(255,255,255,0.4); color:white; padding:6px 15px; cursor:pointer; border-radius:4px; font-size:11px; transition: 0.3s;">Sair</button>
     </div>
 
@@ -128,14 +136,14 @@
                     <select id="mov_ordem_id" onchange="preencherPelaOrdem()"></select>
                 </div>
                 <div id="campos-saida" style="display:none">
-                    <input type="text" id="mov_cod" placeholder="Código do Artigo para Saída" oninput="procv(this.value, 'nome_prod')">
+                    <input type="text" id="mov_cod" placeholder="Código do Artigo para Saída" oninput="procv(this.value, 'nome_prod')" autofocus>
                 </div>
 
                 <input type="text" id="nome_prod" readonly placeholder="Artigo">
                 <input type="text" id="desc_prod" readonly placeholder="Descrição Técnica" style="font-size: 11px; color: #666;">
-                
+
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-                    <input type="number" id="mov_qtd" placeholder="Quantidade" oninput="calcularPesoDinamico()">
+                    <input type="number" id="mov_qtd" placeholder="Quantidade" oninput="calcularPesoDinamico()" onkeypress="if(event.key==='Enter') lancarMovimento()">
                     <input type="text" id="mov_peso_unit" readonly placeholder="Peso Unit. (kg)">
                 </div>
 
@@ -175,10 +183,13 @@
 <div id="modal-historico">
     <div class="modal-content">
         <span onclick="fecharHistorico()" style="position:absolute; right:25px; top:20px; cursor:pointer; font-size:30px; color: #bbb;">&times;</span>
-        <h2 style="margin-top: 0; color: var(--primary);">🕒 Histórico de Movimentação</h2>
-        
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <h2 style="margin: 0; color: var(--primary);">🕒 Histórico de Movimentação</h2>
+            <button class="btn-secondary" onclick="exportarCSV()">📊 Exportar CSV</button>
+        </div>
+
         <input type="text" id="inputFiltro" style="padding:15px; border:2px solid var(--info); margin-bottom:25px;" placeholder="Pesquisar por Código, Artigo, OF ou Operador..." oninput="renderizarHistorial()">
-        
+
         <div class="resumo-black">
             <div style="text-align:center"><span>MOVIMENTOS</span><br><b id="soma-count" style="font-size:24px">0</b></div>
             <div style="text-align:center"><span>QTD TOTAL</span><br><b id="soma-qtd" style="font-size:24px">0</b></div>
@@ -208,30 +219,64 @@
     const db = firebase.database();
 
     let userEmail = "";
+    let isAdmin = false;
     let produtosGlobal = {};
     let ordensGlobal = {};
     let movsGlobal = {};
+    let saldosCache = {};
 
     // --- AUTENTICAÇÃO ---
     function fazerLogin() {
         const email = document.getElementById('email').value;
         const pass = document.getElementById('password').value;
         auth.signInWithEmailAndPassword(email, pass)
-            .then(res => {
+           .then(res => {
                 userEmail = res.user.email;
+                isAdmin = /admin|super/.test(userEmail.toLowerCase());
                 document.getElementById('login-screen').style.display = 'none';
                 document.getElementById('main-content').style.display = 'block';
                 document.getElementById('user-display').innerText = userEmail;
-                if(userEmail.match(/admin|super/)) document.getElementById('panel-admin').style.display = 'block';
+                if(isAdmin) document.getElementById('panel-admin').style.display = 'block';
+                monitorarConexao();
                 carregarDados();
             }).catch(err => alert("Acesso Negado: Credenciais Inválidas"));
+    }
+
+    function monitorarConexao() {
+        const connectedRef = db.ref(".info/connected");
+        connectedRef.on("value", (snap) => {
+            const status = document.getElementById('status-conn');
+            if (snap.val() === true) {
+                status.innerText = "ONLINE";
+                status.className = "status-conn status-online";
+            } else {
+                status.innerText = "OFFLINE";
+                status.className = "status-conn status-offline";
+            }
+        });
     }
 
     // --- GESTÃO DE DADOS ---
     function carregarDados() {
         db.ref('produtos').on('value', s => { produtosGlobal = s.val() || {}; atualizarInterface(); });
         db.ref('ordens').on('value', s => { ordensGlobal = s.val() || {}; atualizarInterface(); atualizarSelectOrdens(); });
-        db.ref('movimentacoes').on('value', s => { movsGlobal = s.val() || {}; atualizarInterface(); renderizarHistorial(); });
+
+        // Performance: só carrega últimos 500 movimentos
+        db.ref('movimentacoes').orderByChild('dataISO').limitToLast(500).on('value', s => {
+            movsGlobal = s.val() || {};
+            calcularSaldos();
+            atualizarInterface();
+            renderizarHistorial();
+        });
+    }
+
+    function calcularSaldos() {
+        saldosCache = {};
+        Object.values(movsGlobal).forEach(h => {
+            if(!saldosCache[h.cod]) saldosCache[h.cod] = 0;
+            if(h.tipo === 'ENTRADA') saldosCache[h.cod] += parseFloat(h.qtd);
+            else saldosCache[h.cod] -= parseFloat(h.qtd);
+        });
     }
 
     function atualizarInterface() {
@@ -242,18 +287,12 @@
     function renderizarStock() {
         const corpo = document.getElementById('corpoStock');
         corpo.innerHTML = '';
-        const movs = Object.values(movsGlobal);
 
         for(let c in produtosGlobal) {
-            let saldo = 0;
-            movs.filter(h => h.cod === c).forEach(h => {
-                if(h.tipo === 'ENTRADA') saldo += parseFloat(h.qtd);
-                else saldo -= parseFloat(h.qtd);
-            });
-
+            const saldo = saldosCache[c] || 0;
             const p = produtosGlobal[c];
             const min = parseFloat(p.min) || 0;
-            const alerta = saldo <= min ? 'stock-baixo' : '';
+            const alerta = saldo <= min? 'stock-baixo' : '';
 
             corpo.innerHTML += `<tr class="${alerta}">
                 <td><b>${c}</b></td>
@@ -261,7 +300,7 @@
                 <td><b style="font-size:15px">${saldo}</b></td>
                 <td>${min}</td>
                 <td>
-                    ${userEmail.match(/admin|super/) ? `<button class="btn-edit" onclick="carregarParaEditar('${c}')">EDITAR</button>` : 'OK'}
+                    ${isAdmin? `<button class="btn-edit" onclick="carregarParaEditar('${c}')">EDITAR</button>` : 'OK'}
                 </td>
             </tr>`;
         }
@@ -276,7 +315,7 @@
             const realizado = movs.filter(h => h.ordem === id).reduce((a, b) => a + parseFloat(b.qtd), 0);
             const meta = parseFloat(ordensGlobal[id].meta) || 1;
             const perc = Math.min(100, ((realizado/meta)*100)).toFixed(0);
-            
+
             corpo.innerHTML += `<tr>
                 <td style="color:var(--done); font-weight:bold">${id}</td>
                 <td>${ordensGlobal[id].cod}</td>
@@ -289,7 +328,7 @@
                     </div>
                     <small>${perc}% concluído</small>
                 </td>
-                <td>${userEmail.includes("super") || userEmail.includes("admin") ? `<button class="btn-del" onclick="fecharOrdem('${id}')">FECHAR</button>` : '-'}</td>
+                <td>${isAdmin? `<button class="btn-del" onclick="fecharOrdem('${id}')">FECHAR</button>` : '-'}</td>
             </tr>`;
         }
     }
@@ -300,23 +339,26 @@
         corpo.innerHTML = '';
         let tCount = 0, tQtd = 0, tPeso = 0;
 
-        Object.entries(movsGlobal).reverse().forEach(([id, h]) => {
+        // Ordena por dataISO desc
+        const movsArray = Object.entries(movsGlobal).sort((a,b) => (b[1].dataISO || '').localeCompare(a[1].dataISO || ''));
+
+        movsArray.forEach(([id, h]) => {
             if(JSON.stringify(h).toLowerCase().includes(filtro)) {
                 const q = parseFloat(h.qtd) || 0;
                 const pt = parseFloat(h.peso_total) || 0;
                 tCount++; tQtd += q; tPeso += pt;
-                
+
                 corpo.innerHTML += `<tr>
                     <td><small>${h.data}</small></td>
                     <td style="color:var(--info); font-weight:bold">${h.ordem || 'EXP'}</td>
                     <td>${h.cod}</td>
                     <td><span class="item-nome" style="font-size:11px">${h.prod}</span></td>
-                    <td><small style="color:${h.tipo === 'ENTRADA' ? 'green':'red'}">${h.tipo}</small></td>
+                    <td><small style="color:${h.tipo === 'ENTRADA'? 'green':'red'}">${h.tipo}</small></td>
                     <td><b>${q}</b></td>
                     <td>${h.peso_unit || 0}</td>
                     <td style="background:#f9f9f9"><b>${pt.toFixed(3)}</b></td>
                     <td><small>${h.ope.split('@')[0]}</small></td>
-                    <td>${userEmail.includes("super") ? `<button class="btn-del" onclick="reverterMov('${id}')">REV</button>` : ''}</td>
+                    <td>${isAdmin? `<button class="btn-del" onclick="reverterMov('${id}')">REV</button>` : ''}</td>
                 </tr>`;
             }
         });
@@ -330,7 +372,7 @@
         const btn = document.getElementById('btn-confirmar-mov');
         const tipo = document.getElementById('mov_tipo').value;
         const qtd = parseFloat(document.getElementById('mov_qtd').value);
-        
+
         if(!qtd || qtd <= 0) return alert("Quantidade Inválida");
 
         let cod = "";
@@ -339,24 +381,26 @@
         if(tipo === 'ENTRADA') {
             ofId = document.getElementById('mov_ordem_id').value;
             if(!ofId) return alert("Selecione uma Ordem de Fabrico");
-            
+
             const meta = parseFloat(ordensGlobal[ofId].meta);
             const realizado = Object.values(movsGlobal).filter(h => h.ordem === ofId).reduce((a, b) => a + parseFloat(b.qtd), 0);
             if(realizado + qtd > meta) return alert(`BLOQUEIO: Quantidade excede a meta da OF (Restante: ${meta - realizado})`);
-            
+
             cod = ordensGlobal[ofId].cod;
         } else {
             cod = document.getElementById('mov_cod').value.toUpperCase().trim();
-            const saldo = calcularSaldoLocal(cod);
+            const saldo = saldosCache[cod] || 0;
             if(qtd > saldo) return alert(`STOCK INSUFICIENTE: Saldo atual de ${saldo} unidades.`);
         }
 
         const p = produtosGlobal[cod];
         if(!p) return alert("Artigo não encontrado no sistema!");
         const pu = parseFloat(p.peso) || 0;
+        const agora = new Date();
 
         const dados = {
-            data: new Date().toLocaleString('pt-pt'),
+            dataISO: agora.toISOString(),
+            data: agora.toLocaleString('pt-pt'),
             qtd: qtd,
             ope: userEmail,
             tipo: tipo,
@@ -375,6 +419,7 @@
             btn.disabled = false;
             btn.innerText = "Confirmar Registo";
             resetCamposMov();
+            if(tipo === 'SAIDA') document.getElementById('mov_cod').focus();
         }).catch(() => {
             btn.disabled = false;
             btn.innerText = "Confirmar Registo";
@@ -383,25 +428,18 @@
     }
 
     // --- AUXILIARES TÉCNICOS ---
-    function calcularSaldoLocal(cod) {
-        let s = 0;
-        Object.values(movsGlobal).filter(h => h.cod === cod).forEach(h => {
-            if(h.tipo === 'ENTRADA') s += parseFloat(h.qtd); else s -= parseFloat(h.qtd);
-        });
-        return s;
-    }
-
     function procv(cod, targetId) {
         const codigoLimpo = cod.toUpperCase().trim();
         const p = produtosGlobal[codigoLimpo];
         const target = document.getElementById(targetId);
-        
+
         if(p) {
             target.value = p.prod;
             if(targetId === 'nome_prod') {
                 document.getElementById('desc_prod').value = p.desc || "";
                 document.getElementById('mov_peso_unit').value = p.peso || 0;
                 calcularPesoDinamico();
+                document.getElementById('mov_qtd').focus();
             }
         } else {
             target.value = "";
@@ -415,7 +453,11 @@
 
     function preencherPelaOrdem() {
         const id = document.getElementById('mov_ordem_id').value;
-        if(id && ordensGlobal[id]) procv(ordensGlobal[id].cod, 'nome_prod');
+        if(id && ordensGlobal[id]) {
+            procv(ordensGlobal[id].cod, 'nome_prod');
+        } else {
+            resetCamposMov();
+        }
     }
 
     function calcularPesoDinamico() {
@@ -426,15 +468,16 @@
 
     function alternarFormAdmin() {
         const m = document.getElementById('admin_modo').value;
-        document.getElementById('form-prod').style.display = m === 'PROD' ? 'block' : 'none';
-        document.getElementById('form-ordem').style.display = m === 'ORDEM' ? 'block' : 'none';
+        document.getElementById('form-prod').style.display = m === 'PROD'? 'block' : 'none';
+        document.getElementById('form-ordem').style.display = m === 'ORDEM'? 'block' : 'none';
     }
 
     function alternarCamposEntrada() {
         const t = document.getElementById('mov_tipo').value;
-        document.getElementById('campos-entrada').style.display = t === 'ENTRADA' ? 'block' : 'none';
-        document.getElementById('campos-saida').style.display = t === 'SAIDA' ? 'block' : 'none';
+        document.getElementById('campos-entrada').style.display = t === 'ENTRADA'? 'block' : 'none';
+        document.getElementById('campos-saida').style.display = t === 'SAIDA'? 'block' : 'none';
         resetCamposMov();
+        if(t === 'SAIDA') setTimeout(() => document.getElementById('mov_cod').focus(), 100);
     }
 
     function resetCamposMov() {
@@ -446,6 +489,7 @@
     }
 
     function salvarProduto() {
+        if(!isAdmin) return alert("Sem permissão");
         const c = document.getElementById('cad_cod').value.toUpperCase().trim();
         if(!c) return;
         db.ref('produtos/'+c).set({
@@ -453,21 +497,27 @@
             desc: document.getElementById('cad_desc').value,
             peso: document.getElementById('cad_peso').value,
             min: document.getElementById('cad_min').value
-        }).then(() => alert("Artigo Atualizado com Sucesso"));
+        }).then(() => {
+            alert("Artigo Atualizado com Sucesso");
+            ["cad_cod", "cad_prod", "cad_desc", "cad_peso", "cad_min"].forEach(id => document.getElementById(id).value = "");
+        });
     }
 
     function salvarOrdem() {
+        if(!isAdmin) return alert("Sem permissão");
         const id = document.getElementById('ord_id').value.toUpperCase().trim();
         const c = document.getElementById('ord_cod').value.toUpperCase().trim();
-        if(!id || !c || !produtosGlobal[c]) return alert("Código de Artigo inválido ou campos vazios.");
-        
+        if(!id ||!c ||!produtosGlobal[c]) return alert("Código de Artigo inválido ou campos vazios.");
+
         db.ref('ordens/'+id).set({
             cod: c,
             prod: produtosGlobal[c].prod,
-            meta: document.getElementById('ord_meta').value
-        }).then(() => { 
-            alert("Ordem de Fabrico Ativada!"); 
-            document.getElementById('ord_id').value = ""; 
+            meta: document.getElementById('ord_meta').value,
+            criadaEm: new Date().toISOString()
+        }).then(() => {
+            alert("Ordem de Fabrico Ativada!");
+            document.getElementById('ord_id').value = "";
+            document.getElementById('ord_meta').value = "";
         });
     }
 
@@ -480,6 +530,7 @@
     }
 
     function carregarParaEditar(c) {
+        if(!isAdmin) return;
         const p = produtosGlobal[c];
         document.getElementById('admin_modo').value = "PROD";
         alternarFormAdmin();
@@ -494,7 +545,6 @@
     function verificarExistencia(c) {
         const p = produtosGlobal[c.toUpperCase().trim()];
         if(p && document.activeElement.id === 'cad_cod') {
-            // Se o código já existe, preenche para editar
             document.getElementById('cad_prod').value = p.prod;
             document.getElementById('cad_desc').value = p.desc;
             document.getElementById('cad_peso').value = p.peso;
@@ -502,10 +552,35 @@
         }
     }
 
-    function fecharOrdem(id) { if(confirm("Deseja fechar e arquivar esta OF?")) db.ref('ordens/'+id).remove(); }
-    function reverterMov(id) { if(confirm("CUIDADO: Reverter este movimento irá alterar o stock. Confirmar?")) db.ref('movimentacoes/'+id).remove(); }
-    function abrirHistorico() { document.getElementById('modal-historico').style.display = 'block'; }
+    function fecharOrdem(id) {
+        if(!isAdmin) return;
+        if(confirm("Deseja fechar e arquivar esta OF?")) db.ref('ordens/'+id).remove();
+    }
+
+    function reverterMov(id) {
+        if(!isAdmin) return;
+        if(confirm("CUIDADO: Reverter este movimento irá alterar o stock. Confirmar?")) db.ref('movimentacoes/'+id).remove();
+    }
+
+    function abrirHistorico() {
+        document.getElementById('modal-historico').style.display = 'block';
+        document.getElementById('inputFiltro').focus();
+    }
+
     function fecharHistorico() { document.getElementById('modal-historico').style.display = 'none'; }
+
+    function exportarCSV() {
+        let csv = 'DATA;OF;COD;ARTIGO;TIPO;QTD;PESO_UNIT;TOTAL_KG;OPERADOR\n';
+        document.querySelectorAll('#corpoHist tr').forEach(tr => {
+            const tds = Array.from(tr.children).slice(0,9).map(td => `"${td.innerText.replace(/"/g, '""')}"`);
+            csv += tds.join(';') + '\n';
+        });
+        const blob = new Blob(["\uFEFF" + csv], {type: 'text/csv;charset=utf-8;'});
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = `historico_i9_${new Date().toISOString().slice(0,10)}.csv`;
+        a.click();
+    }
 </script>
 
 </body>
