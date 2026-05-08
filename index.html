@@ -38,7 +38,6 @@
         .btn-reg { background: var(--primary); width: 100%; margin-top: 10px; padding: 12px; }
         .btn-danger { background: var(--danger); font-size: 10px; padding: 4px 8px; }
         
-        /* DESTAQUE PARA O CÁLCULO DE PESO TOTAL */
         #calc-peso-container { background: #e8f4fd; padding: 10px; border-radius: 5px; margin-bottom: 10px; border: 1px dashed var(--info); display: none; }
 
         #modal-historico { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 2000; overflow-y: auto; }
@@ -68,17 +67,22 @@
         <div class="grid">
             <div id="panel-admin" class="card" style="display: none; border-top: 5px solid var(--danger);">
                 <h3 style="color: var(--danger)">📂 GESTÃO DE CADASTROS</h3>
+                <div class="texto-ajuda">Dica: Ao digitar um Código existente, os dados (como o peso) serão carregados para edição.</div>
                 <select id="admin_modo" onchange="alternarFormAdmin()">
-                    <option value="PROD">CADASTRO DE ARTIGOS</option>
+                    <option value="PROD">CADASTRO / EDITAR ARTIGOS</option>
                     <option value="ORDEM">ORDENS DE FABRICO</option>
                 </select>
                 <div id="form-prod">
-                    <label>Código</label><input type="text" id="cad_cod">
+                    <label>Código do Artigo</label>
+                    <input type="text" id="cad_cod" oninput="verificarExistencia(this.value)" placeholder="Digite o código para criar ou editar">
+                    
                     <label>Nome do Produto</label><input type="text" id="cad_prod">
                     <label>Descrição Detalhada</label><input type="text" id="cad_desc">
                     <label>Peso Unitário (kg)</label><input type="number" step="0.001" id="cad_peso" placeholder="0.000">
                     <label>Stock Mínimo</label><input type="number" id="cad_min" value="5">
-                    <button class="btn-reg" onclick="salvarProduto()">GRAVAR ARTIGO</button>
+                    
+                    <button id="btn-salvar-prod" class="btn-reg" onclick="salvarProduto()">GRAVAR ARTIGO</button>
+                    <button id="btn-limpar-cad" style="background:#95a5a6; width:100%; margin-top:5px; display:none;" onclick="limparCamposCad()">CANCELAR EDIÇÃO</button>
                 </div>
                 <div id="form-ordem" style="display:none">
                     <label>Nº OF</label><input type="text" id="ord_id">
@@ -119,10 +123,12 @@
 
         <div class="card" style="margin-bottom:20px">
             <h3>📋 ORDENS EM CURSO</h3>
-            <table>
-                <thead><tr><th>OF</th><th>CÓDIGO</th><th>ARTIGO</th><th>META</th><th>REAL</th><th>%</th><th class="super-only">AÇÃO</th></tr></thead>
-                <tbody id="corpoOrdens"></tbody>
-            </table>
+            <div id="corpoOrdensDiv">
+                <table>
+                    <thead><tr><th>OF</th><th>CÓDIGO</th><th>ARTIGO</th><th>META</th><th>REAL</th><th>%</th><th class="super-only">AÇÃO</th></tr></thead>
+                    <tbody id="corpoOrdens"></tbody>
+                </table>
+            </div>
         </div>
 
         <div class="card">
@@ -183,10 +189,57 @@
         db.ref('movimentacoes').on('value', s => { movsGlobal = s.val() || {}; renderizarTudo(); renderizarHistorial(); });
     }
 
+    // FUNÇÃO PARA EDITAR: Verifica se o código já existe e preenche os campos
+    function verificarExistencia(cod) {
+        const c = cod.toUpperCase().trim();
+        const p = produtosGlobal[c];
+        const btn = document.getElementById('btn-salvar-prod');
+        const btnLimpar = document.getElementById('btn-limpar-cad');
+
+        if (p) {
+            document.getElementById('cad_prod').value = p.prod;
+            document.getElementById('cad_desc').value = p.desc || "";
+            document.getElementById('cad_peso').value = p.peso || "";
+            document.getElementById('cad_min').value = p.min || "5";
+            btn.innerHTML = "ATUALIZAR DADOS DO ARTIGO";
+            btn.style.background = "#e67e22";
+            btnLimpar.style.display = "block";
+        } else {
+            btn.innerHTML = "GRAVAR NOVO ARTIGO";
+            btn.style.background = ""; // volta ao CSS original (var --primary)
+            btnLimpar.style.display = "none";
+        }
+    }
+
+    function limparCamposCad() {
+        document.getElementById('cad_cod').value = "";
+        document.getElementById('cad_prod').value = "";
+        document.getElementById('cad_desc').value = "";
+        document.getElementById('cad_peso').value = "";
+        document.getElementById('cad_min').value = "5";
+        verificarExistencia("");
+    }
+
+    function salvarProduto() {
+        const c = document.getElementById('cad_cod').value.toUpperCase().trim();
+        const p = document.getElementById('cad_prod').value;
+        const d = document.getElementById('cad_desc').value;
+        const w = document.getElementById('cad_peso').value;
+        const m = document.getElementById('cad_min').value;
+        if(c && p) {
+            db.ref('produtos/'+c).set({ prod: p, desc: d, peso: w, min: m }).then(() => {
+                alert("Dados gravados com sucesso!");
+                limparCamposCad();
+            });
+        } else {
+            alert("Preencha o Código e o Nome!");
+        }
+    }
+
+    // Restante das funções de cálculo e movimentação
     function calcularPesoTotal() {
         const qtd = parseFloat(document.getElementById('mov_qtd').value) || 0;
         const total = (qtd * pesoUnitarioAtual).toFixed(3);
-        
         if (pesoUnitarioAtual > 0) {
             document.getElementById('calc-peso-container').style.display = 'block';
             document.getElementById('display-peso-un').innerText = pesoUnitarioAtual;
@@ -219,16 +272,8 @@
         const t = document.getElementById('mov_tipo').value;
         const q = parseFloat(document.getElementById('mov_qtd').value);
         if(!q) { alert("Introduza a quantidade!"); return; }
-        
         const pesoTotalCalc = (q * pesoUnitarioAtual).toFixed(3);
-        
-        let d = { 
-            data: new Date().toLocaleString('pt-pt'), 
-            qtd: q, 
-            peso_total: pesoTotalCalc,
-            ope: userEmail 
-        };
-
+        let d = { data: new Date().toLocaleString('pt-pt'), qtd: q, peso_total: pesoTotalCalc, ope: userEmail };
         if(t === 'ENTRADA') {
             const id = document.getElementById('mov_ordem_id').value;
             if(!id) return;
@@ -238,9 +283,8 @@
             if(!produtosGlobal[c]) return;
             d.tipo = "SAIDA"; d.cod = c; d.prod = produtosGlobal[c].prod;
         }
-
         db.ref('movimentacoes').push(d).then(() => { 
-            alert("Registado com Sucesso!"); 
+            alert("Registado!"); 
             document.getElementById('mov_qtd').value = ""; 
             document.getElementById('calc-peso-container').style.display = 'none';
         });
@@ -305,15 +349,6 @@
                 <td class="super-only"><button class="btn-danger" onclick="db.ref('movimentacoes/${id}').remove()">DEL</button></td>
             </tr>`;
         });
-    }
-
-    function salvarProduto() {
-        const c = document.getElementById('cad_cod').value.toUpperCase().trim();
-        const p = document.getElementById('cad_prod').value;
-        const d = document.getElementById('cad_desc').value;
-        const w = document.getElementById('cad_peso').value;
-        const m = document.getElementById('cad_min').value;
-        if(c && p) db.ref('produtos/'+c).set({ prod: p, desc: d, peso: w, min: m }).then(() => alert("Artigo Guardado!"));
     }
 
     function abrirHistorico() { document.getElementById('modal-historico').style.display = 'block'; }
