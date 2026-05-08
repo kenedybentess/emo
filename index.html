@@ -6,7 +6,315 @@
     <title>SGE - I9 Industrial (v3.4)</title>
     
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
+    <script src="https://www<!DOCTYPE html>
+<html lang="pt-pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SGE - I9 Industrial (v3.5)</title>
+    
+    <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-auth-compat.js"></script>
+    
+    <style>
+        :root { 
+            --primary: #2c3e50; --info: #3498db; --light: #f4f7f6; --danger: #e74c3c; 
+            --done: #8e44ad; --orange: #e67e22; --dark-card: #34495e; --success: #27ae60;
+            --border: #dfe6e9;
+        }
+        body { font-family: 'Segoe UI', sans-serif; margin: 0; background: var(--light); color: #2d3436; font-size: 13px; }
+        #login-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--primary); display: flex; justify-content: center; align-items: center; z-index: 1000; }
+        .login-card { background: white; padding: 40px; border-radius: 15px; width: 300px; text-align: center; }
+        #main-content { display: none; }
+        .navbar { background: var(--primary); color: white; padding: 12px 25px; display: flex; justify-content: space-between; align-items: center; }
+        .container { width: 96%; max-width: 1200px; margin: 20px auto; }
+        .card { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 20px; border: 1px solid var(--border); }
+        .section-header { border-left: 5px solid var(--info); padding-left: 15px; margin-bottom: 20px; }
+        input, select { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid var(--border); border-radius: 6px; box-sizing: border-box; font-family: inherit; }
+        input[readonly] { background-color: #f8f9fa; color: #7f8c8d; }
+        .btn-reg { background: var(--success); color: white; width: 100%; padding: 15px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; text-transform: uppercase; margin-top: 10px; transition: 0.3s; }
+        .btn-reg:hover { filter: brightness(0.9); }
+        .btn-reg:disabled { background: #ccc !important; }
+        table { width: 100%; border-collapse: collapse; }
+        th { background: #f8f9fa; padding: 10px; text-align: left; font-size: 11px; color: #636e72; }
+        td { padding: 10px; border-bottom: 1px solid #eee; }
+        #modal-historico { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 2000; overflow-y: auto; }
+        .modal-content { background: white; width: 90%; margin: 30px auto; padding: 25px; border-radius: 10px; }
+    </style>
+</head>
+<body>
+
+<div id="login-screen">
+    <div class="login-card">
+        <h2>I9 INDUSTRIAL</h2>
+        <input type="email" id="email" placeholder="Utilizador">
+        <input type="password" id="password" placeholder="Senha">
+        <button onclick="fazerLogin()" class="btn-reg" style="background: var(--info)">Entrar</button>
+    </div>
+</div>
+
+<div id="main-content">
+    <div class="navbar">
+        <b>SGE I9 INDUSTRIAL</b>
+        <button onclick="location.reload()" style="background:none; border:1px solid white; color:white; cursor:pointer; padding:5px; border-radius:4px;">Sair</button>
+    </div>
+
+    <div class="container">
+        <button onclick="abrirHistorico()" style="width:100%; padding:15px; margin-bottom:20px; cursor:pointer; border-radius:8px; border:1px solid var(--primary); background:white; font-weight:bold;">🕒 CONSULTAR HISTÓRICO</button>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+            
+            <div id="panel-admin" class="card" style="display:none; border-top: 4px solid var(--danger);">
+                <div class="section-header"><h3>🛠️ GESTÃO ADMINISTRATIVA</h3></div>
+                <select id="admin_modo" onchange="alternarFormAdmin()">
+                    <option value="PROD">CADASTRO ARTIGOS</option>
+                    <option value="ORDEM">LANÇAR ORDEM (OF)</option>
+                </select>
+                <div id="form-prod">
+                    <input type="text" id="cad_cod" placeholder="Código Artigo" oninput="verificarExistencia(this.value)">
+                    <input type="text" id="cad_prod" placeholder="Nome">
+                    <input type="text" id="cad_desc" placeholder="Descrição">
+                    <input type="number" step="0.001" id="cad_peso" placeholder="Peso Unit. (kg)">
+                    <input type="number" id="cad_min" placeholder="Mínimo Stock">
+                    <button class="btn-reg" style="background:var(--danger)" onclick="salvarProduto()">Guardar Artigo</button>
+                </div>
+                <div id="form-ordem" style="display:none">
+                    <input type="text" id="ord_id" placeholder="Número da OF">
+                    <input type="text" id="ord_cod" placeholder="Código do Artigo" oninput="procv(this.value, 'ord_nome')">
+                    <input type="text" id="ord_nome" readonly placeholder="Produto Automático">
+                    <input type="number" id="ord_meta" placeholder="Quantidade Meta">
+                    <button class="btn-reg" style="background:var(--done)" onclick="salvarOrdem()">Abrir OF</button>
+                </div>
+            </div>
+
+            <div class="card" style="border-top: 4px solid var(--info);">
+                <div class="section-header"><h3>📦 REGISTO DE MOVIMENTO</h3></div>
+                <select id="mov_tipo" onchange="alternarCamposEntrada()">
+                    <option value="ENTRADA">ENTRADA (PRODUÇÃO)</option>
+                    <option value="SAIDA">SAÍDA (EXPEDIÇÃO)</option>
+                </select>
+
+                <div id="campos-entrada">
+                    <select id="mov_ordem_id" onchange="preencherPelaOrdem()"></select>
+                </div>
+                <div id="campos-saida" style="display:none">
+                    <input type="text" id="mov_cod" placeholder="Código para Saída" oninput="procv(this.value, 'nome_prod')">
+                </div>
+
+                <input type="text" id="nome_prod" readonly placeholder="Produto">
+                <input type="text" id="desc_prod" readonly placeholder="Descrição">
+                
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                    <input type="number" id="mov_qtd" placeholder="Quantidade" oninput="calcularPesoDinamico()">
+                    <input type="text" id="mov_peso_unit" readonly placeholder="Peso Unit.">
+                </div>
+
+                <div style="background: #f8f9fa; padding: 10px; border-radius: 8px; text-align: center; border: 1px solid #ddd;">
+                    <small>MASSA TOTAL (KG)</small><br>
+                    <b id="display_peso_total" style="font-size: 20px; color: var(--primary);">0.000</b>
+                </div>
+
+                <button id="btn-salvar-mov" class="btn-reg" onclick="lancarMovimento()">Confirmar Registo</button>
+            </div>
+        </div>
+
+        <div class="card"><h3>📊 Stock Atual</h3><table id="tabStock"><thead><tr><th>COD</th><th>ARTIGO</th><th>PESO</th><th>SALDO</th><th>MÍN</th></tr></thead><tbody id="corpoStock"></tbody></table></div>
+    </div>
+</div>
+
+<script>
+    const firebaseConfig = {
+        apiKey: "AIzaSyAPHVbVNdYEp_b7-_bWkTyn5jCVrbZogTo",
+        authDomain: "i9-industrial.firebaseapp.com",
+        databaseURL: "https://i9-industrial-default-rtdb.firebaseio.com",
+        projectId: "i9-industrial",
+        appId: "1:509803480353:web:dafdbc0fbc4b175c49aa60"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.database();
+
+    let userEmail = "";
+    let produtosGlobal = {};
+    let ordensGlobal = {};
+    let movsGlobal = {};
+
+    function fazerLogin() {
+        const e = document.getElementById('email').value;
+        const p = document.getElementById('password').value;
+        auth.signInWithEmailAndPassword(e, p).then(res => {
+            userEmail = res.user.email;
+            document.getElementById('login-screen').style.display = 'none';
+            document.getElementById('main-content').style.display = 'block';
+            if(userEmail.match(/admin|super/)) document.getElementById('panel-admin').style.display = 'block';
+            carregarDados();
+        }).catch(() => alert("Acesso Inválido"));
+    }
+
+    function carregarDados() {
+        db.ref('produtos').on('value', s => { produtosGlobal = s.val() || {}; renderStock(); });
+        db.ref('ordens').on('value', s => { ordensGlobal = s.val() || {}; atualizarSelectOrdens(); });
+        db.ref('movimentacoes').on('value', s => { movsGlobal = s.val() || {}; renderStock(); });
+    }
+
+    // --- LIMPEZA DE CAMPOS (NOVO) ---
+
+    function resetCamposAdmin() {
+        ["cad_cod", "cad_prod", "cad_desc", "cad_peso", "cad_min", "ord_id", "ord_cod", "ord_nome", "ord_meta"].forEach(id => {
+            const el = document.getElementById(id);
+            if(el) el.value = "";
+        });
+        document.getElementById('cad_cod').focus();
+    }
+
+    function resetCamposMov() {
+        ["mov_qtd", "mov_cod", "nome_prod", "desc_prod", "mov_peso_unit"].forEach(id => {
+            const el = document.getElementById(id);
+            if(el) el.value = "";
+        });
+        document.getElementById('mov_ordem_id').value = "";
+        document.getElementById('display_peso_total').innerText = "0.000";
+    }
+
+    // --- LOGICA DE PROCURA ---
+
+    function procv(cod, targetId) {
+        const p = produtosGlobal[cod.toUpperCase().trim()];
+        const campoNome = document.getElementById(targetId);
+        if(p) {
+            campoNome.value = p.prod;
+            if(targetId === 'nome_prod') {
+                document.getElementById('desc_prod').value = p.desc || "";
+                document.getElementById('mov_peso_unit').value = p.peso || 0;
+                calcularPesoDinamico();
+            }
+        } else {
+            campoNome.value = "";
+            if(targetId === 'nome_prod') {
+                document.getElementById('desc_prod').value = "";
+                document.getElementById('mov_peso_unit').value = "";
+            }
+        }
+    }
+
+    function preencherPelaOrdem() {
+        const idOF = document.getElementById('mov_ordem_id').value;
+        if(idOF && ordensGlobal[idOF]) {
+            procv(ordensGlobal[idOF].cod, 'nome_prod');
+        }
+    }
+
+    // --- SALVAR DADOS ---
+
+    function salvarProduto() {
+        const c = document.getElementById('cad_cod').value.toUpperCase().trim();
+        if(!c) return alert("Insira um código");
+        db.ref('produtos/'+c).set({
+            prod: document.getElementById('cad_prod').value,
+            desc: document.getElementById('cad_desc').value,
+            peso: document.getElementById('cad_peso').value,
+            min: document.getElementById('cad_min').value
+        }).then(() => {
+            alert("Produto Guardado!");
+            resetCamposAdmin();
+        });
+    }
+
+    function salvarOrdem() {
+        const id = document.getElementById('ord_id').value;
+        const c = document.getElementById('ord_cod').value.toUpperCase().trim();
+        if(!produtosGlobal[c]) return alert("Artigo não existe!");
+        db.ref('ordens/'+id).set({
+            cod: c, prod: produtosGlobal[c].prod, meta: document.getElementById('ord_meta').value
+        }).then(() => {
+            alert("OF Aberta com sucesso!");
+            resetCamposAdmin();
+        });
+    }
+
+    function lancarMovimento() {
+        const btn = document.getElementById('btn-salvar-mov');
+        const tipo = document.getElementById('mov_tipo').value;
+        const qtd = parseFloat(document.getElementById('mov_qtd').value);
+        if(!qtd || qtd <= 0) return alert("Insira uma quantidade válida");
+
+        let ofId = (tipo === 'ENTRADA') ? document.getElementById('mov_ordem_id').value : "";
+        let cod = (tipo === 'ENTRADA') ? ordensGlobal[ofId].cod : document.getElementById('mov_cod').value.toUpperCase().trim();
+
+        if(tipo === 'ENTRADA') {
+            const meta = parseFloat(ordensGlobal[ofId].meta);
+            const feito = Object.values(movsGlobal).filter(h => h.ordem === ofId).reduce((a,b) => a + parseFloat(b.qtd), 0);
+            if(feito >= meta) return alert("Meta da OF já atingida!");
+            if(feito + qtd > meta) return alert("Quantidade excede a meta restante!");
+        }
+
+        const p = produtosGlobal[cod];
+        if(!p) return alert("Produto não identificado!");
+
+        btn.disabled = true;
+        db.ref('movimentacoes').push({
+            data: new Date().toLocaleString('pt-pt'),
+            qtd: qtd,
+            ope: userEmail,
+            tipo: tipo,
+            cod: cod,
+            prod: p.prod,
+            peso_unit: p.peso,
+            peso_total: (qtd * p.peso),
+            ordem: ofId || "EXPEDIÇÃO"
+        }).then(() => {
+            btn.disabled = false;
+            resetCamposMov();
+            alert("Registo Efetuado!");
+        });
+    }
+
+    // --- INTERFACE ---
+
+    function calcularPesoDinamico() {
+        const q = parseFloat(document.getElementById('mov_qtd').value) || 0;
+        const pu = parseFloat(document.getElementById('mov_peso_unit').value) || 0;
+        document.getElementById('display_peso_total').innerText = (q * pu).toFixed(3);
+    }
+    function alternarFormAdmin() {
+        const m = document.getElementById('admin_modo').value;
+        document.getElementById('form-prod').style.display = m === 'PROD' ? 'block' : 'none';
+        document.getElementById('form-ordem').style.display = m === 'ORDEM' ? 'block' : 'none';
+        resetCamposAdmin();
+    }
+    function alternarCamposEntrada() {
+        const t = document.getElementById('mov_tipo').value;
+        document.getElementById('campos-entrada').style.display = t === 'ENTRADA' ? 'block' : 'none';
+        document.getElementById('campos-saida').style.display = t === 'SAIDA' ? 'block' : 'none';
+        resetCamposMov();
+    }
+    function atualizarSelectOrdens() {
+        const s = document.getElementById('mov_ordem_id');
+        s.innerHTML = '<option value="">-- Selecionar OF --</option>';
+        for(let id in ordensGlobal) s.innerHTML += `<option value="${id}">${id} | ${ordensGlobal[id].prod}</option>`;
+    }
+    function renderStock() {
+        const c = document.getElementById('corpoStock'); c.innerHTML = '';
+        for(let id in produtosGlobal) {
+            let saldo = 0;
+            Object.values(movsGlobal).filter(h => h.cod === id).forEach(h => { if(h.tipo==='ENTRADA') saldo+=parseFloat(h.qtd); else saldo-=parseFloat(h.qtd); });
+            c.innerHTML += `<tr><td>${id}</td><td>${produtosGlobal[id].prod}</td><td>${produtosGlobal[id].peso}</td><td>${saldo}</td><td>${produtosGlobal[id].min}</td></tr>`;
+        }
+    }
+    function verificarExistencia(c) {
+        if(produtosGlobal[c.toUpperCase()]) {
+            const p = produtosGlobal[c.toUpperCase()];
+            document.getElementById('cad_prod').value = p.prod;
+            document.getElementById('cad_desc').value = p.desc;
+            document.getElementById('cad_peso').value = p.peso;
+            document.getElementById('cad_min').value = p.min;
+        }
+    }
+    function abrirHistorico() { alert("Histórico carregado em segundo plano. Verifique o console ou modal se configurado."); }
+</script>
+</body>
+</html>.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-auth-compat.js"></script>
     
     <style>
