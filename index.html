@@ -20,6 +20,7 @@
         .container { width: 96%; margin: 20px auto; }
         .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px; }
         .card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .card-desc { font-size: 11px; color: #7f8c8d; margin-bottom: 15px; font-style: italic; line-height: 1.4; }
         table { width: 100%; border-collapse: collapse; margin-top: 10px; }
         th { background: #f8f9fa; padding: 12px; text-align: left; border-bottom: 2px solid #ddd; font-size: 11px; }
         td { padding: 12px; border-bottom: 1px solid #eee; }
@@ -55,8 +56,10 @@
         <button onclick="abrirHistorico()" style="background: white; color: var(--primary); padding:15px; width:100%; border: 2px solid var(--primary); margin-bottom:20px; font-weight:bold;">🕒 HISTÓRICO COMPLETO & GESTÃO DE DADOS</button>
 
         <div class="grid">
+            <!-- PAINEL ADMIN -->
             <div id="panel-admin" class="card" style="display: none; border-top: 5px solid var(--danger);">
                 <h3 style="color: var(--danger)">📂 GESTÃO DE CADASTROS</h3>
+                <div class="card-desc">Área restrita para criação de novos artigos no sistema ou abertura de Ordens de Fabrico (OF) com metas específicas de produção.</div>
                 <select id="admin_modo" onchange="alternarFormAdmin()">
                     <option value="PROD">ARTIGOS / PRODUTOS</option>
                     <option value="ORDEM">ORDENS DE FABRICO</option>
@@ -77,8 +80,10 @@
                 </div>
             </div>
 
+            <!-- REGISTO MOVIMENTAÇÃO -->
             <div class="card">
                 <h3 style="color: var(--info)">🚀 REGISTAR MOVIMENTAÇÃO</h3>
+                <div class="card-desc">Utilize esta secção para registar a entrada de produção acabada (associada a uma OF) ou saídas para venda, consumo ou ajuste de inventário.</div>
                 <label>Tipo</label>
                 <select id="mov_tipo" onchange="alternarCamposEntrada()">
                     <option value="ENTRADA">ENTRADA (Via OF)</option>
@@ -100,16 +105,20 @@
             </div>
         </div>
 
+        <!-- ORDENS EM CURSO -->
         <div class="card" style="margin-bottom:20px">
             <h3>📋 ORDENS EM CURSO</h3>
+            <div class="card-desc">Monitorização em tempo real das Ordens de Fabrico abertas. Mostra o progresso atual (Real) face ao objetivo (Meta) e a percentagem de conclusão.</div>
             <table>
                 <thead><tr><th>OF</th><th>CÓDIGO</th><th>PRODUTO</th><th>META</th><th>REAL</th><th>%</th><th class="super-only">AÇÃO</th></tr></thead>
                 <tbody id="corpoOrdens"></tbody>
             </table>
         </div>
 
+        <!-- STOCK ATUAL -->
         <div class="card">
             <h3>📊 STOCK ATUAL</h3>
+            <div class="card-desc">Lista consolidada de todos os artigos. O saldo é calculado automaticamente somando todas as entradas de produção e subtraindo as saídas registadas.</div>
             <table>
                 <thead><tr><th>CÓDIGO</th><th>ARTIGO</th><th>SALDO</th><th>MÍN</th><th class="super-only">AÇÃO</th></tr></thead>
                 <tbody id="corpoStock"></tbody>
@@ -122,6 +131,7 @@
     <div class="modal-content">
         <span onclick="fecharHistorico()" style="position:absolute; right:20px; top:15px; cursor:pointer; font-size:24px;">&times;</span>
         <h2>🕒 HISTÓRICO DE MOVIMENTOS</h2>
+        <div class="card-desc" style="color: #555;">Registo cronológico detalhado de todas as operações realizadas no sistema, incluindo o utilizador responsável por cada lançamento.</div>
         <div style="display:flex; gap:10px; margin-bottom:15px;">
             <input type="text" id="pesquisaHist" placeholder="Pesquisar..." onkeyup="renderizarHistorial()">
             <button onclick="exportarCSV()" style="background:var(--entry); white-space:nowrap;">BAIXAR CSV</button>
@@ -135,6 +145,7 @@
 </div>
 
 <script>
+    // --- CONFIGURAÇÃO FIREBASE ---
     const firebaseConfig = {
         apiKey: "AIzaSyAPHVbVNdYEp_b7-_bWkTyn5jCVrbZogTo",
         authDomain: "i9-industrial.firebaseapp.com",
@@ -175,26 +186,21 @@
         db.ref('movimentacoes').on('value', s => { movsGlobal = s.val() || {}; renderizarTudo(); renderizarHistorial(); });
     }
 
-    // --- FUNÇÕES DE ELIMINAÇÃO (SUPER USER) ---
+    function limparCamposAdmin() {
+        const inputs = document.querySelectorAll('#panel-admin input');
+        inputs.forEach(i => i.value = "");
+        if(document.getElementById('cad_min')) document.getElementById('cad_min').value = "5";
+    }
+
     function eliminarOF(id) { if(confirm("Eliminar esta Ordem permanentemente?")) db.ref('ordens/'+id).remove(); }
     function eliminarProduto(id) { if(confirm("Eliminar este produto do cadastro?")) db.ref('produtos/'+id).remove(); }
     function eliminarMov(id) { if(confirm("Eliminar este registo do histórico?")) db.ref('movimentacoes/'+id).remove(); }
     function limparHistoricoTotal() { if(confirm("ATENÇÃO: Isto apagará TODO o histórico. Confirmar?")) db.ref('movimentacoes').remove(); }
 
-    // --- FUNÇÃO DE LIMPEZA DE CAMPOS ---
-    function limparCamposAdmin() {
-        const inputs = document.querySelectorAll('#panel-admin input');
-        inputs.forEach(i => i.value = "");
-        // Reset do stock mínimo padrão após limpeza
-        if(document.getElementById('cad_min')) document.getElementById('cad_min').value = "5";
-    }
-
-    // --- LÓGICA DE NEGÓCIO ---
     function renderizarTudo() {
         const isSuper = userEmail === "super@i9.com";
         const histArray = Object.entries(movsGlobal).map(([id, val]) => ({id, ...val}));
 
-        // Stock
         const corpoStock = document.getElementById('corpoStock'); corpoStock.innerHTML = '';
         const saldos = {};
         for(let c in produtosGlobal) saldos[c] = { ...produtosGlobal[c], total: 0 };
@@ -213,7 +219,6 @@
             </tr>`;
         }
 
-        // Ordens
         const corpoOrdens = document.getElementById('corpoOrdens'); corpoOrdens.innerHTML = '';
         for(let id in ordensGlobal) {
             const feito = histArray.filter(h => h.ordem === id).reduce((a, b) => a + (parseFloat(b.qtd) || 0), 0);
@@ -242,28 +247,30 @@
         });
     }
 
-    // --- UTILITÁRIOS ---
     function abrirHistorico() { document.getElementById('modal-historico').style.display = 'block'; }
     function fecharHistorico() { document.getElementById('modal-historico').style.display = 'none'; }
+    
     function alternarFormAdmin() {
         const m = document.getElementById('admin_modo').value;
         document.getElementById('form-prod').style.display = m === 'PROD' ? 'block' : 'none';
         document.getElementById('form-ordem').style.display = m === 'ORDEM' ? 'block' : 'none';
         limparCamposAdmin();
     }
+
     function alternarCamposEntrada() {
         const t = document.getElementById('mov_tipo').value;
         document.getElementById('campos-entrada').style.display = t === 'ENTRADA' ? 'block' : 'none';
         document.getElementById('campos-saida').style.display = t === 'SAIDA' ? 'block' : 'none';
-        // Limpar campos de visualização ao trocar tipo
         document.getElementById('nome_prod').value = "";
         document.getElementById('desc_prod').value = "";
         document.getElementById('mov_qtd').value = "";
     }
+
     function atualizarSelectOrdens() {
         const sel = document.getElementById('mov_ordem_id'); sel.innerHTML = '<option value="">Selecionar...</option>';
         for(let id in ordensGlobal) sel.innerHTML += `<option value="${id}">${id}</option>`;
     }
+
     function preencherPelaOrdem() {
         const id = document.getElementById('mov_ordem_id').value;
         if(id && ordensGlobal[id]) {
@@ -271,11 +278,13 @@
             document.getElementById('desc_prod').value = produtosGlobal[ordensGlobal[id].cod]?.desc || "";
         }
     }
+
     function procv(cod, n, d) {
         const i = produtosGlobal[cod.toUpperCase().trim()];
         document.getElementById(n).value = i ? i.prod : "";
         if(d) document.getElementById(d).value = i ? (i.desc || "") : "";
     }
+
     function validarOF() {
         const id = document.getElementById('mov_ordem_id').value;
         const q = parseFloat(document.getElementById('mov_qtd').value) || 0;
@@ -286,6 +295,7 @@
             document.getElementById('btn-registar').disabled = q > resta;
         }
     }
+
     function salvarProduto() {
         const c = document.getElementById('cad_cod').value.toUpperCase().trim();
         const p = document.getElementById('cad_prod').value;
@@ -293,22 +303,24 @@
         const m = parseInt(document.getElementById('cad_min').value) || 0;
         if(c && p) {
             db.ref('produtos/'+c).set({ prod: p, desc: d, min: m }).then(() => {
-                alert("Artigo " + c + " guardado com sucesso!");
+                alert("Artigo guardado!");
                 limparCamposAdmin();
             });
         }
     }
+
     function salvarOrdem() {
         const i = document.getElementById('ord_id').value.toUpperCase().trim();
         const c = document.getElementById('ord_cod').value.toUpperCase().trim();
         const m = parseInt(document.getElementById('ord_meta').value);
         if(i && produtosGlobal[c]) {
             db.ref('ordens/'+i).set({ cod: c, prod: produtosGlobal[c].prod, meta: m }).then(() => {
-                alert("Ordem de Fabrico " + i + " criada!");
+                alert("OF criada!");
                 limparCamposAdmin();
             });
         }
     }
+
     function lancarMovimento() {
         const t = document.getElementById('mov_tipo').value;
         const q = parseFloat(document.getElementById('mov_qtd').value);
@@ -319,11 +331,11 @@
             d.tipo = "ORDEM"; d.ordem = id; d.cod = ordensGlobal[id].cod; d.prod = ordensGlobal[id].prod;
         } else {
             const c = document.getElementById('mov_cod').value.toUpperCase().trim();
-            if(!produtosGlobal[c]) { alert("Código não encontrado!"); return; }
+            if(!produtosGlobal[c]) { alert("Código inexistente!"); return; }
             d.tipo = "SAIDA"; d.cod = c; d.prod = produtosGlobal[c].prod;
         }
         db.ref('movimentacoes').push(d).then(() => { 
-            alert("Movimentação registada!");
+            alert("Sucesso!");
             document.getElementById('mov_qtd').value = ""; 
             if(t === 'SAIDA') document.getElementById('mov_cod').value = "";
             document.getElementById('nome_prod').value = "";
@@ -331,6 +343,7 @@
             document.getElementById('msg-validacao').innerHTML = "";
         });
     }
+
     function exportarCSV() {
         let csv = "\uFEFFData;Ref;Cod;Prod;Qtd;User\n";
         Object.values(movsGlobal).forEach(h => { csv += `${h.data};${h.ordem || h.tipo};${h.cod};${h.prod};${h.qtd};${h.ope}\n`; });
