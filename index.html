@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SGE - I9 Industrial (v3.2)</title>
+    <title>CONTROLE DE SEMI-ACABADO - I9 Industrial</title>
 
     <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
@@ -21,20 +21,20 @@
 
         /* Login Screen */
         #login-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(135deg, var(--primary), #1a252f); display: flex; justify-content: center; align-items: center; z-index: 1000; }
-       .login-card { background: white; padding: 40px; border-radius: 15px; width: 320px; text-align: center; box-shadow: 0 15px 35px rgba(0,0,0,0.4); }
+     .login-card { background: white; padding: 40px; border-radius: 15px; width: 320px; text-align: center; box-shadow: 0 15px 35px rgba(0,0,0,0.4); }
         #main-content { display: none; animation: fadeIn 0.5s; }
 
         /* Navigation */
-       .navbar { background: var(--primary); color: white; padding: 12px 25px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
-       .container { width: 96%; max-width: 1400px; margin: 20px auto; }
-       .status-conn { font-size: 10px; padding: 3px 8px; border-radius: 10px; margin-left: 10px; }
-       .status-online { background: var(--success); }
-       .status-offline { background: var(--danger); }
+     .navbar { background: var(--primary); color: white; padding: 12px 25px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+     .container { width: 96%; max-width: 1400px; margin: 20px auto; }
+     .status-conn { font-size: 10px; padding: 3px 8px; border-radius: 10px; margin-left: 10px; }
+     .status-online { background: var(--success); }
+     .status-offline { background: var(--danger); }
 
         /* Cards & Tables */
-       .card { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 25px; border: 1px solid var(--border); }
-       .section-header { border-left: 5px solid var(--info); padding-left: 15px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; }
-       .section-header h3 { margin: 0; text-transform: uppercase; color: var(--primary); letter-spacing: 1px; }
+     .card { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 25px; border: 1px solid var(--border); }
+     .section-header { border-left: 5px solid var(--info); padding-left: 15px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; }
+     .section-header h3 { margin: 0; text-transform: uppercase; color: var(--primary); letter-spacing: 1px; }
 
         table { width: 100%; border-collapse: collapse; margin-top: 10px; }
         th { background: #f8f9fa; padding: 12px; text-align: left; border-bottom: 2px solid var(--border); font-size: 11px; color: #636e72; text-transform: uppercase; }
@@ -42,29 +42,29 @@
         tr:hover { background-color: #f9fbff; }
 
         /* UI Components */
-       .item-nome { color: var(--orange); font-weight: bold; font-size: 13px; display: block; }
-       .item-desc { color: #636e72; font-size: 11px; display: block; margin-top: 2px; }
-       .stock-baixo { background-color: #fff5f5!important; color: var(--danger); font-weight: bold; }
+     .item-nome { color: var(--orange); font-weight: bold; font-size: 13px; display: block; }
+     .item-desc { color: #636e72; font-size: 11px; display: block; margin-top: 2px; }
+     .stock-baixo { background-color: #fff5f5!important; color: var(--danger); font-weight: bold; }
 
         input, select { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid var(--border); border-radius: 6px; box-sizing: border-box; transition: 0.3s; font-family: inherit; }
         input:focus { border-color: var(--info); outline: none; box-shadow: 0 0 0 3px rgba(52,152,219,0.1); }
         input[readonly] { background-color: #f1f2f6; cursor: not-allowed; }
 
-       .btn-reg { background: var(--primary); color: white; width: 100%; padding: 14px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; transition: 0.3s; text-transform: uppercase; }
-       .btn-reg:hover { background: #1e272e; transform: translateY(-1px); }
-       .btn-reg:disabled { background: #ccc; cursor: not-allowed; transform: none; }
-       .btn-edit { background: var(--info); color: white; padding: 6px 12px; border-radius: 4px; border:none; cursor: pointer; font-size: 10px; }
-       .btn-del { background: var(--danger); color: white; padding: 6px 12px; border-radius: 4px; border:none; cursor: pointer; font-size: 10px; }
-       .btn-secondary { background: #95a5a6; color: white; padding: 8px 15px; border-radius: 4px; border:none; cursor: pointer; font-size: 11px; }
+     .btn-reg { background: var(--primary); color: white; width: 100%; padding: 14px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; transition: 0.3s; text-transform: uppercase; }
+     .btn-reg:hover { background: #1e272e; transform: translateY(-1px); }
+     .btn-reg:disabled { background: #ccc; cursor: not-allowed; transform: none; }
+     .btn-edit { background: var(--info); color: white; padding: 6px 12px; border-radius: 4px; border:none; cursor: pointer; font-size: 10px; }
+     .btn-del { background: var(--danger); color: white; padding: 6px 12px; border-radius: 4px; border:none; cursor: pointer; font-size: 10px; }
+     .btn-secondary { background: #95a5a6; color: white; padding: 8px 15px; border-radius: 4px; border:none; cursor: pointer; font-size: 11px; }
 
-       .flex-row { display: grid; grid-template-columns: 1fr 1fr; gap: 25px; }
+     .flex-row { display: grid; grid-template-columns: 1fr 1fr; gap: 25px; }
         @media (max-width: 900px) {.flex-row { grid-template-columns: 1fr; } }
 
         /* Modal */
         #modal-historico { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 2000; overflow-y: auto; backdrop-filter: blur(5px); }
-       .modal-content { background: white; width: 95%; max-width: 1200px; margin: 30px auto; padding: 30px; border-radius: 12px; position: relative; }
+     .modal-content { background: white; width: 95%; max-width: 1200px; margin: 30px auto; padding: 30px; border-radius: 12px; position: relative; }
 
-       .resumo-black { background: var(--dark-card); color: white; padding: 25px; border-radius: 10px; display: flex; justify-content: space-around; margin-bottom: 25px; border-bottom: 4px solid var(--info); }
+     .resumo-black { background: var(--dark-card); color: white; padding: 25px; border-radius: 10px; display: flex; justify-content: space-around; margin-bottom: 25px; border-bottom: 4px solid var(--info); }
 
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
     </style>
@@ -73,8 +73,8 @@
 
 <div id="login-screen">
     <div class="login-card">
-        <h1 style="color: var(--primary); margin-bottom: 5px; letter-spacing: -1px;">I9 INDUSTRIAL</h1>
-        <p style="color: #666; margin-bottom: 25px; font-size: 12px;">SISTEMA DE GESTÃO DE PRODUÇÃO v3.2</p>
+        <h1 style="color: var(--primary); margin-bottom: 5px; letter-spacing: -1px;">CONTROLE DE SEMI-ACABADO</h1>
+        <p style="color: #666; margin-bottom: 25px; font-size: 12px;">SISTEMA DE GESTÃO - I9 INDUSTRIAL v3.3</p>
         <input type="email" id="email" placeholder="E-mail do Utilizador">
         <input type="password" id="password" placeholder="Palavra-passe" onkeypress="if(event.key==='Enter') fazerLogin()">
         <button onclick="fazerLogin()" class="btn-reg" style="background: var(--info); margin-top: 10px;">Entrar no Sistema</button>
@@ -84,7 +84,7 @@
 <div id="main-content">
     <div class="navbar">
         <div>
-            <span style="opacity: 0.7; font-weight: 300;">SGE</span> <b>I9 INDUSTRIAL</b> |
+            <span style="opacity: 0.7; font-weight: 300;">I9</span> <b>CONTROLE DE SEMI-ACABADO</b> |
             <span id="user-display" style="font-size: 11px; opacity: 0.9;">---</span>
             <span id="status-conn" class="status-conn status-offline">OFFLINE</span>
         </div>
@@ -102,8 +102,8 @@
             <div id="panel-admin" class="card" style="display:none; border-top: 4px solid var(--danger);">
                 <div class="section-header"><h3>🛠️ Gestão Administrativa</h3></div>
                 <select id="admin_modo" onchange="alternarFormAdmin()">
-                    <option value="PROD">CADASTRO DE ARTIGOS (BASE)</option>
-                    <option value="ORDEM">ORDENS DE FABRICO (ATIVAS)</option>
+                    <option value="PROD">CADASTRO DE ARTIGOS SA (BASE)</option>
+                    <option value="ORDEM">ORDENS DE PRODUÇÃO SA (ATIVAS)</option>
                 </select>
 
                 <div id="form-prod">
@@ -116,20 +116,20 @@
                 </div>
 
                 <div id="form-ordem" style="display:none">
-                    <input type="text" id="ord_id" placeholder="ID da Ordem de Fabrico">
+                    <input type="text" id="ord_id" placeholder="ID da Ordem de Produção SA">
                     <input type="text" id="ord_cod" placeholder="Código do Artigo" oninput="procv(this.value, 'ord_nome')">
                     <input type="text" id="ord_nome" readonly placeholder="Produto Identificado">
                     <input type="number" id="ord_meta" placeholder="Quantidade a Produzir (Meta)">
-                    <button class="btn-reg" style="background: var(--done)" onclick="salvarOrdem()">Lançar Ordem de Fabrico</button>
+                    <button class="btn-reg" style="background: var(--done)" onclick="salvarOrdem()">Lançar Ordem de Produção</button>
                 </div>
             </div>
 
             <!-- PAINEL DE OPERAÇÃO -->
             <div class="card" style="border-top: 4px solid var(--info);">
-                <div class="section-header"><h3>📦 Lançamento de Movimentos</h3></div>
+                <div class="section-header"><h3>📦 Lançamento de Movimentos SA</h3></div>
                 <select id="mov_tipo" onchange="alternarCamposEntrada()">
-                    <option value="ENTRADA">ENTRADA: PRODUÇÃO FINALIZADA</option>
-                    <option value="SAIDA">SAÍDA: EXPEDIÇÃO / CLIENTE</option>
+                    <option value="ENTRADA">ENTRADA: PEÇA SEMI-ACABADA</option>
+                    <option value="SAIDA">SAÍDA: CONSUMO INTERNO / MONTAGEM</option>
                 </select>
 
                 <div id="campos-entrada">
@@ -158,17 +158,17 @@
 
         <!-- Tabelas de Monitorização -->
         <div class="card">
-            <div class="section-header"><h3>📋 Ordens de Fabrico em Monitorização</h3></div>
+            <div class="section-header"><h3>📋 Ordens de Produção SA em Monitorização</h3></div>
             <div style="overflow-x: auto;">
                 <table>
-                    <thead><tr><th>OF</th><th>CÓDIGO</th><th>ARTIGO</th><th>META</th><th>CONCLUÍDO</th><th>EFICIÊNCIA</th><th>AÇÕES</th></tr></thead>
+                    <thead><tr><th>OP</th><th>CÓDIGO</th><th>ARTIGO</th><th>META</th><th>CONCLUÍDO</th><th>EFICIÊNCIA</th><th>AÇÕES</th></tr></thead>
                     <tbody id="corpoOrdens"></tbody>
                 </table>
             </div>
         </div>
 
         <div class="card">
-            <div class="section-header"><h3>📊 Inventário Geral de Stock</h3></div>
+            <div class="section-header"><h3>📊 Inventário Geral de Semi-Acabado</h3></div>
             <div style="overflow-x: auto;">
                 <table>
                     <thead><tr><th>CÓDIGO</th><th>ARTIGO / DESCRIÇÃO TÉCNICA</th><th>SALDO ATUAL</th><th>MÍN.</th><th>ESTADO</th></tr></thead>
@@ -184,11 +184,11 @@
     <div class="modal-content">
         <span onclick="fecharHistorico()" style="position:absolute; right:25px; top:20px; cursor:pointer; font-size:30px; color: #bbb;">&times;</span>
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-            <h2 style="margin: 0; color: var(--primary);">🕒 Histórico de Movimentação</h2>
+            <h2 style="margin: 0; color: var(--primary);">🕒 Histórico de Movimentação SA</h2>
             <button class="btn-secondary" onclick="exportarCSV()">📊 Exportar CSV</button>
         </div>
 
-        <input type="text" id="inputFiltro" style="padding:15px; border:2px solid var(--info); margin-bottom:25px;" placeholder="Pesquisar por Código, Artigo, OF ou Operador..." oninput="renderizarHistorial()">
+        <input type="text" id="inputFiltro" style="padding:15px; border:2px solid var(--info); margin-bottom:25px;" placeholder="Pesquisar por Código, Artigo, OP ou Operador..." oninput="renderizarHistorial()">
 
         <div class="resumo-black">
             <div style="text-align:center"><span>MOVIMENTOS</span><br><b id="soma-count" style="font-size:24px">0</b></div>
@@ -198,7 +198,7 @@
 
         <div style="overflow-x: auto;">
             <table>
-                <thead><tr><th>DATA</th><th>DOC/OF</th><th>COD</th><th>ARTIGO</th><th>TIPO</th><th>QTD</th><th>PESO UNIT.</th><th>TOTAL (KG)</th><th>OP</th><th>-</th></tr></thead>
+                <thead><tr><th>DATA</th><th>DOC/OP</th><th>COD</th><th>ARTIGO</th><th>TIPO</th><th>QTD</th><th>PESO UNIT.</th><th>TOTAL (KG)</th><th>OP</th><th>-</th></tr></thead>
                 <tbody id="corpoHist"></tbody>
             </table>
         </div>
@@ -230,7 +230,7 @@
         const email = document.getElementById('email').value;
         const pass = document.getElementById('password').value;
         auth.signInWithEmailAndPassword(email, pass)
-           .then(res => {
+          .then(res => {
                 userEmail = res.user.email;
                 isAdmin = /admin|super/.test(userEmail.toLowerCase());
                 document.getElementById('login-screen').style.display = 'none';
@@ -380,11 +380,11 @@
 
         if(tipo === 'ENTRADA') {
             ofId = document.getElementById('mov_ordem_id').value;
-            if(!ofId) return alert("Selecione uma Ordem de Fabrico");
+            if(!ofId) return alert("Selecione uma Ordem de Produção SA");
 
             const meta = parseFloat(ordensGlobal[ofId].meta);
             const realizado = Object.values(movsGlobal).filter(h => h.ordem === ofId).reduce((a, b) => a + parseFloat(b.qtd), 0);
-            if(realizado + qtd > meta) return alert(`BLOQUEIO: Quantidade excede a meta da OF (Restante: ${meta - realizado})`);
+            if(realizado + qtd > meta) return alert(`BLOQUEIO: Quantidade excede a meta da OP (Restante: ${meta - realizado})`);
 
             cod = ordensGlobal[ofId].cod;
         } else {
@@ -515,7 +515,7 @@
             meta: document.getElementById('ord_meta').value,
             criadaEm: new Date().toISOString()
         }).then(() => {
-            alert("Ordem de Fabrico Ativada!");
+            alert("Ordem de Produção Ativada!");
             document.getElementById('ord_id').value = "";
             document.getElementById('ord_meta').value = "";
         });
@@ -524,7 +524,7 @@
     function atualizarSelectOrdens() {
         const s = document.getElementById('mov_ordem_id');
         const val = s.value;
-        s.innerHTML = '<option value="">-- Selecionar OF Ativa --</option>';
+        s.innerHTML = '<option value="">-- Selecionar OP Ativa --</option>';
         for(let id in ordensGlobal) s.innerHTML += `<option value="${id}">${id} | ${ordensGlobal[id].prod}</option>`;
         s.value = val;
     }
@@ -554,7 +554,7 @@
 
     function fecharOrdem(id) {
         if(!isAdmin) return;
-        if(confirm("Deseja fechar e arquivar esta OF?")) db.ref('ordens/'+id).remove();
+        if(confirm("Deseja fechar e arquivar esta OP?")) db.ref('ordens/'+id).remove();
     }
 
     function reverterMov(id) {
@@ -570,7 +570,7 @@
     function fecharHistorico() { document.getElementById('modal-historico').style.display = 'none'; }
 
     function exportarCSV() {
-        let csv = 'DATA;OF;COD;ARTIGO;TIPO;QTD;PESO_UNIT;TOTAL_KG;OPERADOR\n';
+        let csv = 'DATA;OP;COD;ARTIGO;TIPO;QTD;PESO_UNIT;TOTAL_KG;OPERADOR\n';
         document.querySelectorAll('#corpoHist tr').forEach(tr => {
             const tds = Array.from(tr.children).slice(0,9).map(td => `"${td.innerText.replace(/"/g, '""')}"`);
             csv += tds.join(';') + '\n';
@@ -578,7 +578,7 @@
         const blob = new Blob(["\uFEFF" + csv], {type: 'text/csv;charset=utf-8;'});
         const a = document.createElement('a');
         a.href = URL.createObjectURL(blob);
-        a.download = `historico_i9_${new Date().toISOString().slice(0,10)}.csv`;
+        a.download = `historico_semiacabado_${new Date().toISOString().slice(0,10)}.csv`;
         a.click();
     }
 </script>
