@@ -3,15 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CONTROLE DE SEMI-ACABADO - I9 Industrial</title>
+    <title>SGE - I9 Industrial (v3.2)</title>
 
     <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-auth-compat.js"></script>
-
-    <!-- Código de Barras -->
-    <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
 
     <style>
         :root {
@@ -70,98 +67,14 @@
        .resumo-black { background: var(--dark-card); color: white; padding: 25px; border-radius: 10px; display: flex; justify-content: space-around; margin-bottom: 25px; border-bottom: 4px solid var(--info); }
 
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-
-        /* Etiqueta padrão Elgin - 100x75mm */
-        #etiqueta-op { display: none; }
-
-        @media print {
-            body * { visibility: hidden; }
-            #etiqueta-op, #etiqueta-op * { visibility: visible; }
-            #etiqueta-op {
-                position: absolute;
-                left: 0;
-                top: 0;
-                width: 100mm;
-                height: 75mm;
-                display: block!important;
-                padding: 2mm;
-                box-sizing: border-box;
-                font-family: Arial, Helvetica, sans-serif;
-                color: #000;
-                background: white;
-                border: 1px solid #000;
-            }
-           .etq-header {
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-                border-bottom: 2px solid #000;
-                padding-bottom: 1mm;
-                margin-bottom: 1mm;
-            }
-           .etq-header img {
-                height: 8mm;
-                width: auto;
-                object-fit: contain;
-            }
-           .etq-titulo {
-                font-size: 11pt;
-                font-weight: bold;
-            }
-           .etq-item-label {
-                font-size: 8pt;
-                margin-top: 1mm;
-            }
-           .etq-item-codigo {
-                font-size: 22pt;
-                font-weight: 900;
-                letter-spacing: -1px;
-                line-height: 1;
-                margin: 0;
-            }
-           .etq-desc {
-                font-size: 10pt;
-                font-weight: bold;
-                text-transform: uppercase;
-                border-bottom: 2px solid #000;
-                padding-bottom: 1mm;
-                margin-bottom: 1mm;
-                white-space: nowrap;
-                overflow: hidden;
-            }
-           .etq-grid {
-                display: grid;
-                grid-template-columns: 1fr 1fr 1fr;
-                border: 2px solid #000;
-                border-top: none;
-            }
-           .etq-campo {
-                padding: 1mm;
-                border-right: 2px solid #000;
-            }
-           .etq-campo:last-child { border-right: none; }
-           .etq-campo-label {
-                font-size: 7pt;
-                display: block;
-            }
-           .etq-campo-valor {
-                font-size: 12pt;
-                font-weight: bold;
-            }
-           .etq-barcode {
-                margin-top: 2mm;
-                text-align: center;
-            }
-            #barcode { width: 100%; height: 15mm; }
-        }
     </style>
 </head>
 <body>
 
 <div id="login-screen">
     <div class="login-card">
-        <h1 style="color: var(--primary); margin-bottom: 5px; letter-spacing: -1px;">CONTROLE DE SEMI-ACABADO</h1>
-        <p style="color: #666; margin-bottom: 25px; font-size: 12px;">SISTEMA DE GESTÃO - I9 INDUSTRIAL v3.4</p>
+        <h1 style="color: var(--primary); margin-bottom: 5px; letter-spacing: -1px;">I9 INDUSTRIAL</h1>
+        <p style="color: #666; margin-bottom: 25px; font-size: 12px;">SISTEMA DE GESTÃO DE PRODUÇÃO v3.2</p>
         <input type="email" id="email" placeholder="E-mail do Utilizador">
         <input type="password" id="password" placeholder="Palavra-passe" onkeypress="if(event.key==='Enter') fazerLogin()">
         <button onclick="fazerLogin()" class="btn-reg" style="background: var(--info); margin-top: 10px;">Entrar no Sistema</button>
@@ -171,7 +84,7 @@
 <div id="main-content">
     <div class="navbar">
         <div>
-            <span style="opacity: 0.7; font-weight: 300;">I9</span> <b>CONTROLE DE SEMI-ACABADO</b> |
+            <span style="opacity: 0.7; font-weight: 300;">SGE</span> <b>I9 INDUSTRIAL</b> |
             <span id="user-display" style="font-size: 11px; opacity: 0.9;">---</span>
             <span id="status-conn" class="status-conn status-offline">OFFLINE</span>
         </div>
@@ -187,10 +100,10 @@
         <div class="flex-row">
             <!-- PAINEL DE GESTÃO (Visível para Admin) -->
             <div id="panel-admin" class="card" style="display:none; border-top: 4px solid var(--danger);">
-                <div class="section-header"><h3>🛠 Gestão Administrativa</h3></div>
+                <div class="section-header"><h3>🛠️ Gestão Administrativa</h3></div>
                 <select id="admin_modo" onchange="alternarFormAdmin()">
-                    <option value="PROD">CADASTRO DE ARTIGOS SA (BASE)</option>
-                    <option value="ORDEM">ORDENS DE PRODUÇÃO SA (ATIVAS)</option>
+                    <option value="PROD">CADASTRO DE ARTIGOS (BASE)</option>
+                    <option value="ORDEM">ORDENS DE FABRICO (ATIVAS)</option>
                 </select>
 
                 <div id="form-prod">
@@ -203,20 +116,20 @@
                 </div>
 
                 <div id="form-ordem" style="display:none">
-                    <input type="text" id="ord_id" placeholder="ID da Ordem de Produção SA">
+                    <input type="text" id="ord_id" placeholder="ID da Ordem de Fabrico">
                     <input type="text" id="ord_cod" placeholder="Código do Artigo" oninput="procv(this.value, 'ord_nome')">
                     <input type="text" id="ord_nome" readonly placeholder="Produto Identificado">
                     <input type="number" id="ord_meta" placeholder="Quantidade a Produzir (Meta)">
-                    <button class="btn-reg" style="background: var(--done)" onclick="salvarOrdem()">Lançar Ordem de Produção</button>
+                    <button class="btn-reg" style="background: var(--done)" onclick="salvarOrdem()">Lançar Ordem de Fabrico</button>
                 </div>
             </div>
 
             <!-- PAINEL DE OPERAÇÃO -->
             <div class="card" style="border-top: 4px solid var(--info);">
-                <div class="section-header"><h3>📦 Lançamento de Movimentos SA</h3></div>
+                <div class="section-header"><h3>📦 Lançamento de Movimentos</h3></div>
                 <select id="mov_tipo" onchange="alternarCamposEntrada()">
-                    <option value="ENTRADA">ENTRADA: PEÇA SEMI-ACABADA</option>
-                    <option value="SAIDA">SAÍDA: CONSUMO INTERNO / MONTAGEM</option>
+                    <option value="ENTRADA">ENTRADA: PRODUÇÃO FINALIZADA</option>
+                    <option value="SAIDA">SAÍDA: EXPEDIÇÃO / CLIENTE</option>
                 </select>
 
                 <div id="campos-entrada">
@@ -245,17 +158,17 @@
 
         <!-- Tabelas de Monitorização -->
         <div class="card">
-            <div class="section-header"><h3>📋 Ordens de Produção SA em Monitorização</h3></div>
+            <div class="section-header"><h3>📋 Ordens de Fabrico em Monitorização</h3></div>
             <div style="overflow-x: auto;">
                 <table>
-                    <thead><tr><th>OP</th><th>CÓDIGO</th><th>ARTIGO</th><th>META</th><th>CONCLUÍDO</th><th>EFICIÊNCIA</th><th>AÇÕES</th></tr></thead>
+                    <thead><tr><th>OF</th><th>CÓDIGO</th><th>ARTIGO</th><th>META</th><th>CONCLUÍDO</th><th>EFICIÊNCIA</th><th>AÇÕES</th></tr></thead>
                     <tbody id="corpoOrdens"></tbody>
                 </table>
             </div>
         </div>
 
         <div class="card">
-            <div class="section-header"><h3>📊 Inventário Geral de Semi-Acabado</h3></div>
+            <div class="section-header"><h3>📊 Inventário Geral de Stock</h3></div>
             <div style="overflow-x: auto;">
                 <table>
                     <thead><tr><th>CÓDIGO</th><th>ARTIGO / DESCRIÇÃO TÉCNICA</th><th>SALDO ATUAL</th><th>MÍN.</th><th>ESTADO</th></tr></thead>
@@ -271,11 +184,11 @@
     <div class="modal-content">
         <span onclick="fecharHistorico()" style="position:absolute; right:25px; top:20px; cursor:pointer; font-size:30px; color: #bbb;">&times;</span>
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-            <h2 style="margin: 0; color: var(--primary);">🕒 Histórico de Movimentação SA</h2>
+            <h2 style="margin: 0; color: var(--primary);">🕒 Histórico de Movimentação</h2>
             <button class="btn-secondary" onclick="exportarCSV()">📊 Exportar CSV</button>
         </div>
 
-        <input type="text" id="inputFiltro" style="padding:15px; border:2px solid var(--info); margin-bottom:25px;" placeholder="Pesquisar por Código, Artigo, OP ou Operador..." oninput="renderizarHistorial()">
+        <input type="text" id="inputFiltro" style="padding:15px; border:2px solid var(--info); margin-bottom:25px;" placeholder="Pesquisar por Código, Artigo, OF ou Operador..." oninput="renderizarHistorial()">
 
         <div class="resumo-black">
             <div style="text-align:center"><span>MOVIMENTOS</span><br><b id="soma-count" style="font-size:24px">0</b></div>
@@ -285,38 +198,10 @@
 
         <div style="overflow-x: auto;">
             <table>
-                <thead><tr><th>DATA</th><th>DOC/OP</th><th>COD</th><th>ARTIGO</th><th>TIPO</th><th>QTD</th><th>PESO UNIT.</th><th>TOTAL (KG)</th><th>OP</th><th>-</th></tr></thead>
+                <thead><tr><th>DATA</th><th>DOC/OF</th><th>COD</th><th>ARTIGO</th><th>TIPO</th><th>QTD</th><th>PESO UNIT.</th><th>TOTAL (KG)</th><th>OP</th><th>-</th></tr></thead>
                 <tbody id="corpoHist"></tbody>
             </table>
         </div>
-    </div>
-</div>
-
-<!-- Etiqueta padrão Elgin -->
-<div id="etiqueta-op">
-    <div class="etq-header">
-        <img id="logo-elgin" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==" alt="Elgin">
-        <div class="etq-titulo">CONTROLE - SEMI-ACABADO</div>
-    </div>
-    <div class="etq-item-label">ITEM</div>
-    <div class="etq-item-codigo" id="etq-cod">AUT100195008272</div>
-    <div class="etq-desc" id="etq-prod">TAMPA SUPERIOR PLAS PTO M COMP I9 FULL 2</div>
-    <div class="etq-grid">
-        <div class="etq-campo">
-            <span class="etq-campo-label">OP</span>
-            <span class="etq-campo-valor" id="etq-op">3117123</span>
-        </div>
-        <div class="etq-campo">
-            <span class="etq-campo-label">QTD</span>
-            <span class="etq-campo-valor" id="etq-qtd">1 PC</span>
-        </div>
-        <div class="etq-campo">
-            <span class="etq-campo-label">DATA REPORTE</span>
-            <span class="etq-campo-valor" id="etq-data">06/05/2026</span>
-        </div>
-    </div>
-    <div class="etq-barcode">
-        <svg id="barcode"></svg>
     </div>
 </div>
 
@@ -345,7 +230,7 @@
         const email = document.getElementById('email').value;
         const pass = document.getElementById('password').value;
         auth.signInWithEmailAndPassword(email, pass)
-         .then(res => {
+           .then(res => {
                 userEmail = res.user.email;
                 isAdmin = /admin|super/.test(userEmail.toLowerCase());
                 document.getElementById('login-screen').style.display = 'none';
@@ -401,7 +286,7 @@
 
     function renderizarStock() {
         const corpo = document.getElementById('corpoStock');
-        const fragment = document.createDocumentFragment();
+        corpo.innerHTML = '';
 
         for(let c in produtosGlobal) {
             const saldo = saldosCache[c] || 0;
@@ -409,24 +294,21 @@
             const min = parseFloat(p.min) || 0;
             const alerta = saldo <= min? 'stock-baixo' : '';
 
-            const tr = document.createElement('tr');
-            tr.className = alerta;
-            tr.innerHTML = `
+            corpo.innerHTML += `<tr class="${alerta}">
                 <td><b>${c}</b></td>
                 <td><span class="item-nome">${p.prod}</span><span class="item-desc">${p.desc || ''}</span></td>
                 <td><b style="font-size:15px">${saldo}</b></td>
                 <td>${min}</td>
-                <td>${isAdmin? `<button class="btn-edit" onclick="carregarParaEditar('${c}')">EDITAR</button>` : 'OK'}</td>
-            `;
-            fragment.appendChild(tr);
+                <td>
+                    ${isAdmin? `<button class="btn-edit" onclick="carregarParaEditar('${c}')">EDITAR</button>` : 'OK'}
+                </td>
+            </tr>`;
         }
-        corpo.innerHTML = '';
-        corpo.appendChild(fragment);
     }
 
     function renderizarOrdens() {
         const corpo = document.getElementById('corpoOrdens');
-        const fragment = document.createDocumentFragment();
+        corpo.innerHTML = '';
         const movs = Object.values(movsGlobal);
 
         for(let id in ordensGlobal) {
@@ -434,8 +316,7 @@
             const meta = parseFloat(ordensGlobal[id].meta) || 1;
             const perc = Math.min(100, ((realizado/meta)*100)).toFixed(0);
 
-            const tr = document.createElement('tr');
-            tr.innerHTML = `
+            corpo.innerHTML += `<tr>
                 <td style="color:var(--done); font-weight:bold">${id}</td>
                 <td>${ordensGlobal[id].cod}</td>
                 <td><span class="item-nome">${ordensGlobal[id].prod}</span></td>
@@ -447,21 +328,15 @@
                     </div>
                     <small>${perc}% concluído</small>
                 </td>
-                <td style="display:flex; gap:5px;">
-                    <button class="btn-secondary" style="padding:6px 10px; font-size:10px;" onclick="imprimirEtiquetaOP('${id}')">🏷️ ETIQUETA</button>
-                    ${isAdmin? `<button class="btn-del" onclick="fecharOrdem('${id}')">FECHAR</button>` : ''}
-                </td>
-            `;
-            fragment.appendChild(tr);
+                <td>${isAdmin? `<button class="btn-del" onclick="fecharOrdem('${id}')">FECHAR</button>` : '-'}</td>
+            </tr>`;
         }
-        corpo.innerHTML = '';
-        corpo.appendChild(fragment);
     }
 
     function renderizarHistorial() {
         const filtro = document.getElementById('inputFiltro').value.toLowerCase();
         const corpo = document.getElementById('corpoHist');
-        const fragment = document.createDocumentFragment();
+        corpo.innerHTML = '';
         let tCount = 0, tQtd = 0, tPeso = 0;
 
         // Ordena por dataISO desc
@@ -473,8 +348,7 @@
                 const pt = parseFloat(h.peso_total) || 0;
                 tCount++; tQtd += q; tPeso += pt;
 
-                const tr = document.createElement('tr');
-                tr.innerHTML = `
+                corpo.innerHTML += `<tr>
                     <td><small>${h.data}</small></td>
                     <td style="color:var(--info); font-weight:bold">${h.ordem || 'EXP'}</td>
                     <td>${h.cod}</td>
@@ -485,12 +359,9 @@
                     <td style="background:#f9f9f9"><b>${pt.toFixed(3)}</b></td>
                     <td><small>${h.ope.split('@')[0]}</small></td>
                     <td>${isAdmin? `<button class="btn-del" onclick="reverterMov('${id}')">REV</button>` : ''}</td>
-                `;
-                fragment.appendChild(tr);
+                </tr>`;
             }
         });
-        corpo.innerHTML = '';
-        corpo.appendChild(fragment);
         document.getElementById('soma-count').innerText = tCount;
         document.getElementById('soma-qtd').innerText = tQtd;
         document.getElementById('soma-peso').innerText = tPeso.toFixed(3);
@@ -509,11 +380,11 @@
 
         if(tipo === 'ENTRADA') {
             ofId = document.getElementById('mov_ordem_id').value;
-            if(!ofId) return alert("Selecione uma Ordem de Produção SA");
+            if(!ofId) return alert("Selecione uma Ordem de Fabrico");
 
             const meta = parseFloat(ordensGlobal[ofId].meta);
             const realizado = Object.values(movsGlobal).filter(h => h.ordem === ofId).reduce((a, b) => a + parseFloat(b.qtd), 0);
-            if(realizado + qtd > meta) return alert(`BLOQUEIO: Quantidade excede a meta da OP (Restante: ${meta - realizado})`);
+            if(realizado + qtd > meta) return alert(`BLOQUEIO: Quantidade excede a meta da OF (Restante: ${meta - realizado})`);
 
             cod = ordensGlobal[ofId].cod;
         } else {
@@ -554,39 +425,6 @@
             btn.innerText = "Confirmar Registo";
             alert("Erro ao gravar dados.");
         });
-    }
-
-    // --- ETIQUETA ELGIN ---
-    function imprimirEtiquetaOP(id) {
-        if (!ordensGlobal[id]) return alert("OP não encontrada");
-
-        const op = ordensGlobal[id];
-        const hoje = new Date().toLocaleDateString('pt-BR');
-
-        // Preenche os dados
-        document.getElementById('etq-cod').innerText = op.cod;
-        document.getElementById('etq-prod').innerText = op.prod.toUpperCase();
-        document.getElementById('etq-op').innerText = id;
-        document.getElementById('etq-qtd').innerText = op.meta + ' PC';
-        document.getElementById('etq-data').innerText = hoje;
-
-        // Gera código de barras Code128
-        // Padrão Elgin: OP com zeros na frente, 20 dígitos
-        const codigoBarras = id.padStart(20, '0');
-
-        JsBarcode("#barcode", codigoBarras, {
-            format: "CODE128",
-            width: 2,
-            height: 50,
-            displayValue: true,
-            fontSize: 14,
-            margin: 0
-        });
-
-        // Imprime
-        setTimeout(() => {
-            window.print();
-        }, 200);
     }
 
     // --- AUXILIARES TÉCNICOS ---
@@ -643,4 +481,107 @@
     }
 
     function resetCamposMov() {
-        ["mov_qtd", "mov_cod",
+        ["mov_qtd", "mov_cod", "nome_prod", "desc_prod", "mov_peso_unit"].forEach(id => {
+            const el = document.getElementById(id);
+            if(el) el.value = "";
+        });
+        document.getElementById('display_peso_total').innerText = "0.000";
+    }
+
+    function salvarProduto() {
+        if(!isAdmin) return alert("Sem permissão");
+        const c = document.getElementById('cad_cod').value.toUpperCase().trim();
+        if(!c) return;
+        db.ref('produtos/'+c).set({
+            prod: document.getElementById('cad_prod').value,
+            desc: document.getElementById('cad_desc').value,
+            peso: document.getElementById('cad_peso').value,
+            min: document.getElementById('cad_min').value
+        }).then(() => {
+            alert("Artigo Atualizado com Sucesso");
+            ["cad_cod", "cad_prod", "cad_desc", "cad_peso", "cad_min"].forEach(id => document.getElementById(id).value = "");
+        });
+    }
+
+    function salvarOrdem() {
+        if(!isAdmin) return alert("Sem permissão");
+        const id = document.getElementById('ord_id').value.toUpperCase().trim();
+        const c = document.getElementById('ord_cod').value.toUpperCase().trim();
+        if(!id ||!c ||!produtosGlobal[c]) return alert("Código de Artigo inválido ou campos vazios.");
+
+        db.ref('ordens/'+id).set({
+            cod: c,
+            prod: produtosGlobal[c].prod,
+            meta: document.getElementById('ord_meta').value,
+            criadaEm: new Date().toISOString()
+        }).then(() => {
+            alert("Ordem de Fabrico Ativada!");
+            document.getElementById('ord_id').value = "";
+            document.getElementById('ord_meta').value = "";
+        });
+    }
+
+    function atualizarSelectOrdens() {
+        const s = document.getElementById('mov_ordem_id');
+        const val = s.value;
+        s.innerHTML = '<option value="">-- Selecionar OF Ativa --</option>';
+        for(let id in ordensGlobal) s.innerHTML += `<option value="${id}">${id} | ${ordensGlobal[id].prod}</option>`;
+        s.value = val;
+    }
+
+    function carregarParaEditar(c) {
+        if(!isAdmin) return;
+        const p = produtosGlobal[c];
+        document.getElementById('admin_modo').value = "PROD";
+        alternarFormAdmin();
+        document.getElementById('cad_cod').value = c;
+        document.getElementById('cad_prod').value = p.prod;
+        document.getElementById('cad_desc').value = p.desc;
+        document.getElementById('cad_peso').value = p.peso;
+        document.getElementById('cad_min').value = p.min;
+        window.scrollTo(0,0);
+    }
+
+    function verificarExistencia(c) {
+        const p = produtosGlobal[c.toUpperCase().trim()];
+        if(p && document.activeElement.id === 'cad_cod') {
+            document.getElementById('cad_prod').value = p.prod;
+            document.getElementById('cad_desc').value = p.desc;
+            document.getElementById('cad_peso').value = p.peso;
+            document.getElementById('cad_min').value = p.min;
+        }
+    }
+
+    function fecharOrdem(id) {
+        if(!isAdmin) return;
+        if(confirm("Deseja fechar e arquivar esta OF?")) db.ref('ordens/'+id).remove();
+    }
+
+    function reverterMov(id) {
+        if(!isAdmin) return;
+        if(confirm("CUIDADO: Reverter este movimento irá alterar o stock. Confirmar?")) db.ref('movimentacoes/'+id).remove();
+    }
+
+    function abrirHistorico() {
+        document.getElementById('modal-historico').style.display = 'block';
+        document.getElementById('inputFiltro').focus();
+    }
+
+    function fecharHistorico() { document.getElementById('modal-historico').style.display = 'none'; }
+
+    function exportarCSV() {
+        let csv = 'DATA;OF;COD;ARTIGO;TIPO;QTD;PESO_UNIT;TOTAL_KG;OPERADOR\n';
+        document.querySelectorAll('#corpoHist tr').forEach(tr => {
+            const tds = Array.from(tr.children).slice(0,9).map(td => `"${td.innerText.replace(/"/g, '""')}"`);
+            csv += tds.join(';') + '\n';
+        });
+        const blob = new Blob(["\uFEFF" + csv], {type: 'text/csv;charset=utf-8;'});
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = `historico_i9_${new Date().toISOString().slice(0,10)}.csv`;
+        a.click();
+    }
+</script>
+
+</body>
+</html>
