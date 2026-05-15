@@ -10,6 +10,9 @@
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-auth-compat.js"></script>
 
+    <!-- Código de Barras -->
+    <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
+
     <style>
         :root {
             --primary: #2c3e50; --info: #3498db; --light: #f4f7f6; --danger: #e74c3c;
@@ -21,20 +24,20 @@
 
         /* Login Screen */
         #login-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(135deg, var(--primary), #1a252f); display: flex; justify-content: center; align-items: center; z-index: 1000; }
-     .login-card { background: white; padding: 40px; border-radius: 15px; width: 320px; text-align: center; box-shadow: 0 15px 35px rgba(0,0,0,0.4); }
+       .login-card { background: white; padding: 40px; border-radius: 15px; width: 320px; text-align: center; box-shadow: 0 15px 35px rgba(0,0,0,0.4); }
         #main-content { display: none; animation: fadeIn 0.5s; }
 
         /* Navigation */
-     .navbar { background: var(--primary); color: white; padding: 12px 25px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
-     .container { width: 96%; max-width: 1400px; margin: 20px auto; }
-     .status-conn { font-size: 10px; padding: 3px 8px; border-radius: 10px; margin-left: 10px; }
-     .status-online { background: var(--success); }
-     .status-offline { background: var(--danger); }
+       .navbar { background: var(--primary); color: white; padding: 12px 25px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+       .container { width: 96%; max-width: 1400px; margin: 20px auto; }
+       .status-conn { font-size: 10px; padding: 3px 8px; border-radius: 10px; margin-left: 10px; }
+       .status-online { background: var(--success); }
+       .status-offline { background: var(--danger); }
 
         /* Cards & Tables */
-     .card { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 25px; border: 1px solid var(--border); }
-     .section-header { border-left: 5px solid var(--info); padding-left: 15px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; }
-     .section-header h3 { margin: 0; text-transform: uppercase; color: var(--primary); letter-spacing: 1px; }
+       .card { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 25px; border: 1px solid var(--border); }
+       .section-header { border-left: 5px solid var(--info); padding-left: 15px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; }
+       .section-header h3 { margin: 0; text-transform: uppercase; color: var(--primary); letter-spacing: 1px; }
 
         table { width: 100%; border-collapse: collapse; margin-top: 10px; }
         th { background: #f8f9fa; padding: 12px; text-align: left; border-bottom: 2px solid var(--border); font-size: 11px; color: #636e72; text-transform: uppercase; }
@@ -42,31 +45,115 @@
         tr:hover { background-color: #f9fbff; }
 
         /* UI Components */
-     .item-nome { color: var(--orange); font-weight: bold; font-size: 13px; display: block; }
-     .item-desc { color: #636e72; font-size: 11px; display: block; margin-top: 2px; }
-     .stock-baixo { background-color: #fff5f5!important; color: var(--danger); font-weight: bold; }
+       .item-nome { color: var(--orange); font-weight: bold; font-size: 13px; display: block; }
+       .item-desc { color: #636e72; font-size: 11px; display: block; margin-top: 2px; }
+       .stock-baixo { background-color: #fff5f5!important; color: var(--danger); font-weight: bold; }
 
         input, select { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid var(--border); border-radius: 6px; box-sizing: border-box; transition: 0.3s; font-family: inherit; }
         input:focus { border-color: var(--info); outline: none; box-shadow: 0 0 0 3px rgba(52,152,219,0.1); }
         input[readonly] { background-color: #f1f2f6; cursor: not-allowed; }
 
-     .btn-reg { background: var(--primary); color: white; width: 100%; padding: 14px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; transition: 0.3s; text-transform: uppercase; }
-     .btn-reg:hover { background: #1e272e; transform: translateY(-1px); }
-     .btn-reg:disabled { background: #ccc; cursor: not-allowed; transform: none; }
-     .btn-edit { background: var(--info); color: white; padding: 6px 12px; border-radius: 4px; border:none; cursor: pointer; font-size: 10px; }
-     .btn-del { background: var(--danger); color: white; padding: 6px 12px; border-radius: 4px; border:none; cursor: pointer; font-size: 10px; }
-     .btn-secondary { background: #95a5a6; color: white; padding: 8px 15px; border-radius: 4px; border:none; cursor: pointer; font-size: 11px; }
+       .btn-reg { background: var(--primary); color: white; width: 100%; padding: 14px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; transition: 0.3s; text-transform: uppercase; }
+       .btn-reg:hover { background: #1e272e; transform: translateY(-1px); }
+       .btn-reg:disabled { background: #ccc; cursor: not-allowed; transform: none; }
+       .btn-edit { background: var(--info); color: white; padding: 6px 12px; border-radius: 4px; border:none; cursor: pointer; font-size: 10px; }
+       .btn-del { background: var(--danger); color: white; padding: 6px 12px; border-radius: 4px; border:none; cursor: pointer; font-size: 10px; }
+       .btn-secondary { background: #95a5a6; color: white; padding: 8px 15px; border-radius: 4px; border:none; cursor: pointer; font-size: 11px; }
 
-     .flex-row { display: grid; grid-template-columns: 1fr 1fr; gap: 25px; }
+       .flex-row { display: grid; grid-template-columns: 1fr 1fr; gap: 25px; }
         @media (max-width: 900px) {.flex-row { grid-template-columns: 1fr; } }
 
         /* Modal */
         #modal-historico { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 2000; overflow-y: auto; backdrop-filter: blur(5px); }
-     .modal-content { background: white; width: 95%; max-width: 1200px; margin: 30px auto; padding: 30px; border-radius: 12px; position: relative; }
+       .modal-content { background: white; width: 95%; max-width: 1200px; margin: 30px auto; padding: 30px; border-radius: 12px; position: relative; }
 
-     .resumo-black { background: var(--dark-card); color: white; padding: 25px; border-radius: 10px; display: flex; justify-content: space-around; margin-bottom: 25px; border-bottom: 4px solid var(--info); }
+       .resumo-black { background: var(--dark-card); color: white; padding: 25px; border-radius: 10px; display: flex; justify-content: space-around; margin-bottom: 25px; border-bottom: 4px solid var(--info); }
 
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        /* Etiqueta padrão Elgin - 100x75mm */
+        #etiqueta-op { display: none; }
+
+        @media print {
+            body * { visibility: hidden; }
+            #etiqueta-op, #etiqueta-op * { visibility: visible; }
+            #etiqueta-op {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100mm;
+                height: 75mm;
+                display: block!important;
+                padding: 2mm;
+                box-sizing: border-box;
+                font-family: Arial, Helvetica, sans-serif;
+                color: #000;
+                background: white;
+                border: 1px solid #000;
+            }
+           .etq-header {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                border-bottom: 2px solid #000;
+                padding-bottom: 1mm;
+                margin-bottom: 1mm;
+            }
+           .etq-header img {
+                height: 8mm;
+                width: auto;
+                object-fit: contain;
+            }
+           .etq-titulo {
+                font-size: 11pt;
+                font-weight: bold;
+            }
+           .etq-item-label {
+                font-size: 8pt;
+                margin-top: 1mm;
+            }
+           .etq-item-codigo {
+                font-size: 22pt;
+                font-weight: 900;
+                letter-spacing: -1px;
+                line-height: 1;
+                margin: 0;
+            }
+           .etq-desc {
+                font-size: 10pt;
+                font-weight: bold;
+                text-transform: uppercase;
+                border-bottom: 2px solid #000;
+                padding-bottom: 1mm;
+                margin-bottom: 1mm;
+                white-space: nowrap;
+                overflow: hidden;
+            }
+           .etq-grid {
+                display: grid;
+                grid-template-columns: 1fr 1fr 1fr;
+                border: 2px solid #000;
+                border-top: none;
+            }
+           .etq-campo {
+                padding: 1mm;
+                border-right: 2px solid #000;
+            }
+           .etq-campo:last-child { border-right: none; }
+           .etq-campo-label {
+                font-size: 7pt;
+                display: block;
+            }
+           .etq-campo-valor {
+                font-size: 12pt;
+                font-weight: bold;
+            }
+           .etq-barcode {
+                margin-top: 2mm;
+                text-align: center;
+            }
+            #barcode { width: 100%; height: 15mm; }
+        }
     </style>
 </head>
 <body>
@@ -74,7 +161,7 @@
 <div id="login-screen">
     <div class="login-card">
         <h1 style="color: var(--primary); margin-bottom: 5px; letter-spacing: -1px;">CONTROLE DE SEMI-ACABADO</h1>
-        <p style="color: #666; margin-bottom: 25px; font-size: 12px;">SISTEMA DE GESTÃO - I9 INDUSTRIAL v3.3</p>
+        <p style="color: #666; margin-bottom: 25px; font-size: 12px;">SISTEMA DE GESTÃO - I9 INDUSTRIAL v3.4</p>
         <input type="email" id="email" placeholder="E-mail do Utilizador">
         <input type="password" id="password" placeholder="Palavra-passe" onkeypress="if(event.key==='Enter') fazerLogin()">
         <button onclick="fazerLogin()" class="btn-reg" style="background: var(--info); margin-top: 10px;">Entrar no Sistema</button>
@@ -100,7 +187,7 @@
         <div class="flex-row">
             <!-- PAINEL DE GESTÃO (Visível para Admin) -->
             <div id="panel-admin" class="card" style="display:none; border-top: 4px solid var(--danger);">
-                <div class="section-header"><h3>🛠️ Gestão Administrativa</h3></div>
+                <div class="section-header"><h3>🛠 Gestão Administrativa</h3></div>
                 <select id="admin_modo" onchange="alternarFormAdmin()">
                     <option value="PROD">CADASTRO DE ARTIGOS SA (BASE)</option>
                     <option value="ORDEM">ORDENS DE PRODUÇÃO SA (ATIVAS)</option>
@@ -205,6 +292,34 @@
     </div>
 </div>
 
+<!-- Etiqueta padrão Elgin -->
+<div id="etiqueta-op">
+    <div class="etq-header">
+        <img id="logo-elgin" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==" alt="Elgin">
+        <div class="etq-titulo">CONTROLE - SEMI-ACABADO</div>
+    </div>
+    <div class="etq-item-label">ITEM</div>
+    <div class="etq-item-codigo" id="etq-cod">AUT100195008272</div>
+    <div class="etq-desc" id="etq-prod">TAMPA SUPERIOR PLAS PTO M COMP I9 FULL 2</div>
+    <div class="etq-grid">
+        <div class="etq-campo">
+            <span class="etq-campo-label">OP</span>
+            <span class="etq-campo-valor" id="etq-op">3117123</span>
+        </div>
+        <div class="etq-campo">
+            <span class="etq-campo-label">QTD</span>
+            <span class="etq-campo-valor" id="etq-qtd">1 PC</span>
+        </div>
+        <div class="etq-campo">
+            <span class="etq-campo-label">DATA REPORTE</span>
+            <span class="etq-campo-valor" id="etq-data">06/05/2026</span>
+        </div>
+    </div>
+    <div class="etq-barcode">
+        <svg id="barcode"></svg>
+    </div>
+</div>
+
 <script>
     // Configuração Firebase
     const firebaseConfig = {
@@ -230,7 +345,7 @@
         const email = document.getElementById('email').value;
         const pass = document.getElementById('password').value;
         auth.signInWithEmailAndPassword(email, pass)
-          .then(res => {
+         .then(res => {
                 userEmail = res.user.email;
                 isAdmin = /admin|super/.test(userEmail.toLowerCase());
                 document.getElementById('login-screen').style.display = 'none';
@@ -286,7 +401,7 @@
 
     function renderizarStock() {
         const corpo = document.getElementById('corpoStock');
-        corpo.innerHTML = '';
+        const fragment = document.createDocumentFragment();
 
         for(let c in produtosGlobal) {
             const saldo = saldosCache[c] || 0;
@@ -294,21 +409,24 @@
             const min = parseFloat(p.min) || 0;
             const alerta = saldo <= min? 'stock-baixo' : '';
 
-            corpo.innerHTML += `<tr class="${alerta}">
+            const tr = document.createElement('tr');
+            tr.className = alerta;
+            tr.innerHTML = `
                 <td><b>${c}</b></td>
                 <td><span class="item-nome">${p.prod}</span><span class="item-desc">${p.desc || ''}</span></td>
                 <td><b style="font-size:15px">${saldo}</b></td>
                 <td>${min}</td>
-                <td>
-                    ${isAdmin? `<button class="btn-edit" onclick="carregarParaEditar('${c}')">EDITAR</button>` : 'OK'}
-                </td>
-            </tr>`;
+                <td>${isAdmin? `<button class="btn-edit" onclick="carregarParaEditar('${c}')">EDITAR</button>` : 'OK'}</td>
+            `;
+            fragment.appendChild(tr);
         }
+        corpo.innerHTML = '';
+        corpo.appendChild(fragment);
     }
 
     function renderizarOrdens() {
         const corpo = document.getElementById('corpoOrdens');
-        corpo.innerHTML = '';
+        const fragment = document.createDocumentFragment();
         const movs = Object.values(movsGlobal);
 
         for(let id in ordensGlobal) {
@@ -316,7 +434,8 @@
             const meta = parseFloat(ordensGlobal[id].meta) || 1;
             const perc = Math.min(100, ((realizado/meta)*100)).toFixed(0);
 
-            corpo.innerHTML += `<tr>
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
                 <td style="color:var(--done); font-weight:bold">${id}</td>
                 <td>${ordensGlobal[id].cod}</td>
                 <td><span class="item-nome">${ordensGlobal[id].prod}</span></td>
@@ -328,15 +447,21 @@
                     </div>
                     <small>${perc}% concluído</small>
                 </td>
-                <td>${isAdmin? `<button class="btn-del" onclick="fecharOrdem('${id}')">FECHAR</button>` : '-'}</td>
-            </tr>`;
+                <td style="display:flex; gap:5px;">
+                    <button class="btn-secondary" style="padding:6px 10px; font-size:10px;" onclick="imprimirEtiquetaOP('${id}')">🏷️ ETIQUETA</button>
+                    ${isAdmin? `<button class="btn-del" onclick="fecharOrdem('${id}')">FECHAR</button>` : ''}
+                </td>
+            `;
+            fragment.appendChild(tr);
         }
+        corpo.innerHTML = '';
+        corpo.appendChild(fragment);
     }
 
     function renderizarHistorial() {
         const filtro = document.getElementById('inputFiltro').value.toLowerCase();
         const corpo = document.getElementById('corpoHist');
-        corpo.innerHTML = '';
+        const fragment = document.createDocumentFragment();
         let tCount = 0, tQtd = 0, tPeso = 0;
 
         // Ordena por dataISO desc
@@ -348,7 +473,8 @@
                 const pt = parseFloat(h.peso_total) || 0;
                 tCount++; tQtd += q; tPeso += pt;
 
-                corpo.innerHTML += `<tr>
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
                     <td><small>${h.data}</small></td>
                     <td style="color:var(--info); font-weight:bold">${h.ordem || 'EXP'}</td>
                     <td>${h.cod}</td>
@@ -359,9 +485,12 @@
                     <td style="background:#f9f9f9"><b>${pt.toFixed(3)}</b></td>
                     <td><small>${h.ope.split('@')[0]}</small></td>
                     <td>${isAdmin? `<button class="btn-del" onclick="reverterMov('${id}')">REV</button>` : ''}</td>
-                </tr>`;
+                `;
+                fragment.appendChild(tr);
             }
         });
+        corpo.innerHTML = '';
+        corpo.appendChild(fragment);
         document.getElementById('soma-count').innerText = tCount;
         document.getElementById('soma-qtd').innerText = tQtd;
         document.getElementById('soma-peso').innerText = tPeso.toFixed(3);
@@ -427,6 +556,39 @@
         });
     }
 
+    // --- ETIQUETA ELGIN ---
+    function imprimirEtiquetaOP(id) {
+        if (!ordensGlobal[id]) return alert("OP não encontrada");
+
+        const op = ordensGlobal[id];
+        const hoje = new Date().toLocaleDateString('pt-BR');
+
+        // Preenche os dados
+        document.getElementById('etq-cod').innerText = op.cod;
+        document.getElementById('etq-prod').innerText = op.prod.toUpperCase();
+        document.getElementById('etq-op').innerText = id;
+        document.getElementById('etq-qtd').innerText = op.meta + ' PC';
+        document.getElementById('etq-data').innerText = hoje;
+
+        // Gera código de barras Code128
+        // Padrão Elgin: OP com zeros na frente, 20 dígitos
+        const codigoBarras = id.padStart(20, '0');
+
+        JsBarcode("#barcode", codigoBarras, {
+            format: "CODE128",
+            width: 2,
+            height: 50,
+            displayValue: true,
+            fontSize: 14,
+            margin: 0
+        });
+
+        // Imprime
+        setTimeout(() => {
+            window.print();
+        }, 200);
+    }
+
     // --- AUXILIARES TÉCNICOS ---
     function procv(cod, targetId) {
         const codigoLimpo = cod.toUpperCase().trim();
@@ -481,107 +643,4 @@
     }
 
     function resetCamposMov() {
-        ["mov_qtd", "mov_cod", "nome_prod", "desc_prod", "mov_peso_unit"].forEach(id => {
-            const el = document.getElementById(id);
-            if(el) el.value = "";
-        });
-        document.getElementById('display_peso_total').innerText = "0.000";
-    }
-
-    function salvarProduto() {
-        if(!isAdmin) return alert("Sem permissão");
-        const c = document.getElementById('cad_cod').value.toUpperCase().trim();
-        if(!c) return;
-        db.ref('produtos/'+c).set({
-            prod: document.getElementById('cad_prod').value,
-            desc: document.getElementById('cad_desc').value,
-            peso: document.getElementById('cad_peso').value,
-            min: document.getElementById('cad_min').value
-        }).then(() => {
-            alert("Artigo Atualizado com Sucesso");
-            ["cad_cod", "cad_prod", "cad_desc", "cad_peso", "cad_min"].forEach(id => document.getElementById(id).value = "");
-        });
-    }
-
-    function salvarOrdem() {
-        if(!isAdmin) return alert("Sem permissão");
-        const id = document.getElementById('ord_id').value.toUpperCase().trim();
-        const c = document.getElementById('ord_cod').value.toUpperCase().trim();
-        if(!id ||!c ||!produtosGlobal[c]) return alert("Código de Artigo inválido ou campos vazios.");
-
-        db.ref('ordens/'+id).set({
-            cod: c,
-            prod: produtosGlobal[c].prod,
-            meta: document.getElementById('ord_meta').value,
-            criadaEm: new Date().toISOString()
-        }).then(() => {
-            alert("Ordem de Produção Ativada!");
-            document.getElementById('ord_id').value = "";
-            document.getElementById('ord_meta').value = "";
-        });
-    }
-
-    function atualizarSelectOrdens() {
-        const s = document.getElementById('mov_ordem_id');
-        const val = s.value;
-        s.innerHTML = '<option value="">-- Selecionar OP Ativa --</option>';
-        for(let id in ordensGlobal) s.innerHTML += `<option value="${id}">${id} | ${ordensGlobal[id].prod}</option>`;
-        s.value = val;
-    }
-
-    function carregarParaEditar(c) {
-        if(!isAdmin) return;
-        const p = produtosGlobal[c];
-        document.getElementById('admin_modo').value = "PROD";
-        alternarFormAdmin();
-        document.getElementById('cad_cod').value = c;
-        document.getElementById('cad_prod').value = p.prod;
-        document.getElementById('cad_desc').value = p.desc;
-        document.getElementById('cad_peso').value = p.peso;
-        document.getElementById('cad_min').value = p.min;
-        window.scrollTo(0,0);
-    }
-
-    function verificarExistencia(c) {
-        const p = produtosGlobal[c.toUpperCase().trim()];
-        if(p && document.activeElement.id === 'cad_cod') {
-            document.getElementById('cad_prod').value = p.prod;
-            document.getElementById('cad_desc').value = p.desc;
-            document.getElementById('cad_peso').value = p.peso;
-            document.getElementById('cad_min').value = p.min;
-        }
-    }
-
-    function fecharOrdem(id) {
-        if(!isAdmin) return;
-        if(confirm("Deseja fechar e arquivar esta OP?")) db.ref('ordens/'+id).remove();
-    }
-
-    function reverterMov(id) {
-        if(!isAdmin) return;
-        if(confirm("CUIDADO: Reverter este movimento irá alterar o stock. Confirmar?")) db.ref('movimentacoes/'+id).remove();
-    }
-
-    function abrirHistorico() {
-        document.getElementById('modal-historico').style.display = 'block';
-        document.getElementById('inputFiltro').focus();
-    }
-
-    function fecharHistorico() { document.getElementById('modal-historico').style.display = 'none'; }
-
-    function exportarCSV() {
-        let csv = 'DATA;OP;COD;ARTIGO;TIPO;QTD;PESO_UNIT;TOTAL_KG;OPERADOR\n';
-        document.querySelectorAll('#corpoHist tr').forEach(tr => {
-            const tds = Array.from(tr.children).slice(0,9).map(td => `"${td.innerText.replace(/"/g, '""')}"`);
-            csv += tds.join(';') + '\n';
-        });
-        const blob = new Blob(["\uFEFF" + csv], {type: 'text/csv;charset=utf-8;'});
-        const a = document.createElement('a');
-        a.href = URL.createObjectURL(blob);
-        a.download = `historico_semiacabado_${new Date().toISOString().slice(0,10)}.csv`;
-        a.click();
-    }
-</script>
-
-</body>
-</html>
+        ["mov_qtd", "mov_cod",
