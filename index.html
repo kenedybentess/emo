@@ -62,7 +62,7 @@
         /* Checkbox Customization */
         .chk-op { transform: scale(1.2); cursor: pointer; margin: 0 auto; display: block; }
         
-        /* Select de Filtro Filtro de Tabela */
+        /* Select de Filtro */
         .select-filtro-tabela { width: auto; min-width: 200px; padding: 8px; margin: 0; font-weight: bold; border: 2px solid var(--info); }
 
         /* Modal */
@@ -79,7 +79,7 @@
 <div id="login-screen">
     <div class="login-card">
         <h1 style="color: var(--primary); margin-bottom: 5px; letter-spacing: -1px;">CONTROLE DE SEMI-ACABADO</h1>
-        <p style="color: #666; margin-bottom: 25px; font-size: 12px;">SISTEMA DE GESTÃO - I9 INDUSTRIAL v3.5</p>
+        <p style="color: #666; margin-bottom: 25px; font-size: 12px;">SISTEMA DE GESTÃO - I9 INDUSTRIAL v3.6</p>
         <input type="email" id="email" placeholder="E-mail do Utilizador">
         <input type="password" id="password" placeholder="Palavra-passe" onkeypress="if(event.key==='Enter') fazerLogin()">
         <button onclick="fazerLogin()" id="btn-login" class="btn-reg" style="background: var(--info); margin-top: 10px;">Entrar no Sistema</button>
@@ -181,6 +181,7 @@
                             <th>META</th>
                             <th>CONCLUÍDO</th>
                             <th>EFICIÊNCIA</th>
+                            <th id="th-acao-arquivada" style="display:none;">AÇÃO</th>
                         </tr>
                     </thead>
                     <tbody id="corpoOrdens"></tbody>
@@ -270,18 +271,20 @@
         
         if(isAdmin) {
             document.getElementById('panel-admin').style.display = 'block';
-            // O botão de marcar e a coluna de checkbox só aparecem se estiver em modo "ATIVAS"
             if(modoFiltro === 'ATIVAS') {
                 document.getElementById('btn-arquivar-selecionadas').style.display = 'block';
                 document.getElementById('th-select').style.display = 'table-cell';
+                document.getElementById('th-acao-arquivada').style.display = 'none';
             } else {
                 document.getElementById('btn-arquivar-selecionadas').style.display = 'none';
                 document.getElementById('th-select').style.display = 'none';
+                document.getElementById('th-acao-arquivada').style.display = 'table-cell'; // Mostra cabeçalho da ação de desarquivar
             }
         } else {
             document.getElementById('panel-admin').style.display = 'none';
             document.getElementById('btn-arquivar-selecionadas').style.display = 'none';
             document.getElementById('th-select').style.display = 'none';
+            document.getElementById('th-acao-arquivada').style.display = 'none';
         }
     }
 
@@ -321,12 +324,10 @@
         });
     }
 
-    // --- CARREGAMENTO DE DADOS COORDENADO ---
+    // --- CARREGAMENTO DE DADOS ---
     function carregarDados() {
         db.ref('produtos').on('value', s => { produtosGlobal = s.val() || {}; atualizarInterface(); });
         db.ref('ordens').on('value', s => { ordensGlobal = s.val() || {}; atualizarInterface(); atualizarSelectOrdens(); });
-        
-        // Listener para buscar o novo nó de histórico de OPs arquivadas
         db.ref('ordens_arquivadas').on('value', s => { ordensArquivadasGlobal = s.val() || {}; atualizarInterface(); });
 
         db.ref('movimentacoes').orderByChild('dataISO').limitToLast(500).on('value', s => {
@@ -381,7 +382,6 @@
         const modoFiltro = document.getElementById('filtro-estado-op').value;
         document.getElementById('chk-marcar-todas').checked = false;
 
-        // Escolhe qual dataset renderizar com base no filtro selecionado
         const listaParaRenderizar = (modoFiltro === 'ATIVAS') ? ordensGlobal : ordensArquivadasGlobal;
 
         for(let id in listaParaRenderizar) {
@@ -409,46 +409,60 @@
                     </div>
                     <small>${perc}% concluído</small>
                 </td>
+                ${(isAdmin && modoFiltro === 'ARQUIVADAS') ? `<td><button class="btn-del" style="background:var(--danger); padding:4px 8px;" onclick="desarquivarOrdem('${id}')">REATIVAR</button></td>` : (modoFiltro === 'ARQUIVADAS' ? '<td>-</td>' : '')}
             </tr>`;
         }
     }
 
-    // --- SELEÇÃO EM MASSA ---
     function marcarTodasAsOps(marca) {
-        document.querySelectorAll('.chk-op').forEach(checkbox => {
-            checkbox.checked = marca;
-        });
+        document.querySelectorAll('.chk-op').forEach(checkbox => checkbox.checked = marca);
     }
 
-    // --- ARQUIVAMENTO TÉCNICO COM RETENÇÃO DE DADOS ---
+    // --- ARQUIVAR SELECIONADAS ---
+    function abrirHistorico() { document.getElementById('modal-historico').style.display = 'block'; document.getElementById('inputFiltro').focus(); }
+    function fecharHistorico() { document.getElementById('modal-historico').style.display = 'none'; }
     function arquivarOrdensMarcadas() {
         if(!isAdmin) return;
-        
         const selecionados = Array.from(document.querySelectorAll('.chk-op:checked')).map(cb => cb.value);
 
-        if(selecionados.length === 0) {
-            return alert("Por favor, marque pelo menos uma Ordem de Produção utilizando as caixas de seleção.");
-        }
+        if(selecionados.length === 0) return alert("Por favor, marque pelo menos uma Ordem de Produção.");
 
         if(confirm(`Confirma o arquivamento de ${selecionados.length} Ordem(ns) de Produção selecionada(s)?`)) {
             let atualizacoes = {};
-
             selecionados.forEach(id => {
                 const opDados = ordensGlobal[id];
                 if(opDados) {
-                    // Copia os dados para o nó 'ordens_arquivadas' e adiciona a data de arquivamento
                     opDados.arquivadaEm = new Date().toISOString();
                     atualizacoes[`ordens_arquivadas/${id}`] = opDados;
-                    // Remove do nó de monitorização ativa
                     atualizacoes[`ordens/${id}`] = null;
                 }
             });
-
             db.ref().update(atualizacoes).then(() => {
                 alert("Ordens movidas para o histórico de arquivadas com sucesso!");
-            }).catch(err => {
-                alert("Erro ao tentar processar o arquivamento.");
-            });
+            }).catch(() => alert("Erro ao tentar processar o arquivamento."));
+        }
+    }
+
+    // --- DESARQUIVAR UMA OP ESPECÍFICA ---
+    function desarquivarOrdem(id) {
+        if(!isAdmin) return;
+        const opDados = ordensArquivadasGlobal[id];
+        
+        if(!opDados) return alert("Dados da Ordem de Produção não localizados.");
+
+        if(confirm(`Deseja reativar e desarquivar a OP ${id}? Ela retornará para a monitorização ativa.`)) {
+            let atualizacoes = {};
+            
+            // Remove a flag de arquivamento para manter o objeto limpo
+            if(opDados.arquivadaEm) delete opDados.arquivadaEm;
+            
+            // Retorna ao nó ativo e remove do nó de histórico
+            atualizacoes[`ordens/${id}`] = opDados;
+            atualizacoes[`ordens_arquivadas/${id}`] = null;
+
+            db.ref().update(atualizacoes).then(() => {
+                alert(`OP ${id} reativada com sucesso!`);
+            }).catch(() => alert("Erro ao tentar desarquivar a OP."));
         }
     }
 
@@ -674,9 +688,6 @@
         if(!isAdmin) return;
         if(confirm("Reverter este movimento alterará o stock permanentemente. Confirmar?")) db.ref('movimentacoes/'+id).remove();
     }
-
-    function abrirHistorico() { document.getElementById('modal-historico').style.display = 'block'; document.getElementById('inputFiltro').focus(); }
-    function fecharHistorico() { document.getElementById('modal-historico').style.display = 'none'; }
 
     function exportarCSV() {
         let csv = 'DATA;OP;COD;ARTIGO;TIPO;QTD;PESO_UNIT;TOTAL_KG;OPERADOR\n';
