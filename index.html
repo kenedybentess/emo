@@ -101,7 +101,7 @@
 <div id="login-screen">
     <div class="login-card">
         <h1 style="color: var(--primary); margin-bottom: 5px; letter-spacing: -1px;">CONTROLE DE SEMI-ACABADO</h1>
-        <p style="color: #666; margin-bottom: 25px; font-size: 12px;">SISTEMA DE GESTÃO - I9 INDUSTRIAL v3.8</p>
+        <p style="color: #666; margin-bottom: 25px; font-size: 12px;">SISTEMA DE GESTÃO - I9 INDUSTRIAL v3.9</p>
         <input type="email" id="email" placeholder="E-mail do Utilizador">
         <input type="password" id="password" placeholder="Palavra-passe" onkeypress="if(event.key==='Enter') fazerLogin()">
         <button onclick="fazerLogin()" id="btn-login" class="btn-reg" style="background: var(--info); margin-top: 10px;">Entrar no Sistema</button>
@@ -150,6 +150,7 @@
                 <select id="admin_modo" onchange="alternarFormAdmin()">
                     <option value="PROD">CADASTRO DE ARTIGOS SA (BASE)</option>
                     <option value="ORDEM">ORDENS DE PRODUÇÃO SA (ATIVAS)</option>
+                    <option value="USER">👤 CADASTRAR NOVO UTILIZADOR</option>
                 </select>
 
                 <div id="form-prod">
@@ -162,11 +163,23 @@
                 </div>
 
                 <div id="form-ordem" style="display:none">
-                    <input type="text" id="ord_id" placeholder="ID da Ordem de Produção SA">
+                    <input type="text" id="ord_id" placeholder="ID da Ordem de Predução SA">
                     <input type="text" id="ord_cod" placeholder="Código do Artigo" oninput="procv(this.value, 'ord_nome')">
                     <input type="text" id="ord_nome" readonly placeholder="Produto Identificado">
                     <input type="number" id="ord_meta" placeholder="Quantidade a Produzir (Meta)">
                     <button class="btn-reg" style="background: var(--done)" onclick="salvarOrdem()">Lançar Ordem de Produção</button>
+                </div>
+
+                <!-- Painel de Cadastro de Utilizador -->
+                <div id="form-user" style="display:none">
+                    <p style="color: #666; margin-top: 0; font-size: 11px; line-height: 1.4;">
+                        💡 <b>Regras de Perfil por E-mail:</b><br>
+                        • Inclua <b>admin</b> ou <b>super</b> no e-mail para acesso administrativo total.<br>
+                        • Inclua <b>visitante</b> ou <b>guest</b> para modo de visualização exclusiva do Dashboard.
+                    </p>
+                    <input type="email" id="new_user_email" placeholder="E-mail do Novo Utilizador">
+                    <input type="password" id="new_user_pass" placeholder="Definir Palavra-passe (Mínimo 6 caracteres)">
+                    <button id="btn-cadastrar-user" class="btn-reg" style="background: var(--primary)" onclick="cadastrarNovoUtilizador()">Criar Conta de Acesso</button>
                 </div>
             </div>
 
@@ -282,9 +295,13 @@
     const auth = firebase.auth();
     const db = firebase.database();
 
+    // Criação de app secundário isolado apenas para gerenciar criação de usuários sem deslogar o administrador atual
+    const secondaryApp = firebase.initializeApp(firebaseConfig, "SecondaryApp");
+    const secondaryAuth = secondaryApp.auth();
+
     let userEmail = "";
     let isAdmin = false;
-    let isVisitor = false; // Novo controle de perfil técnico
+    let isVisitor = false; 
     let produtosGlobal = {};
     let ordensGlobal = {};
     let ordensArquivadasGlobal = {};
@@ -296,13 +313,12 @@
         if (user) {
             userEmail = user.email;
             isAdmin = /admin|super/.test(userEmail.toLowerCase());
-            isVisitor = /visitante|guest/.test(userEmail.toLowerCase()); // Validação do e-mail
+            isVisitor = /visitante|guest/.test(userEmail.toLowerCase()); 
             
             document.getElementById('login-screen').style.display = 'none';
             document.getElementById('main-content').style.display = 'block';
             document.getElementById('user-display').innerText = userEmail + (isVisitor ? " (VISITANTE)" : "");
             
-            // Controle estrito de exibição para visitantes
             if(isVisitor) {
                 document.getElementById('btn-abrir-historico').style.display = 'none';
                 document.getElementById('panel-operador').style.display = 'none';
@@ -380,6 +396,40 @@
                 status.className = "status-conn status-offline";
             }
         });
+    }
+
+    // --- FUNÇÃO PARA CRIAR UTILIZADOR ---
+    function cadastrarNovoUtilizador() {
+        if(!isAdmin || isVisitor) return alert("Ação não autorizada.");
+
+        const emailNovo = document.getElementById('new_user_email').value.trim();
+        const passNova = document.getElementById('new_user_pass').value;
+        const btn = document.getElementById('btn-cadastrar-user');
+
+        if(!emailNovo || !passNova) return alert("Preencha o e-mail e a palavra-passe!");
+        if(passNova.length < 6) return alert("A palavra-passe deve conter pelo menos 6 caracteres!");
+
+        btn.disabled = true;
+        btn.innerText = "A PROCESSAR...";
+
+        // Utiliza a instância secundária para criar sem quebrar a sessão do administrador atual
+        secondaryAuth.createUserWithEmailAndPassword(emailNovo, passNova)
+            .then((userCredential) => {
+                alert(`Sucesso! O utilizador ${emailNovo} foi cadastrado e já pode fazer login.`);
+                document.getElementById('new_user_email').value = "";
+                document.getElementById('new_user_pass').value = "";
+                
+                // Desconecta o app secundário para mantê-lo limpo
+                secondaryAuth.signOut();
+                
+                btn.disabled = false;
+                btn.innerText = "Criar Conta de Acesso";
+            })
+            .catch((error) => {
+                btn.disabled = false;
+                btn.innerText = "Criar Conta de Acesso";
+                alert("Erro ao cadastrar: " + error.message);
+            });
     }
 
     // --- CARREGAMENTO DE DADOS ---
@@ -504,7 +554,7 @@
     
     function arquivarOrdensMarcadas() {
         if(!isAdmin || isVisitor) return;
-        constGrid = Array.from(document.querySelectorAll('.chk-op:checked')).map(cb => cb.value);
+        const selecionados = Array.from(document.querySelectorAll('.chk-op:checked')).map(cb => cb.value);
 
         if(selecionados.length === 0) return alert("Por favor, marque pelo menos uma Ordem de Produção.");
 
@@ -676,6 +726,7 @@
         const m = document.getElementById('admin_modo').value;
         document.getElementById('form-prod').style.display = m === 'PROD'? 'block' : 'none';
         document.getElementById('form-ordem').style.display = m === 'ORDEM'? 'block' : 'none';
+        document.getElementById('form-user').style.display = m === 'USER'? 'block' : 'none';
     }
 
     function alternarCamposEntrada() {
