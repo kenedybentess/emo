@@ -119,12 +119,10 @@
     </div>
 
     <div class="container">
-        <!-- Botão do histórico (ocultado para visitante) -->
         <button id="btn-abrir-historico" onclick="abrirHistorico()" style="background: white; color: var(--primary); padding:18px; width:100%; border: 2px solid var(--primary); margin-bottom:25px; font-weight:bold; cursor:pointer; border-radius:10px; display: flex; justify-content: center; align-items: center; gap: 12px; transition: 0.3s;">
             <span>🕒</span> CONSULTAR HISTÓRICO E MOVIMENTAÇÕES TÉCNICAS
         </button>
 
-        <!-- DASHBOARD DE INDICADORES (OPS ATIVAS) -->
         <div class="dash-container">
             <div class="dash-card dash-active">
                 <div class="dash-title">🟢 OPs em Monitorização</div>
@@ -163,14 +161,13 @@
                 </div>
 
                 <div id="form-ordem" style="display:none">
-                    <input type="text" id="ord_id" placeholder="ID da Ordem de Predução SA">
+                    <input type="text" id="ord_id" placeholder="ID da Ordem de Produção SA">
                     <input type="text" id="ord_cod" placeholder="Código do Artigo" oninput="procv(this.value, 'ord_nome')">
                     <input type="text" id="ord_nome" readonly placeholder="Produto Identificado">
                     <input type="number" id="ord_meta" placeholder="Quantidade a Produzir (Meta)">
                     <button class="btn-reg" style="background: var(--done)" onclick="salvarOrdem()">Lançar Ordem de Produção</button>
                 </div>
 
-                <!-- Painel de Cadastro de Utilizador -->
                 <div id="form-user" style="display:none">
                     <p style="color: #666; margin-top: 0; font-size: 11px; line-height: 1.4;">
                         💡 <b>Regras de Perfil por E-mail:</b><br>
@@ -295,7 +292,7 @@
     const auth = firebase.auth();
     const db = firebase.database();
 
-    // Criação de app secundário isolado apenas para gerenciar criação de usuários sem deslogar o administrador atual
+    // App secundário isolado para gerenciar criação de usuários sem quebrar a sessão atual
     const secondaryApp = firebase.initializeApp(firebaseConfig, "SecondaryApp");
     const secondaryAuth = secondaryApp.auth();
 
@@ -412,14 +409,12 @@
         btn.disabled = true;
         btn.innerText = "A PROCESSAR...";
 
-        // Utiliza a instância secundária para criar sem quebrar a sessão do administrador atual
         secondaryAuth.createUserWithEmailAndPassword(emailNovo, passNova)
             .then((userCredential) => {
                 alert(`Sucesso! O utilizador ${emailNovo} foi cadastrado e já pode fazer login.`);
                 document.getElementById('new_user_email').value = "";
                 document.getElementById('new_user_pass').value = "";
                 
-                // Desconecta o app secundário para mantê-lo limpo
                 secondaryAuth.signOut();
                 
                 btn.disabled = false;
@@ -487,7 +482,7 @@
 
         const listaParaRenderizar = (modoFiltro === 'ATIVAS') ? ordensGlobal : ordensArquivadasGlobal;
 
-        // --- CÁLCULOS DO DASHBOARD EM TEMPO REAL ---
+        // --- CÁLCULOS DO DASHBOARD ---
         let totalOpsAtivas = 0;
         let metaGlobalAtiva = 0;
         let realizadoGlobalAtivo = 0;
@@ -504,7 +499,7 @@
         
         const eficienciaGlobal = metaGlobalAtiva > 0 ? ((realizadoGlobalAtivo / metaGlobalAtiva) * 100).toFixed(1) : 0;
         document.getElementById('dash-eficiencia-global').innerText = `${eficienciaGlobal}%`;
-        // -------------------------------------------
+        // -----------------------------
 
         for(let id in listaParaRenderizar) {
             const realizado = movs.filter(h => h.ordem === id).reduce((a, b) => a + parseFloat(b.qtd || 0), 0);
@@ -570,14 +565,13 @@
             });
             db.ref().update(atualizacoes).then(() => {
                 alert("Ordens movidas para o histórico de arquivadas com sucesso!");
-            }).catch(() => alert("Erro ao tentar processar o arquivamento. Verifique as regras do Firebase."));
+            }).catch(() => alert("Erro ao tentar processar o arquivamento."));
         }
     }
 
     function desarquivarOrdem(id) {
         if(!isAdmin || isVisitor) return;
         const opDados = ordensArquivadasGlobal[id];
-        
         if(!opDados) return alert("Dados da Ordem de Produção não localizados.");
 
         if(confirm(`Deseja reativar e desarquivar a OP ${id}? Ela retornará para a monitorização ativa.`)) {
@@ -589,7 +583,7 @@
 
             db.ref().update(atualizacoes).then(() => {
                 alert(`OP ${id} reativada com sucesso!`);
-            }).catch(() => alert("Erro ao tentar desarquivar a OP. Verifique as regras do Firebase."));
+            }).catch(() => alert("Erro ao tentar desarquivar a OP."));
         }
     }
 
@@ -724,9 +718,9 @@
 
     function alternarFormAdmin() {
         const m = document.getElementById('admin_modo').value;
-        document.getElementById('form-prod').style.display = m === 'PROD'? 'block' : 'none';
-        document.getElementById('form-ordem').style.display = m === 'ORDEM'? 'block' : 'none';
-        document.getElementById('form-user').style.display = m === 'USER'? 'block' : 'none';
+        document.getElementById('form-prod').style.display = m === 'PROD' ? 'block' : 'none';
+        document.getElementById('form-ordem').style.display = m === 'ORDEM' ? 'block' : 'none';
+        document.getElementById('form-user').style.display = m === 'USER' ? 'block' : 'none';
     }
 
     function alternarCamposEntrada() {
