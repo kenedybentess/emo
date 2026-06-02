@@ -153,10 +153,13 @@
         </div>
 
         <div class="card">
-            <div class="section-header"><h3>📋 Ordens de Produção SA em Monitorização</h3></div>
+            <div class="section-header">
+                <h3>📋 Ordens de Produção SA em Monitorização</h3>
+                <button id="btn-arquivar-antigas" class="btn-secondary" style="background: var(--dark-card); display:none;" onclick="arquivarOrdensConcluidas()">🗄️ Arquivar OPs Concluídas</button>
+            </div>
             <div style="overflow-x: auto;">
                 <table>
-                    <thead><tr><th>OP</th><th>CÓDIGO</th><th>ARTIGO</th><th>META</th><th>CONCLUÍDO</th><th>EFICIÊNCIA</th><th>AÇÕES</th></tr></thead>
+                    <thead><tr><th>DATA CRIAÇÃO</th><th>OP</th><th>CÓDIGO</th><th>ARTIGO</th><th>META</th><th>CONCLUÍDO</th><th>EFICIÊNCIA</th><th>AÇÕES</th></tr></thead>
                     <tbody id="corpoOrdens"></tbody>
                 </table>
             </div>
@@ -231,8 +234,10 @@
             
             if(isAdmin) {
                 document.getElementById('panel-admin').style.display = 'block';
+                document.getElementById('btn-arquivar-antigas').style.display = 'block';
             } else {
                 document.getElementById('panel-admin').style.display = 'none';
+                document.getElementById('btn-arquivar-antigas').style.display = 'none';
             }
             
             monitorarConexao();
@@ -253,7 +258,6 @@
         btnLogin.disabled = true;
         btnLogin.innerText = "A AUTENTICAR...";
 
-        // Define a persistência local explicitamente
         auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL)
             .then(() => {
                 return auth.signInWithEmailAndPassword(email, pass);
@@ -344,8 +348,16 @@
             const realizado = movs.filter(h => h.ordem === id).reduce((a, b) => a + parseFloat(b.qtd || 0), 0);
             const meta = parseFloat(ordensGlobal[id].meta) || 1;
             const perc = Math.min(100, ((realizado/meta)*100)).toFixed(0);
+            
+            // Tratamento visual para exibir a data de criação
+            let dataCriacao = '---';
+            if(ordensGlobal[id].criadaEm) {
+                const d = new Date(ordensGlobal[id].criadaEm);
+                dataCriacao = d.toLocaleString('pt-pt', { day: '2-digit', month: '2-digit', year: '2-digit', hour: '2-digit', minute:'2-digit' });
+            }
 
             corpo.innerHTML += `<tr>
+                <td><small style="color: #555;">${dataCriacao}</small></td>
                 <td style="color:var(--done); font-weight:bold">${id}</td>
                 <td>${ordensGlobal[id].cod}</td>
                 <td><span class="item-nome">${ordensGlobal[id].prod || ''}</span></td>
@@ -362,13 +374,42 @@
         }
     }
 
+    // --- FUNÇÃO PARA ARQUIVAR ORDENS CONCLUÍDAS AUTOMATICAMENTE ---
+    function arquivarOrdensConcluidas() {
+        if(!isAdmin) return;
+        const movs = Object.values(movsGlobal);
+        let contagemArquivados = 0;
+        let promessasRemocao = [];
+
+        for(let id in ordensGlobal) {
+            const realizado = movs.filter(h => h.ordem === id).reduce((a, b) => a + parseFloat(b.qtd || 0), 0);
+            const meta = parseFloat(ordensGlobal[id].meta) || 1;
+
+            // Se a OP atingiu ou passou a meta, entra na fila de arquivamento
+            if(realizado >= meta) {
+                contagemArquivados++;
+                promessasRemocao.push(db.ref('ordens/'+id).remove());
+            }
+        }
+
+        if(contagemArquivados === 0) {
+            alert("Nenhuma Ordem de Produção concluída para arquivar neste momento.");
+            return;
+        }
+
+        if(confirm(`Foram detetadas ${contagemArquivados} OP(s) 100% concluídas. Confirma o arquivamento automático em lote?`)) {
+            Promise.all(promessasRemocao).then(() => {
+                alert(`${contagemArquivados} Ordem(ns) arquivada(s) com sucesso da monitorização.`);
+            }).catch(() => alert("Erro ao tentar processar o arquivamento automático."));
+        }
+    }
+
     function renderizarHistorial() {
         const filtro = document.getElementById('inputFiltro').value.toLowerCase();
         const corpo = document.getElementById('corpoHist');
         corpo.innerHTML = '';
         let tCount = 0, tQtd = 0, tPeso = 0;
 
-        // Garante a ordenação inversa padrão (Mais recente primeiro)
         const movsArray = Object.entries(movsGlobal).sort((a,b) => (b[1].dataISO || '').localeCompare(a[1].dataISO || ''));
 
         movsArray.forEach(([id, h]) => {
@@ -548,9 +589,9 @@
             cod: c,
             prod: produtosGlobal[c].prod || '',
             meta: meta,
-            criadaEm: new Date().toISOString()
+            criadaEm: new Date().toISOString() // Data guardada para alimentar a nova coluna
         }).then(() => {
-            alert("Ordem de Produção Ativada!");
+            alert("Ordem de Production Ativada!");
             document.getElementById('ord_id').value = "";
             document.getElementById('ord_meta').value = "";
             document.getElementById('ord_cod').value = "";
@@ -593,10 +634,6 @@
         if(!isAdmin) return;
         if(confirm("Deseja fechar e arquivar esta OP?")) db.ref('ordens/'+id).remove();
     }
-
-    document.addEventListener("DOMContentLoaded", function() {
-         // O listener do Firebase onAuthStateChanged irá tratar o login automaticamente.
-    });
 
     function reverterMov(id) {
         if(!isAdmin) return;
