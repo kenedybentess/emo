@@ -32,8 +32,8 @@
 
         /* Cards & Tables */
         .card { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 25px; border: 1px solid var(--border); }
-        .section-header { border-left: 5px solid var(--info); padding-left: 15px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; }
-        .section-header h3 { margin: 0; text-transform: uppercase; color: var(--primary); letter-spacing: 1px; }
+        .section-header { border-left: 5px solid var(--info); padding-left: 15px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; gap: 15px; }
+        .section-header h3 { margin: 0; text-transform: uppercase; color: var(--primary); letter-spacing: 1px; flex-grow: 1; }
 
         table { width: 100%; border-collapse: collapse; margin-top: 10px; }
         th { background: #f8f9fa; padding: 12px; text-align: left; border-bottom: 2px solid var(--border); font-size: 11px; color: #636e72; text-transform: uppercase; }
@@ -54,13 +54,16 @@
         .btn-reg:disabled { background: #ccc; cursor: not-allowed; transform: none; }
         .btn-edit { background: var(--info); color: white; padding: 6px 12px; border-radius: 4px; border:none; cursor: pointer; font-size: 10px; }
         .btn-del { background: var(--danger); color: white; padding: 6px 12px; border-radius: 4px; border:none; cursor: pointer; font-size: 10px; }
-        .btn-secondary { background: #95a5a6; color: white; padding: 8px 15px; border-radius: 4px; border:none; cursor: pointer; font-size: 11px; }
+        .btn-secondary { background: #95a5a6; color: white; padding: 8px 15px; border-radius: 4px; border:none; cursor: pointer; font-size: 11px; white-space: nowrap; }
 
         .flex-row { display: grid; grid-template-columns: 1fr 1fr; gap: 25px; }
         @media (max-width: 900px) {.flex-row { grid-template-columns: 1fr; } }
 
         /* Checkbox Customization */
         .chk-op { transform: scale(1.2); cursor: pointer; margin: 0 auto; display: block; }
+        
+        /* Select de Filtro Filtro de Tabela */
+        .select-filtro-tabela { width: auto; min-width: 200px; padding: 8px; margin: 0; font-weight: bold; border: 2px solid var(--info); }
 
         /* Modal */
         #modal-historico { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 2000; overflow-y: auto; backdrop-filter: blur(5px); }
@@ -76,7 +79,7 @@
 <div id="login-screen">
     <div class="login-card">
         <h1 style="color: var(--primary); margin-bottom: 5px; letter-spacing: -1px;">CONTROLE DE SEMI-ACABADO</h1>
-        <p style="color: #666; margin-bottom: 25px; font-size: 12px;">SISTEMA DE GESTÃO - I9 INDUSTRIAL v3.4</p>
+        <p style="color: #666; margin-bottom: 25px; font-size: 12px;">SISTEMA DE GESTÃO - I9 INDUSTRIAL v3.5</p>
         <input type="email" id="email" placeholder="E-mail do Utilizador">
         <input type="password" id="password" placeholder="Palavra-passe" onkeypress="if(event.key==='Enter') fazerLogin()">
         <button onclick="fazerLogin()" id="btn-login" class="btn-reg" style="background: var(--info); margin-top: 10px;">Entrar no Sistema</button>
@@ -157,7 +160,13 @@
 
         <div class="card">
             <div class="section-header">
-                <h3>📋 Ordens de Produção SA em Monitorização</h3>
+                <h3>📋 Painel de Ordens de Produção</h3>
+                
+                <select id="filtro-estado-op" class="select-filtro-tabela" onchange="atualizarInterface()">
+                    <option value="ATIVAS">🟢 OPs ATIVAS (MONITORIZAÇÃO)</option>
+                    <option value="ARQUIVADAS">⚫ OPs ARQUIVADAS (HISTÓRICO)</option>
+                </select>
+
                 <button id="btn-arquivar-selecionadas" class="btn-secondary" style="background: #27ae60; display:none;" onclick="arquivarOrdensMarcadas()">🗄️ Arquivar OPs Selecionadas</button>
             </div>
             <div style="overflow-x: auto;">
@@ -233,6 +242,7 @@
     let isAdmin = false;
     let produtosGlobal = {};
     let ordensGlobal = {};
+    let ordensArquivadasGlobal = {};
     let movsGlobal = {};
     let saldosCache = {};
 
@@ -246,17 +256,7 @@
             document.getElementById('main-content').style.display = 'block';
             document.getElementById('user-display').innerText = userEmail;
             
-            // Controle visual baseado no privilégio Admin
-            if(isAdmin) {
-                document.getElementById('panel-admin').style.display = 'block';
-                document.getElementById('btn-arquivar-selecionadas').style.display = 'block';
-                document.getElementById('th-select').style.display = 'table-cell';
-            } else {
-                document.getElementById('panel-admin').style.display = 'none';
-                document.getElementById('btn-arquivar-selecionadas').style.display = 'none';
-                document.getElementById('th-select').style.display = 'none';
-            }
-            
+            ajustarVisibilidadeAdmin();
             monitorarConexao();
             carregarDados();
         } else {
@@ -264,6 +264,26 @@
             document.getElementById('main-content').style.display = 'none';
         }
     });
+
+    function ajustarVisibilidadeAdmin() {
+        const modoFiltro = document.getElementById('filtro-estado-op').value;
+        
+        if(isAdmin) {
+            document.getElementById('panel-admin').style.display = 'block';
+            // O botão de marcar e a coluna de checkbox só aparecem se estiver em modo "ATIVAS"
+            if(modoFiltro === 'ATIVAS') {
+                document.getElementById('btn-arquivar-selecionadas').style.display = 'block';
+                document.getElementById('th-select').style.display = 'table-cell';
+            } else {
+                document.getElementById('btn-arquivar-selecionadas').style.display = 'none';
+                document.getElementById('th-select').style.display = 'none';
+            }
+        } else {
+            document.getElementById('panel-admin').style.display = 'none';
+            document.getElementById('btn-arquivar-selecionadas').style.display = 'none';
+            document.getElementById('th-select').style.display = 'none';
+        }
+    }
 
     function fazerLogin() {
         const email = document.getElementById('email').value.trim();
@@ -301,10 +321,13 @@
         });
     }
 
-    // --- CARREGAMENTO DE DADOS ---
+    // --- CARREGAMENTO DE DADOS COORDENADO ---
     function carregarDados() {
         db.ref('produtos').on('value', s => { produtosGlobal = s.val() || {}; atualizarInterface(); });
         db.ref('ordens').on('value', s => { ordensGlobal = s.val() || {}; atualizarInterface(); atualizarSelectOrdens(); });
+        
+        // Listener para buscar o novo nó de histórico de OPs arquivadas
+        db.ref('ordens_arquivadas').on('value', s => { ordensArquivadasGlobal = s.val() || {}; atualizarInterface(); });
 
         db.ref('movimentacoes').orderByChild('dataISO').limitToLast(500).on('value', s => {
             movsGlobal = s.val() || {};
@@ -325,6 +348,7 @@
     }
 
     function atualizarInterface() {
+        ajustarVisibilidadeAdmin();
         renderizarStock();
         renderizarOrdens();
     }
@@ -353,32 +377,35 @@
         const corpo = document.getElementById('corpoOrdens');
         corpo.innerHTML = '';
         const movs = Object.values(movsGlobal);
-
-        // Resetar o cabeçalho master checkbox
+        
+        const modoFiltro = document.getElementById('filtro-estado-op').value;
         document.getElementById('chk-marcar-todas').checked = false;
 
-        for(let id in ordensGlobal) {
+        // Escolhe qual dataset renderizar com base no filtro selecionado
+        const listaParaRenderizar = (modoFiltro === 'ATIVAS') ? ordensGlobal : ordensArquivadasGlobal;
+
+        for(let id in listaParaRenderizar) {
             const realizado = movs.filter(h => h.ordem === id).reduce((a, b) => a + parseFloat(b.qtd || 0), 0);
-            const meta = parseFloat(ordensGlobal[id].meta) || 1;
+            const meta = parseFloat(listaParaRenderizar[id].meta) || 1;
             const perc = Math.min(100, ((realizado/meta)*100)).toFixed(0);
             
             let dataCriacao = '---';
-            if(ordensGlobal[id].criadaEm) {
-                const d = new Date(ordensGlobal[id].criadaEm);
+            if(listaParaRenderizar[id].criadaEm) {
+                const d = new Date(listaParaRenderizar[id].criadaEm);
                 dataCriacao = d.toLocaleString('pt-pt', { day: '2-digit', month: '2-digit', year: '2-digit', hour: '2-digit', minute:'2-digit' });
             }
 
             corpo.innerHTML += `<tr>
-                ${isAdmin ? `<td style="text-align:center;"><input type="checkbox" class="chk-op" value="${id}"></td>` : ''}
+                ${(isAdmin && modoFiltro === 'ATIVAS') ? `<td style="text-align:center;"><input type="checkbox" class="chk-op" value="${id}"></td>` : (modoFiltro === 'ATIVAS' ? '' : '<td>📂</td>')}
                 <td><small style="color: #555;">${dataCriacao}</small></td>
-                <td style="color:var(--done); font-weight:bold">${id}</td>
-                <td>${ordensGlobal[id].cod}</td>
-                <td><span class="item-nome">${ordensGlobal[id].prod || ''}</span></td>
+                <td style="color:${modoFiltro === 'ATIVAS' ? 'var(--done)' : '#7f8c8d'}; font-weight:bold">${id}</td>
+                <td>${listaParaRenderizar[id].cod}</td>
+                <td><span class="item-nome" style="color:${modoFiltro === 'ATIVAS' ? 'var(--orange)' : '#7f8c8d'}">${listaParaRenderizar[id].prod || ''}</span></td>
                 <td>${meta}</td>
                 <td><b style="color:var(--done)">${realizado}</b></td>
                 <td>
                     <div style="width:100%; background:#eee; height:8px; border-radius:4px; margin-top:5px">
-                        <div style="width:${perc}%; background:var(--success); height:100%; border-radius:4px"></div>
+                        <div style="width:${perc}%; background:${modoFiltro === 'ATIVAS' ? 'var(--success)' : '#7f8c8d'}; height:100%; border-radius:4px"></div>
                     </div>
                     <small>${perc}% concluído</small>
                 </td>
@@ -393,24 +420,34 @@
         });
     }
 
-    // --- ARQUIVAR APENAS AS SELECIONADAS ---
+    // --- ARQUIVAMENTO TÉCNICO COM RETENÇÃO DE DADOS ---
     function arquivarOrdensMarcadas() {
         if(!isAdmin) return;
         
         const selecionados = Array.from(document.querySelectorAll('.chk-op:checked')).map(cb => cb.value);
 
         if(selecionados.length === 0) {
-            alert("Por favor, marque pelo menos uma Ordem de Produção utilizando as caixas de seleção.");
-            return;
+            return alert("Por favor, marque pelo menos uma Ordem de Produção utilizando as caixas de seleção.");
         }
 
         if(confirm(`Confirma o arquivamento de ${selecionados.length} Ordem(ns) de Produção selecionada(s)?`)) {
-            const promessas = selecionados.map(id => db.ref('ordens/'+id).remove());
+            let atualizacoes = {};
 
-            Promise.all(promessas).then(() => {
-                alert("Ordens marcadas foram arquivadas com sucesso!");
+            selecionados.forEach(id => {
+                const opDados = ordensGlobal[id];
+                if(opDados) {
+                    // Copia os dados para o nó 'ordens_arquivadas' e adiciona a data de arquivamento
+                    opDados.arquivadaEm = new Date().toISOString();
+                    atualizacoes[`ordens_arquivadas/${id}`] = opDados;
+                    // Remove do nó de monitorização ativa
+                    atualizacoes[`ordens/${id}`] = null;
+                }
+            });
+
+            db.ref().update(atualizacoes).then(() => {
+                alert("Ordens movidas para o histórico de arquivadas com sucesso!");
             }).catch(err => {
-                alert("Ocorreu um erro ao tentar remover as ordens do banco de dados.");
+                alert("Erro ao tentar processar o arquivamento.");
             });
         }
     }
@@ -461,7 +498,7 @@
 
         if(tipo === 'ENTRADA') {
             ofId = document.getElementById('mov_ordem_id').value;
-            if(!ofId || !ordensGlobal[ofId]) return alert("Secione uma Ordem de Produção SA válida!");
+            if(!ofId || !ordensGlobal[ofId]) return alert("Selecione uma Ordem de Produção SA válida e ativa!");
 
             const meta = parseFloat(ordensGlobal[ofId].meta) || 0;
             const realizado = Object.values(movsGlobal).filter(h => h.ordem === ofId).reduce((a, b) => a + parseFloat(b.qtd || 0), 0);
