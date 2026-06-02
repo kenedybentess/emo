@@ -101,7 +101,7 @@
 <div id="login-screen">
     <div class="login-card">
         <h1 style="color: var(--primary); margin-bottom: 5px; letter-spacing: -1px;">CONTROLE DE SEMI-ACABADO</h1>
-        <p style="color: #666; margin-bottom: 25px; font-size: 12px;">SISTEMA DE GESTÃO - I9 INDUSTRIAL v3.7</p>
+        <p style="color: #666; margin-bottom: 25px; font-size: 12px;">SISTEMA DE GESTÃO - I9 INDUSTRIAL v3.8</p>
         <input type="email" id="email" placeholder="E-mail do Utilizador">
         <input type="password" id="password" placeholder="Palavra-passe" onkeypress="if(event.key==='Enter') fazerLogin()">
         <button onclick="fazerLogin()" id="btn-login" class="btn-reg" style="background: var(--info); margin-top: 10px;">Entrar no Sistema</button>
@@ -119,7 +119,8 @@
     </div>
 
     <div class="container">
-        <button onclick="abrirHistorico()" style="background: white; color: var(--primary); padding:18px; width:100%; border: 2px solid var(--primary); margin-bottom:25px; font-weight:bold; cursor:pointer; border-radius:10px; display: flex; justify-content: center; align-items: center; gap: 12px; transition: 0.3s;">
+        <!-- Botão do histórico (ocultado para visitante) -->
+        <button id="btn-abrir-historico" onclick="abrirHistorico()" style="background: white; color: var(--primary); padding:18px; width:100%; border: 2px solid var(--primary); margin-bottom:25px; font-weight:bold; cursor:pointer; border-radius:10px; display: flex; justify-content: center; align-items: center; gap: 12px; transition: 0.3s;">
             <span>🕒</span> CONSULTAR HISTÓRICO E MOVIMENTAÇÕES TÉCNICAS
         </button>
 
@@ -143,7 +144,7 @@
             </div>
         </div>
 
-        <div class="flex-row">
+        <div class="flex-row" id="row-formularios">
             <div id="panel-admin" class="card" style="display:none; border-top: 4px solid var(--danger);">
                 <div class="section-header"><h3>🛠️ Gestão Administrativa</h3></div>
                 <select id="admin_modo" onchange="alternarFormAdmin()">
@@ -169,7 +170,7 @@
                 </div>
             </div>
 
-            <div class="card" style="border-top: 4px solid var(--info);">
+            <div id="panel-operador" class="card" style="border-top: 4px solid var(--info);">
                 <div class="section-header"><h3>📦 Lançamento de Movimentos SA</h3></div>
                 <select id="mov_tipo" onchange="alternarCamposEntrada()">
                     <option value="ENTRADA">ENTRADA: PEÇA SEMI-ACABADA</option>
@@ -283,6 +284,7 @@
 
     let userEmail = "";
     let isAdmin = false;
+    let isVisitor = false; // Novo controle de perfil técnico
     let produtosGlobal = {};
     let ordensGlobal = {};
     let ordensArquivadasGlobal = {};
@@ -294,11 +296,23 @@
         if (user) {
             userEmail = user.email;
             isAdmin = /admin|super/.test(userEmail.toLowerCase());
+            isVisitor = /visitante|guest/.test(userEmail.toLowerCase()); // Validação do e-mail
             
             document.getElementById('login-screen').style.display = 'none';
             document.getElementById('main-content').style.display = 'block';
-            document.getElementById('user-display').innerText = userEmail;
+            document.getElementById('user-display').innerText = userEmail + (isVisitor ? " (VISITANTE)" : "");
             
+            // Controle estrito de exibição para visitantes
+            if(isVisitor) {
+                document.getElementById('btn-abrir-historico').style.display = 'none';
+                document.getElementById('panel-operador').style.display = 'none';
+                document.getElementById('row-formularios').style.gridTemplateColumns = '1fr';
+            } else {
+                document.getElementById('btn-abrir-historico').style.display = 'flex';
+                document.getElementById('panel-operador').style.display = 'block';
+                document.getElementById('row-formularios').style.gridTemplateColumns = '1fr 1fr';
+            }
+
             transparentInterfaceUpdate();
             monitorarConexao();
             carregarDados();
@@ -378,7 +392,7 @@
             movsGlobal = s.val() || {};
             calcularSaldos();
             transparentInterfaceUpdate();
-            renderizarHistorial();
+            if(!isVisitor) renderizarHistorial();
         });
     }
 
@@ -407,7 +421,7 @@
                 <td><span class="item-nome">${p.prod || 'Sem Nome'}</span><span class="item-desc">${p.desc || ''}</span></td>
                 <td><b style="font-size:15px">${saldo}</b></td>
                 <td>${min}</td>
-                <td>${isAdmin ? `<button class="btn-edit" onclick="carregarParaEditar('${c}')">EDITAR</button>` : 'OK'}</td>
+                <td>${(isAdmin && !isVisitor) ? `<button class="btn-edit" onclick="carregarParaEditar('${c}')">EDITAR</button>` : 'OK'}</td>
             </tr>`;
         }
     }
@@ -418,7 +432,8 @@
         const movs = Object.values(movsGlobal);
         
         const modoFiltro = document.getElementById('filtro-estado-op').value;
-        document.getElementById('chk-marcar-todas').checked = false;
+        const checkMarcarTodas = document.getElementById('chk-marcar-todas');
+        if (checkMarcarTodas) checkMarcarTodas.checked = false;
 
         const listaParaRenderizar = (modoFiltro === 'ATIVAS') ? ordensGlobal : ordensArquivadasGlobal;
 
@@ -471,7 +486,7 @@
                     </div>
                     <small>${perc}% concluído</small>
                 </td>
-                 ${(isAdmin && modoFiltro === 'ARQUIVADAS') ? `<td><button class="btn-del" style="background:var(--danger); padding:4px 8px;" onclick="desarquivarOrdem('${id}')">REATIVAR</button></td>` : (modoFiltro === 'ARQUIVADAS' ? '<td>-</td>' : '')}
+                 ${(isAdmin && modoFiltro === 'ARQUIVADAS' && !isVisitor) ? `<td><button class="btn-del" style="background:var(--danger); padding:4px 8px;" onclick="desarquivarOrdem('${id}')">REATIVAR</button></td>` : (modoFiltro === 'ARQUIVADAS' ? '<td>-</td>' : '')}
             </tr>`;
         }
     }
@@ -480,12 +495,16 @@
         document.querySelectorAll('.chk-op').forEach(checkbox => checkbox.checked = marca);
     }
 
-    function abrirHistorico() { document.getElementById('modal-historico').style.display = 'block'; document.getElementById('inputFiltro').focus(); }
+    function abrirHistorico() { 
+        if(isVisitor) return;
+        document.getElementById('modal-historico').style.display = 'block'; 
+        document.getElementById('inputFiltro').focus(); 
+    }
     function fecharHistorico() { document.getElementById('modal-historico').style.display = 'none'; }
     
     function arquivarOrdensMarcadas() {
-        if(!isAdmin) return;
-        const selecionados = Array.from(document.querySelectorAll('.chk-op:checked')).map(cb => cb.value);
+        if(!isAdmin || isVisitor) return;
+        constGrid = Array.from(document.querySelectorAll('.chk-op:checked')).map(cb => cb.value);
 
         if(selecionados.length === 0) return alert("Por favor, marque pelo menos uma Ordem de Produção.");
 
@@ -506,7 +525,7 @@
     }
 
     function desarquivarOrdem(id) {
-        if(!isAdmin) return;
+        if(!isAdmin || isVisitor) return;
         const opDados = ordensArquivadasGlobal[id];
         
         if(!opDados) return alert("Dados da Ordem de Produção não localizados.");
@@ -525,6 +544,7 @@
     }
 
     function renderizarHistorial() {
+        if(isVisitor) return;
         const filtro = document.getElementById('inputFiltro').value.toLowerCase();
         const corpo = document.getElementById('corpoHist');
         corpo.innerHTML = '';
@@ -558,6 +578,7 @@
     }
 
     function lancarMovimento() {
+        if(isVisitor) return alert("Ação Bloqueada: Utilizador Visitante.");
         const btn = document.getElementById('btn-confirmar-mov');
         const tipo = document.getElementById('mov_tipo').value;
         const qtd = parseFloat(document.getElementById('mov_qtd').value);
@@ -678,6 +699,7 @@
 
     function atualizarSelectOrdens() {
         const select = document.getElementById('mov_ordem_id');
+        if (!select) return;
         select.innerHTML = '<option value="">-- SELECIONE A OP ATIVA --</option>';
         for(let id in ordensGlobal) {
             select.innerHTML += `<option value="${id}">${id} - [${ordensGlobal[id].cod}] ${ordensGlobal[id].prod}</option>`;
@@ -694,7 +716,7 @@
     }
 
     function salvarProduto() {
-        if(!isAdmin) return;
+        if(!isAdmin || isVisitor) return;
         const cod = document.getElementById('cad_cod').value.toUpperCase().trim();
         const prod = document.getElementById('cad_prod').value.trim();
         const desc = document.getElementById('cad_desc').value.trim();
@@ -717,7 +739,7 @@
     }
 
     function carregarParaEditar(cod) {
-        if(!isAdmin) return;
+        if(!isAdmin || isVisitor) return;
         const p = produtosGlobal[cod];
         if(!p) return;
 
@@ -734,7 +756,7 @@
     }
 
     function salvarOrdem() {
-        if(!isAdmin) return;
+        if(!isAdmin || isVisitor) return;
         const id = document.getElementById('ord_id').value.toUpperCase().trim();
         const cod = document.getElementById('ord_cod').value.toUpperCase().trim();
         const prod = document.getElementById('ord_nome').value;
@@ -760,7 +782,7 @@
     }
 
     function reverterMov(id) {
-        if(!isAdmin) return;
+        if(!isAdmin || isVisitor) return;
         if(confirm("Tem certeza que deseja estornar este movimento? O saldo de stock será recalculado automaticamente.")) {
             db.ref(`movimentacoes/${id}`).remove()
                 .then(() => alert("Movimento removido com sucesso."))
@@ -769,7 +791,7 @@
     }
 
     function exportarCSV() {
-        if(Object.keys(movsGlobal).length === 0) return alert("Não existem dados para exportar.");
+        if(isVisitor || Object.keys(movsGlobal).length === 0) return alert("Não existem dados autorizados para exportar.");
         
         let csvContent = "\uFEFF"; 
         csvContent += "DATA;ORDEM/DOC;CODIGO;ARTIGO;TIPO;QUANTIDADE;PESO_UNIT;PESO_TOTAL;OPERADOR\r\n";
