@@ -185,7 +185,7 @@
             </div>
 
             <div class="chart-container" id="wrapper-grafico" style="display: none;">
-                <h4 style="margin: 0 0 15px 0; color: var(--primary); text-transform: uppercase; letter-spacing: 0.5px; font-size: 11px;">📊 Gráfico Comparativo: Meta Planeada vs. Production Realizada por OP</h4>
+                <h4 style="margin: 0 0 15px 0; color: var(--primary); text-transform: uppercase; letter-spacing: 0.5px; font-size: 11px;">📊 Gráfico Comparativo: Meta Planeada vs. Produção Realizada por OP</h4>
                 <div style="width: 100%; height: 320px; position: relative;">
                     <canvas id="executivoChart"></canvas>
                 </div>
@@ -337,7 +337,7 @@
     let ordensArquivadasGlobal = {};
     let movsGlobal = {};
     let saldosCache = {};
-    let meuGrafico = null;
+    let meuGrafico = null; // Instância do Chart.js
 
     // --- NAVEGAÇÃO DE ABAS ---
     function mudarAba(modo) {
@@ -354,9 +354,11 @@
             wrapperOperacoes.style.display = 'none';
             wrapperTabelas.style.display = 'none';
             
+            // Exibe os elementos adicionais da aba executiva
             novosCards.style.display = 'grid';
             wrapperGrafico.style.display = 'block';
             
+            // Força renderização do gráfico com dados atualizados
             setTimeout(renderizarGraficoExecutivo, 100);
         } else {
             btnIndicadores.classList.remove('active');
@@ -364,6 +366,7 @@
             wrapperOperacoes.style.display = 'block';
             wrapperTabelas.style.display = 'block';
             
+            // Oculta os complementos na visualização simples
             novosCards.style.display = 'none';
             wrapperGrafico.style.display = 'none';
             
@@ -508,6 +511,7 @@
 
         const listaParaRenderizar = (modoFiltro === 'ATIVAS') ? ordensGlobal : ordensArquivadasGlobal;
 
+        // --- CÁLCULOS DO DASHBOARD (REAL-TIME) ---
         let totalOpsAtivas = 0;
         let metaGlobalAtiva = 0;
         let realizadoGlobalAtivo = 0;
@@ -516,6 +520,7 @@
         let totalMassaKg = 0;
         let somaEficiencias = 0;
 
+        // Processa dados ativos
         for(let id in ordensGlobal) {
             totalOpsAtivas++;
             const metaOP = parseFloat(ordensGlobal[id].meta) || 0;
@@ -527,6 +532,7 @@
             somaEficiencias += metaOP > 0 ? Math.min(100, (realizadoOP / metaOP) * 100) : 0;
         }
 
+        // Processa dados históricos gerais para a aba executiva
         movs.forEach(m => {
             if(m.tipo === 'SAIDA') totalPecasSaidas += parseFloat(m.qtd || 0);
             totalMassaKg += parseFloat(m.peso_total || 0);
@@ -534,6 +540,7 @@
 
         let saldoTotalStock = Object.values(saldosCache).reduce((a,b) => a + b, 0);
 
+        // Atualização da Interface dos Cards Base
         document.getElementById('dash-total-ops').innerText = totalOpsAtivas;
         document.getElementById('dash-meta-pecas').innerHTML = `${metaGlobalAtiva} <span style="font-size:11px; font-weight:normal; color:#7f8c8d;">pçs</span>`;
         document.getElementById('dash-realizado-pecas').innerHTML = `${realizadoGlobalAtivo} <span style="font-size:11px; font-weight:normal; color:#7f8c8d;">pçs</span>`;
@@ -541,12 +548,14 @@
         const eficienciaGlobal = metaGlobalAtiva > 0 ? ((realizadoGlobalAtivo / metaGlobalAtiva) * 100).toFixed(1) : 0;
         document.getElementById('dash-eficiencia-global').innerText = `${eficienciaGlobal}%`;
 
+        // Atualização da Interface dos Cards Executivos Avançados
         document.getElementById('dash-total-saidas').innerHTML = `${totalPecasSaidas} <span style="font-size:11px; font-weight:normal; color:#7f8c8d;">pçs</span>`;
         document.getElementById('dash-saldo-total').innerHTML = `${saldoTotalStock} <span style="font-size:11px; font-weight:normal; color:#7f8c8d;">pçs</span>`;
         document.getElementById('dash-massa-total').innerHTML = `${totalMassaKg.toFixed(1)} <span style="font-size:11px; font-weight:normal; color:#7f8c8d;">kg</span>`;
         
         const mediaEficiencia = totalOpsAtivas > 0 ? (somaEficiencias / totalOpsAtivas).toFixed(1) : 0;
         document.getElementById('dash-media-conclusao').innerText = `${mediaEficiencia}%`;
+        // -------------------------------------------
 
         if(!corpo) return;
         corpo.innerHTML = '';
@@ -560,31 +569,257 @@
             let dataCriacao = '---';
             if(listaParaRenderizar[id].criadaEm) {
                 const d = new Date(listaParaRenderizar[id].criadaEm);
-                dataCriacao = isNaN(d.getTime()) ? '---' : d.toLocaleDateString('pt-PT');
+                dataCriacao = d.toLocaleString('pt-pt', { day: '2-digit', month: '2-digit', year: '2-digit', hour: '2-digit', minute:'2-digit' });
             }
-            
-            const badge = falta === 0 ? `<span class="badge-concluido">CONCLUÍDO</span>` : `<span class="badge-falta">FALTA ${falta} pçs</span>`;
+
+            const displayMetaFalta = falta === 0 
+                ? `<span class="badge-concluido">✔ CONCLUÍDO</span> <span style="color:#7f8c8d; font-size:11px;">/ ${meta}</span>` 
+                : `<span class="badge-falta">Falta: ${falta}</span> <span style="color:#7f8c8d; font-size:11px;">/ ${meta}</span>`;
 
             corpo.innerHTML += `<tr>
-                ${modoFiltro === 'ATIVAS' ? `<td style="text-align:center"><input type="checkbox" class="chk-op chk-arquivar" value="${id}"></td>` : ''}
-                <td>${dataCriacao}</td>
-                <td><b>${id}</b></td>
+                 ${(isAdmin && modoFiltro === 'ATIVAS') ? `<td style="text-align:center;"><input type="checkbox" class="chk-op" value="${id}"></td>` : (modoFiltro === 'ATIVAS' ? '' : '<td>📂</td>')}
+                <td><small style="color: #555;">${dataCriacao}</small></td>
+                <td style="color:${modoFiltro === 'ATIVAS' ? 'var(--done)' : '#7f8c8d'}; font-weight:bold">${id}</td>
                 <td>${listaParaRenderizar[id].cod}</td>
-                <td><span class="item-nome">${listaParaRenderizar[id].prod || 'Sem Nome'}</span></td>
-                <td>${badge} / <b>${meta}</b></td>
-                <td><b style="color:var(--success); font-size:14px">${realizado}</b></td>
+                <td><span class="item-nome" style="color:${modoFiltro === 'ATIVAS' ? 'var(--orange)' : '#7f8c8d'}">${listaParaRenderizar[id].prod || ''}</span></td>
+                <td>${displayMetaFalta}</td>
+                <td><b style="color:var(--done)">${realizado}</b></td>
                 <td>
-                    <div style="font-weight:bold; color: ${perc >= 100 ? 'var(--success)' : 'var(--orange)'}">${perc}%</div>
-                    <div style="width:100%; background:#eee; height:4px; border-radius:2px; margin-top:3px;">
-                        <div style="width:${perc}%; background:${perc >= 100 ? 'var(--success)' : 'var(--info)'}; height:4px; border-radius:2px;"></div>
+                    <div style="width:100%; background:#eee; height:8px; border-radius:4px; margin-top:5px">
+                        <div style="width:${perc}%; background:${modoFiltro === 'ATIVAS' ? 'var(--success)' : '#7f8c8d'}; height:100%; border-radius:4px"></div>
                     </div>
+                    <small>${perc}% concluído</small>
                 </td>
-                ${modoFiltro === 'ARQUIVADAS' && isAdmin ? `<td><button class="btn-del" onclick="reverterOrdemArquivada('${id}')">REATIVAR</button></td>` : ''}
+                 ${(isAdmin && modoFiltro === 'ARQUIVADAS') ? `<td><button class="btn-del" style="background:var(--danger); padding:4px 8px;" onclick="desarquivarOrdem('${id}')">REATIVAR</button></td>` : (modoFiltro === 'ARQUIVADAS' ? '<td>-</td>' : '')}
             </tr>`;
         }
     }
 
-    // --- FORMULÁRIOS E AUXILIARES ---
+    // --- ALGORITMO DO GRÁFICO DA ABA EXECUTIVA (CHART.JS) ---
+    function renderizarGraficoExecutivo() {
+        const ctx = document.getElementById('executivoChart');
+        if(!ctx) return;
+
+        const labelsOPs = [];
+        const dadosMetas = [];
+        const dadosRealizados = [];
+        const movs = Object.values(movsGlobal);
+
+        // Extrai dados das OPs ativas para plotagem
+        for (let id in ordensGlobal) {
+            labelsOPs.push(`OP ${id}`);
+            dadosMetas.push(parseFloat(ordensGlobal[id].meta) || 0);
+            
+            const realizado = movs.filter(h => h.ordem === id && h.tipo === 'ENTRADA').reduce((a, b) => a + parseFloat(b.qtd || 0), 0);
+            dadosRealizados.push(realizado);
+        }
+
+        // Se o gráfico já existir, destrói para redesenhar sem duplicar cache
+        if (meuGrafico) {
+            meuGrafico.destroy();
+        }
+
+        meuGrafico = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: labelsOPs,
+                datasets: [
+                    {
+                        label: 'Produção Realizada (pçs)',
+                        data: dadosRealizados,
+                        backgroundColor: 'rgba(39, 174, 96, 0.85)',
+                        borderColor: '#27ae60',
+                        borderWidth: 1,
+                        borderRadius: 4,
+                        order: 2
+                    },
+                    {
+                        label: 'Meta Planeada (pçs)',
+                        data: dadosMetas,
+                        type: 'line',
+                        borderColor: '#e67e22',
+                        borderWidth: 3,
+                        pointBackgroundColor: '#d35400',
+                        fill: false,
+                        tension: 0.1,
+                        order: 1
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'top', labels: { boxWidth: 12, font: { size: 11 } } }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: { color: '#f1f2f6' },
+                        ticks: { font: { size: 10 } }
+                    },
+                    x: {
+                        grid: { display: false },
+                        ticks: { font: { size: 10, weight: 'bold' } }
+                    }
+                }
+            }
+        });
+    }
+
+    function marcarTodasAsOps(marca) {
+        document.querySelectorAll('.chk-op').forEach(checkbox => checkbox.checked = marca);
+    }
+
+    function abrirHistorico() { document.getElementById('modal-historico').style.display = 'block'; document.getElementById('inputFiltro').focus(); }
+    function fecharHistorico() { document.getElementById('modal-historico').style.display = 'none'; }
+    
+    function arquivarOrdensMarcadas() {
+        if(!isAdmin) return;
+        const selecionados = Array.from(document.querySelectorAll('.chk-op:checked')).map(cb => cb.value);
+
+        if(selecionados.length === 0) return alert("Por favor, marque pelo menos uma Ordem de Produção.");
+
+        if(confirm(`Confirma o arquivamento de ${selecionados.length} Ordem(ns) de Produção selecionada(s)?`)) {
+            let atualizacoes = {};
+            selecionados.forEach(id => {
+                const opDados = ordensGlobal[id];
+                if(opDados) {
+                    opDados.arquivadaEm = new Date().toISOString();
+                    atualizacoes[`ordens_arquivadas/${id}`] = opDados;
+                    atualizacoes[`ordens/${id}`] = null;
+                }
+            });
+            db.ref().update(atualizacoes).then(() => {
+                alert("Ordens movidas para o histórico com sucesso!");
+            }).catch(() => alert("Erro ao tentar processar o arquivamento."));
+        }
+    }
+
+    function desarquivarOrdem(id) {
+        if(!isAdmin) return;
+        const opDados = ordensArquivadasGlobal[id];
+        if(!opDados) return alert("Dados da Ordem não localizados.");
+
+        if(confirm(`Deseja reativar a OP ${id}? Ela retornará para a monitorização activa.`)) {
+            let atualizacoes = {};
+            if(opDados.arquivadaEm) delete opDados.arquivadaEm;
+            atualizacoes[`ordens/${id}`] = opDados;
+            atualizacoes[`ordens_arquivadas/${id}`] = null;
+
+            db.ref().update(atualizacoes).then(() => {
+                alert(`OP ${id} reativada com sucesso!`);
+            }).catch(() => alert("Erro ao tentar desarquivar a OP."));
+        }
+    }
+
+    function renderizarHistorial() {
+        const filtro = document.getElementById('inputFiltro').value.toLowerCase();
+        const corpo = document.getElementById('corpoHist');
+        if(!corpo) return;
+        corpo.innerHTML = '';
+        let tCount = 0, tQtd = 0, tPeso = 0;
+
+        const movsArray = Object.entries(movsGlobal).sort((a,b) => (b[1].dataISO || '').localeCompare(a[1].dataISO || ''));
+
+        movsArray.forEach(([id, h]) => {
+            if(JSON.stringify(h).toLowerCase().includes(filtro)) {
+                const q = parseFloat(h.qtd) || 0;
+                const pt = parseFloat(h.peso_total) || 0;
+                tCount++; tQtd += q; tPeso += pt;
+
+                corpo.innerHTML += `<tr>
+                    <td><small>${h.data || ''}</small></td>
+                    <td style="color:var(--info); font-weight:bold">${h.ordem || 'SAÍDA'}</td>
+                    <td>${h.cod || ''}</td>
+                    <td><span class="item-nome" style="font-size:11px">${h.prod || ''}</span></td>
+                    <td><small style="color:${h.tipo === 'ENTRADA'? 'green':'red'}">${h.tipo || ''}</small></td>
+                    <td><b>${q}</b></td>
+                    <td>${h.peso_unit || 0}</td>
+                    <td style="background:#f9f9f9"><b>${pt.toFixed(3)}</b></td>
+                    <td><small>${h.ope ? h.ope.split('@')[0] : '---'}</small></td>
+                    <td>${isAdmin ? `<button class="btn-del" onclick="reverterMov('${id}')">REV</button>` : ''}</td>
+                </tr>`;
+            }
+        });
+        document.getElementById('soma-count').innerText = tCount;
+        document.getElementById('soma-qtd').innerText = tQtd;
+        document.getElementById('soma-peso').innerText = tPeso.toFixed(3);
+    }
+
+    function lancarMovimento() {
+        const btn = document.getElementById('btn-confirmar-mov');
+        const tipo = document.getElementById('mov_tipo').value;
+        const qtd = parseFloat(document.getElementById('mov_qtd').value);
+
+        if(isNaN(qtd) || qtd <= 0) return alert("Quantidade Inválida!");
+
+        let cod = "";
+        let ofId = "";
+
+        if(tipo === 'ENTRADA') {
+            ofId = document.getElementById('mov_ordem_id').value;
+            if(!ofId || !ordensGlobal[ofId]) return alert("Selecione uma Ordem de Produção válida!");
+
+            const meta = parseFloat(ordensGlobal[ofId].meta) || 0;
+            const realizado = Object.values(movsGlobal).filter(h => h.ordem === ofId && h.tipo === 'ENTRADA').reduce((a, b) => a + parseFloat(b.qtd || 0), 0);
+            if(realizado + qtd > meta) return alert(`BLOQUEIO: Quantidade excede a meta da OP (Restante: ${meta - realizado})`);
+
+            cod = ordensGlobal[ofId].cod;
+        } else {
+            cod = document.getElementById('mov_cod').value.toUpperCase().trim();
+            if(!cod || !produtosGlobal[cod]) return alert("Insira um Código de Artigo válido!");
+            
+            const saldoAtual = saldosCache[cod] || 0;
+            if(qtd > saldoAtual) return alert(`BLOQUEIO: Stock insuficiente. Disponível: ${saldoAtual}`);
+        }
+
+        const prodDados = produtosGlobal[cod];
+        const pesoUnit = parseFloat(prodDados.peso) || 0;
+        const pesoTotal = pesoUnit * qtd;
+
+        btn.disabled = true;
+        btn.innerText = "A PROCESSAR...";
+
+        const novaMov = {
+            data: new Date().toLocaleString('pt-pt'),
+            dataISO: new Date().toISOString(),
+            ordem: ofId || "SAÍDA-INTERNA",
+            cod: cod,
+            prod: prodDados.prod || "Sem Nome",
+            tipo: tipo,
+            qtd: qtd,
+            peso_unit: pesoUnit,
+            peso_total: pesoTotal,
+            ope: userEmail
+        };
+
+        db.ref('movimentacoes').push(novaMov)
+            .then(() => {
+                alert("Movimento registado com sucesso!");
+                document.getElementById('mov_qtd').value = "";
+                document.getElementById('display_peso_total').innerText = "0.000";
+                if(tipo === 'SAIDA') {
+                    document.getElementById('mov_cod').value = "";
+                    document.getElementById('mov_cod').focus();
+                }
+            })
+            .catch(() => alert("Erro ao gravar movimento."))
+            .finally(() => {
+                btn.disabled = false;
+                btn.innerText = "Confirmar Registo";
+            });
+    }
+
+    function reverterMov(id) {
+        if(!isAdmin) return;
+        if(confirm("Deseja eliminar este movimento do histórico?")) {
+            db.ref(`movimentacoes/${id}`).remove()
+                .then(() => alert("Movimento removido com sucesso!"))
+                .catch(() => alert("Erro ao remover movimento."));
+        }
+    }
+
     function alternarFormAdmin() {
         const modo = document.getElementById('admin_modo').value;
         document.getElementById('form-prod').style.display = modo === 'PROD' ? 'block' : 'none';
@@ -596,60 +831,72 @@
         document.getElementById('campos-entrada').style.display = tipo === 'ENTRADA' ? 'block' : 'none';
         document.getElementById('campos-saida').style.display = tipo === 'SAIDA' ? 'block' : 'none';
         
-        document.getElementById('nome_prod').value = '';
-        document.getElementById('desc_prod').value = '';
-        document.getElementById('mov_peso_unit').value = '';
-        document.getElementById('mov_qtd').value = '';
-        document.getElementById('display_peso_total').innerText = '0.000';
+        document.getElementById('nome_prod').value = "";
+        document.getElementById('desc_prod').value = "";
+        document.getElementById('mov_peso_unit').value = "";
+        document.getElementById('mov_qtd').value = "";
+        document.getElementById('display_peso_total').innerText = "0.000";
+        
+        if(tipo === 'SAIDA') document.getElementById('mov_cod').focus();
+        else preencherPelaOrdem();
     }
 
     function verificarExistencia(cod) {
-        if(!cod) return;
-        const p = produtosGlobal[cod.toUpperCase().trim()];
-        if(p) {
-            document.getElementById('cad_prod').value = p.prod || '';
-            document.getElementById('cad_desc').value = p.desc || '';
-            document.getElementById('cad_peso').value = p.peso || '';
-            document.getElementById('cad_min').value = p.min || '';
+        const c = cod.toUpperCase().trim();
+        if(produtosGlobal[c]) {
+            const p = produtosGlobal[c];
+            document.getElementById('cad_prod').value = p.prod || "";
+            document.getElementById('cad_desc').value = p.desc || "";
+            document.getElementById('cad_peso').value = p.peso || "";
+            document.getElementById('cad_min').value = p.min || "";
         }
     }
 
-    function procv(cod, idDestino) {
-        if(!cod) return;
-        const p = produtosGlobal[cod.toUpperCase().trim()];
-        if(p) {
-            document.getElementById(idDestino).value = p.prod || '';
-            document.getElementById('desc_prod').value = p.desc || '';
-            document.getElementById('mov_peso_unit').value = p.peso || '0';
-            calcularPesoDinamico();
-        } else {
-            document.getElementById(idDestino).value = '';
-            document.getElementById('desc_prod').value = '';
-            document.getElementById('mov_peso_unit').value = '';
-        }
+    function carregarParaEditar(cod) {
+        document.getElementById('admin_modo').value = 'PROD';
+        alternarFormAdmin();
+        document.getElementById('cad_cod').value = cod;
+        verificarExistencia(cod);
+        document.getElementById('panel-admin').scrollIntoView({ behavior: 'smooth' });
     }
 
-    function preencherPelaOrdem() {
-        const idOrdem = document.getElementById('mov_ordem_id').value;
-        if(!idOrdem) return;
-        const o = ordensGlobal[idOrdem];
-        if(o) {
-            document.getElementById('nome_prod').value = o.prod || '';
-            const p = produtosGlobal[o.cod];
-            if(p) {
-                document.getElementById('desc_prod').value = p.desc || '';
-                document.getElementById('mov_peso_unit').value = p.peso || '0';
+    function procv(cod, targetId) {
+        const c = cod.toUpperCase().trim();
+        if(produtosGlobal[c]) {
+            document.getElementById(targetId).value = produtosGlobal[c].prod || "";
+            if(targetId === 'nome_prod') {
+                document.getElementById('desc_prod').value = produtosGlobal[c].desc || "";
+                document.getElementById('mov_peso_unit').value = produtosGlobal[c].peso || "0";
+                calcularPesoDinamico();
             }
-            calcularPesoDinamico();
+        } else {
+            document.getElementById(targetId).value = "";
+            if(targetId === 'nome_prod') {
+                document.getElementById('desc_prod').value = "";
+                document.getElementById('mov_peso_unit').value = "";
+            }
         }
     }
 
     function atualizarSelectOrdens() {
         const select = document.getElementById('mov_ordem_id');
         if(!select) return;
-        select.innerHTML = '<option value="">-- SELECIONE A ORDEM ATIVA --</option>';
+        select.innerHTML = '<option value="">-- SELECIONE UMA OP ATIVA --</option>';
         for(let id in ordensGlobal) {
-            select.innerHTML += `<option value="${id}">${id} - ${ordensGlobal[id].prod} (Meta: ${ordensGlobal[id].meta})</option>`;
+            select.innerHTML += `<option value="${id}">${id} - ${ordensGlobal[id].prod} (${ordensGlobal[id].cod})</option>`;
+        }
+        preencherPelaOrdem();
+    }
+
+    function preencherPelaOrdem() {
+        const opId = document.getElementById('mov_ordem_id').value;
+        if(opId && ordensGlobal[opId]) {
+            const cod = ordensGlobal[opId].cod;
+            procv(cod, 'nome_prod');
+        } else {
+            document.getElementById('nome_prod').value = "";
+            document.getElementById('desc_prod').value = "";
+            document.getElementById('mov_peso_unit').value = "";
         }
     }
 
@@ -659,233 +906,62 @@
         document.getElementById('display_peso_total').innerText = (qtd * unit).toFixed(3);
     }
 
-    // --- INTERAÇÕES DA BASE DE DADOS (CRUD) ---
     function salvarProduto() {
+        if(!isAdmin) return;
         const cod = document.getElementById('cad_cod').value.toUpperCase().trim();
         const prod = document.getElementById('cad_prod').value.trim();
         const desc = document.getElementById('cad_desc').value.trim();
         const peso = parseFloat(document.getElementById('cad_peso').value) || 0;
         const min = parseInt(document.getElementById('cad_min').value) || 0;
 
-        if(!cod || !prod) return alert("Código e Nome Comercial são obrigatórios.");
+        if(!cod || !prod) return alert("Código e Nome são obrigatórios!");
+        const dados = { prod, desc, peso, min };
 
-        db.ref('produtos/' + cod).set({ prod, desc, peso, min })
+        db.ref(`produtos/${cod}`).set(dados)
             .then(() => {
-                alert("Artigo salvo!");
-                ['cad_cod','cad_prod','cad_desc','cad_peso','cad_min'].forEach(id => document.getElementById(id).value = '');
+                alert("Artigo guardado!");
+                document.getElementById('form-prod').querySelectorAll('input').forEach(i => i.value = "");
             });
     }
 
-    function carregarParaEditar(cod) {
-        document.getElementById('admin_modo').value = 'PROD';
-        alternarFormAdmin();
-        document.getElementById('cad_cod').value = cod;
-        verificarExistencia(cod);
-    }
-
     function salvarOrdem() {
+        if(!isAdmin) return;
         const id = document.getElementById('ord_id').value.toUpperCase().trim();
         const cod = document.getElementById('ord_cod').value.toUpperCase().trim();
         const prod = document.getElementById('ord_nome').value;
         const meta = parseInt(document.getElementById('ord_meta').value) || 0;
 
-        if(!id || !cod || meta <= 0 || !prod) return alert("Valide todos os campos da Ordem.");
+        if(!id || !cod || meta <= 0) return alert("Campos obrigatórios ausentes!");
+        if(!produtosGlobal[cod]) return alert("Código inexistente!");
 
-        db.ref('ordens/' + id).set({
-            cod, prod, meta,
-            criadaEm: firebase.database.ServerValue.TIMESTAMP,
-            operador: userEmail
-        }).then(() => {
-            alert("Ordem lançada com sucesso!");
-            ['ord_id','ord_cod','ord_nome','ord_meta'].forEach(id => document.getElementById(id).value = '');
-        });
-    }
+        const novaOp = { cod, prod, meta, criadaEm: new Date().toISOString() };
 
-    function lancarMovimento() {
-        const tipo = document.getElementById('mov_tipo').value;
-        const qtd = parseInt(document.getElementById('mov_qtd').value) || 0;
-        const peso_unit = parseFloat(document.getElementById('mov_peso_unit').value) || 0;
-        
-        if(qtd <= 0) return alert("Insira uma quantidade válida.");
-
-        let cod = "", ordem = "", prod = "";
-
-        if(tipo === 'ENTRADA') {
-            ordem = document.getElementById('mov_ordem_id').value;
-            if(!ordem) return alert("Selecione a Ordem de Produção.");
-            cod = ordensGlobal[ordem].cod;
-            prod = ordensGlobal[ordem].prod;
-        } else {
-            cod = document.getElementById('mov_cod').value.toUpperCase().trim();
-            if(!cod || !produtosGlobal[cod]) return alert("Artigo inválido.");
-            prod = produtosGlobal[cod].prod;
-            ordem = "CONSUMO_SAIDA";
-        }
-
-        const novoMov = {
-            dataISO: new Date().toISOString(),
-            tipo, cod, prod, qtd, ordem, peso_unit,
-            peso_total: qtd * peso_unit,
-            operador: userEmail
-        };
-
-        db.ref('movimentacoes').push(novoMov).then(() => {
-            alert("Movimentação registada!");
-            document.getElementById('mov_qtd').value = '';
-            document.getElementById('mov_cod').value = '';
-            document.getElementById('display_peso_total').innerText = '0.000';
-        });
-    }
-
-    // --- GESTÃO DE ARQUIVO ---
-    function marcarTodasAsOps(status) {
-        const chks = document.querySelectorAll('.chk-arquivar');
-        chks.forEach(c => c.checked = status);
-    }
-
-    function arquivarOrdensMarcadas() {
-        const marcados = document.querySelectorAll('.chk-arquivar:checked');
-        if(marcados.length === 0) return alert("Nenhuma ordem selecionada.");
-
-        if(confirm(`Deseja arquivar as ${marcados.length} ordens selecionadas?`)) {
-            marcados.forEach(c => {
-                const id = c.value;
-                const o = ordensGlobal[id];
-                if(o) {
-                    db.ref('ordens_arquivadas/' + id).set(o).then(() => {
-                        db.ref('ordens/' + id).remove();
-                    });
-                }
+        db.ref(`ordens/${id}`).set(novaOp)
+            .then(() => {
+                alert(`OP ${id} lançada!`);
+                document.getElementById('form-ordem').querySelectorAll('input').forEach(i => i.value = "");
             });
-            document.getElementById('chk-marcar-todas').checked = false;
-        }
-    }
-
-    function reverterOrdemArquivada(id) {
-        const o = ordensArquivadasGlobal[id];
-        if(o && confirm("Reativar esta Ordem de Produção?")) {
-            db.ref('ordens/' + id).set(o).then(() => {
-                db.ref('ordens_arquivadas/' + id).remove();
-            });
-        }
-    }
-
-    // --- MODAL & HISTÓRICO ---
-    function abrirHistorico() { document.getElementById('modal-historico').style.display = 'block'; renderizarHistorial(); }
-    function fecharHistorico() { document.getElementById('modal-historico').style.display = 'none'; }
-
-    function renderizarHistorial() {
-        const corpo = document.getElementById('corpoHist');
-        if(!corpo) return;
-        corpo.innerHTML = '';
-
-        const filtro = document.getElementById('inputFiltro').value.toLowerCase();
-        const lista = Object.entries(movsGlobal).reverse();
-
-        let cCount = 0, cQtd = 0, cPeso = 0;
-
-        lista.forEach(([id, h]) => {
-            const dataString = h.dataISO ? new Date(h.dataISO).toLocaleString('pt-PT') : '---';
-            const termo = `${h.cod} ${h.prod} ${h.ordem} ${h.operador} ${h.tipo}`.toLowerCase();
-            
-            if(filtro && !termo.includes(filtro)) return;
-
-            cCount++;
-            cQtd += parseFloat(h.qtd || 0);
-            cPeso += parseFloat(h.peso_total || 0);
-
-            corpo.innerHTML += `<tr>
-                <td>${dataString}</td>
-                <td><b>${h.ordem}</b></td>
-                <td>${h.cod}</td>
-                <td>${h.prod}</td>
-                <td><b style="color:${h.tipo === 'ENTRADA' ? 'var(--success)' : 'var(--danger)'}">${h.tipo}</b></td>
-                <td><b>${h.qtd}</b></td>
-                <td>${h.peso_unit}</td>
-                <td>${parseFloat(h.peso_total || 0).toFixed(2)}</td>
-                <td style="font-size:10px; color:#7f8c8d">${h.operador || '---'}</td>
-                <td>${isAdmin ? `<button class="btn-del" style="padding:3px 6px" onclick="eliminarMovimento('${id}')">&times;</button>` : ''}</td>
-            </tr>`;
-        });
-
-        document.getElementById('soma-count').innerText = cCount;
-        document.getElementById('soma-qtd').innerText = cQtd;
-        document.getElementById('soma-peso').innerText = cPeso.toFixed(1);
-    }
-
-    function eliminarMovimento(id) {
-        if(confirm("Eliminar permanentemente este movimento técnico? Isto alterará os stocks.")) {
-            db.ref('movimentacoes/' + id).remove();
-        }
     }
 
     function exportarCSV() {
-        let csv = 'DATA;OP;CODIGO;ARTIGO;TIPO;QUANTIDADE;PESO_UNIT;TOTAL_KG;OPERADOR\n';
-        Object.values(movsGlobal).reverse().forEach(h => {
-            const data = h.dataISO ? new Date(h.dataISO).toLocaleString('pt-PT') : '---';
-            csv += `${data};${h.ordem};${h.cod};${h.prod};${h.tipo};${h.qtd};${h.peso_unit};${h.peso_total};${h.operador}\n`;
+        let csv = '\uFEFFDATA;DOC_OP;CODIGO;ARTIGO;TIPO;QUANTIDADE;PESO_UNIT;PESO_TOTAL;OPERADOR\n';
+        const filtro = document.getElementById('inputFiltro').value.toLowerCase();
+        const movsArray = Object.values(movsGlobal).sort((a,b) => (b.dataISO || '').localeCompare(a.dataISO || ''));
+
+        movsArray.forEach(h => {
+            if(JSON.stringify(h).toLowerCase().includes(filtro)) {
+                let linha = [ `"${h.data || ''}"`, `"${h.ordem || 'SAÍDA'}"`, `"${h.cod || ''}"`, `"${(h.prod || '').replace(/"/g, '""')}"`, `"${h.tipo || ''}"`, h.qtd || 0, h.peso_unit || 0, h.peso_total || 0, `"${h.ope ? h.ope.split('@')[0] : '---'}"` ];
+                csv += linha.join(';') + '\n';
+            }
         });
+
         const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
         const link = document.createElement("a");
         link.href = URL.createObjectURL(blob);
-        link.setAttribute("download", `Historico_SemiAcabado_I9_${new Date().toISOString().slice(0,10)}.csv`);
+        link.setAttribute("download", `historico_${new Date().toISOString().split('T')[0]}.csv`);
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
-    }
-
-    // --- GRÁFICO EXECUTIVO (CHART.JS) ---
-    function renderizarGraficoExecutivo() {
-        const ctx = document.getElementById('executivoChart');
-        if(!ctx) return;
-
-        const labels = [];
-        const dadosMetas = [];
-        const dadosRealizados = [];
-
-        const movs = Object.values(movsGlobal);
-
-        for(let id in ordensGlobal) {
-            labels.push(id);
-            dadosMetas.push(parseFloat(ordensGlobal[id].meta) || 0);
-            
-            const realizado = movs.filter(h => h.ordem === id && h.tipo === 'ENTRADA').reduce((a, b) => a + parseFloat(b.qtd || 0), 0);
-            dadosRealizados.push(realizado);
-        }
-
-        if(meuGrafico) meuGrafico.destroy();
-
-        meuGrafico = new Chart(ctx, {
-            type: 'bar',
-            data: {
-                labels: labels,
-                datasets: [
-                    {
-                        label: 'Meta Planeada',
-                        data: dadosMetas,
-                        backgroundColor: '#e67e22',
-                        borderRadius: 4
-                    },
-                    {
-                        label: 'Produção Realizada',
-                        data: dadosRealizados,
-                        backgroundColor: '#27ae60',
-                        borderRadius: 4
-                    }
-                ]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: { position: 'top', labels: { font: { size: 11 } } }
-                },
-                scales: {
-                    y: { beginAtZero: true, grid: { color: '#f1f2f6' } },
-                    x: { grid: { display: false } }
-                }
-            }
-        });
     }
 </script>
 </body>
