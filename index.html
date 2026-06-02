@@ -30,6 +30,17 @@
         .status-online { background: var(--success); }
         .status-offline { background: var(--danger); }
 
+        /* Dashboard Global */
+        .dash-container { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-bottom: 25px; }
+        .dash-card { background: white; padding: 15px 20px; border-radius: 8px; border: 1px solid var(--border); box-shadow: 0 2px 4px rgba(0,0,0,0.02); border-bottom: 4px solid #ccd1d1; transition: transform 0.2s; }
+        .dash-card:hover { transform: translateY(-2px); }
+        .dash-card.dash-active { border-bottom-color: var(--info); }
+        .dash-card.dash-meta { border-bottom-color: var(--orange); }
+        .dash-card.dash-prod { border-bottom-color: var(--success); }
+        .dash-card.dash-efet { border-bottom-color: var(--done); }
+        .dash-title { font-size: 10px; color: #7f8c8d; font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px; }
+        .dash-value { font-size: 22px; font-weight: bold; color: var(--primary); margin: 5px 0 0 0; }
+
         /* Cards & Tables */
         .card { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 25px; border: 1px solid var(--border); }
         .section-header { border-left: 5px solid var(--info); padding-left: 15px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; gap: 15px; }
@@ -57,15 +68,14 @@
         .btn-secondary { background: #95a5a6; color: white; padding: 8px 15px; border-radius: 4px; border:none; cursor: pointer; font-size: 11px; white-space: nowrap; }
 
         .flex-row { display: grid; grid-template-columns: 1fr 1fr; gap: 25px; }
-        @media (max-width: 900px) {.flex-row { grid-template-columns: 1fr; } }
-
+        
         /* Checkbox Customization */
         .chk-op { transform: scale(1.2); cursor: pointer; margin: 0 auto; display: block; }
         
         /* Select de Filtro */
         .select-filtro-tabela { width: auto; min-width: 200px; padding: 8px; margin: 0; font-weight: bold; border: 2px solid var(--info); }
 
-        /* Badge dinâmica para falta */
+        /* Badges */
         .badge-falta { background: #fff3cd; color: #856404; padding: 3px 6px; border-radius: 4px; font-weight: bold; font-size: 11px; }
         .badge-concluido { background: #d4edda; color: #155724; padding: 3px 6px; border-radius: 4px; font-weight: bold; font-size: 11px; }
 
@@ -76,6 +86,14 @@
         .resumo-black { background: var(--dark-card); color: white; padding: 25px; border-radius: 10px; display: flex; justify-content: space-around; margin-bottom: 25px; border-bottom: 4px solid var(--info); }
 
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        
+        @media (max-width: 900px) {
+            .flex-row { grid-template-columns: 1fr; }
+            .dash-container { grid-template-columns: repeat(2, 1fr); }
+        }
+        @media (max-width: 500px) {
+            .dash-container { grid-template-columns: 1fr; }
+        }
     </style>
 </head>
 <body>
@@ -104,6 +122,26 @@
         <button onclick="abrirHistorico()" style="background: white; color: var(--primary); padding:18px; width:100%; border: 2px solid var(--primary); margin-bottom:25px; font-weight:bold; cursor:pointer; border-radius:10px; display: flex; justify-content: center; align-items: center; gap: 12px; transition: 0.3s;">
             <span>🕒</span> CONSULTAR HISTÓRICO E MOVIMENTAÇÕES TÉCNICAS
         </button>
+
+        <!-- DASHBOARD DE INDICADORES (OPS ATIVAS) -->
+        <div class="dash-container">
+            <div class="dash-card dash-active">
+                <div class="dash-title">🟢 OPs em Monitorização</div>
+                <div class="dash-value" id="dash-total-ops">0</div>
+            </div>
+            <div class="dash-card dash-meta">
+                <div class="dash-title">🎯 Meta Global Acumulada</div>
+                <div class="dash-value" id="dash-meta-pecas">0 <span style="font-size:11px; font-weight:normal; color:#7f8c8d;">pçs</span></div>
+            </div>
+            <div class="dash-card dash-prod">
+                <div class="dash-title">🏭 Total Semi-Acabado Produzido</div>
+                <div class="dash-value" id="dash-realizado-pecas">0 <span style="font-size:11px; font-weight:normal; color:#7f8c8d;">pçs</span></div>
+            </div>
+            <div class="dash-card dash-efet">
+                <div class="dash-title">📊 Eficiência Total Ativa</div>
+                <div class="dash-value" id="dash-eficiencia-global">0%</div>
+            </div>
+        </div>
 
         <div class="flex-row">
             <div id="panel-admin" class="card" style="display:none; border-top: 4px solid var(--danger);">
@@ -384,6 +422,25 @@
 
         const listaParaRenderizar = (modoFiltro === 'ATIVAS') ? ordensGlobal : ordensArquivadasGlobal;
 
+        // --- CÁLCULOS DO DASHBOARD EM TEMPO REAL ---
+        let totalOpsAtivas = 0;
+        let metaGlobalAtiva = 0;
+        let realizadoGlobalAtivo = 0;
+
+        for(let id in ordensGlobal) {
+            totalOpsAtivas++;
+            metaGlobalAtiva += parseFloat(ordensGlobal[id].meta) || 0;
+            realizadoGlobalAtivo += movs.filter(h => h.ordem === id).reduce((a, b) => a + parseFloat(b.qtd || 0), 0);
+        }
+
+        document.getElementById('dash-total-ops').innerText = totalOpsAtivas;
+        document.getElementById('dash-meta-pecas').innerHTML = `${metaGlobalAtiva} <span style="font-size:11px; font-weight:normal; color:#7f8c8d;">pçs</span>`;
+        document.getElementById('dash-realizado-pecas').innerHTML = `${realizadoGlobalAtivo} <span style="font-size:11px; font-weight:normal; color:#7f8c8d;">pçs</span>`;
+        
+        const eficienciaGlobal = metaGlobalAtiva > 0 ? ((realizadoGlobalAtivo / metaGlobalAtiva) * 100).toFixed(1) : 0;
+        document.getElementById('dash-eficiencia-global').innerText = `${eficienciaGlobal}%`;
+        // -------------------------------------------
+
         for(let id in listaParaRenderizar) {
             const realizado = movs.filter(h => h.ordem === id).reduce((a, b) => a + parseFloat(b.qtd || 0), 0);
             const meta = parseFloat(listaParaRenderizar[id].meta) || 1;
@@ -396,13 +453,12 @@
                 dataCriacao = d.toLocaleString('pt-pt', { day: '2-digit', month: '2-digit', year: '2-digit', hour: '2-digit', minute:'2-digit' });
             }
 
-            // Exibe badge de concluído ou o valor pendente
             const displayMetaFalta = falta === 0 
                 ? `<span class="badge-concluido">✔ CONCLUÍDO</span> <span style="color:#7f8c8d; font-size:11px;">/ ${meta}</span>` 
                 : `<span class="badge-falta">Falta: ${falta}</span> <span style="color:#7f8c8d; font-size:11px;">/ ${meta}</span>`;
 
             corpo.innerHTML += `<tr>
-                ${(isAdmin && modoFiltro === 'ATIVAS') ? `<td style="text-align:center;"><input type="checkbox" class="chk-op" value="${id}"></td>` : (modoFiltro === 'ATIVAS' ? '' : '<td>📂</td>')}
+                 ${(isAdmin && modoFiltro === 'ATIVAS') ? `<td style="text-align:center;"><input type="checkbox" class="chk-op" value="${id}"></td>` : (modoFiltro === 'ATIVAS' ? '' : '<td>📂</td>')}
                 <td><small style="color: #555;">${dataCriacao}</small></td>
                 <td style="color:${modoFiltro === 'ATIVAS' ? 'var(--done)' : '#7f8c8d'}; font-weight:bold">${id}</td>
                 <td>${listaParaRenderizar[id].cod}</td>
@@ -415,7 +471,7 @@
                     </div>
                     <small>${perc}% concluído</small>
                 </td>
-                ${(isAdmin && modoFiltro === 'ARQUIVADAS') ? `<td><button class="btn-del" style="background:var(--danger); padding:4px 8px;" onclick="desarquivarOrdem('${id}')">REATIVAR</button></td>` : (modoFiltro === 'ARQUIVADAS' ? '<td>-</td>' : '')}
+                 ${(isAdmin && modoFiltro === 'ARQUIVADAS') ? `<td><button class="btn-del" style="background:var(--danger); padding:4px 8px;" onclick="desarquivarOrdem('${id}')">REATIVAR</button></td>` : (modoFiltro === 'ARQUIVADAS' ? '<td>-</td>' : '')}
             </tr>`;
         }
     }
@@ -606,102 +662,146 @@
         document.getElementById('campos-entrada').style.display = t === 'ENTRADA'? 'block' : 'none';
         document.getElementById('campos-saida').style.display = t === 'SAIDA'? 'block' : 'none';
         resetCamposMov();
-        if(t === 'SAIDA') setTimeout(() => document.getElementById('mov_cod').focus(), 100);
+        if(t === 'SAIDA') {
+            setTimeout(() => document.getElementById('mov_cod').focus(), 50);
+        }
     }
 
     function resetCamposMov() {
-        ["mov_qtd", "mov_cod", "nome_prod", "desc_prod", "mov_peso_unit"].forEach(id => {
-            if(document.getElementById(id)) document.getElementById(id).value = "";
-        });
+        document.getElementById('mov_cod').value = "";
+        document.getElementById('nome_prod').value = "";
+        document.getElementById('desc_prod').value = "";
+        document.getElementById('mov_qtd').value = "";
+        document.getElementById('mov_peso_unit').value = "";
         document.getElementById('display_peso_total').innerText = "0.000";
     }
 
-    function salvarProduto() {
-        if(!isAdmin) return alert("Sem permissão administrativa");
-        const c = document.getElementById('cad_cod').value.toUpperCase().trim();
-        const nome = document.getElementById('cad_prod').value.trim();
-        if(!c || !nome) return alert("Código Único e Nome Comercial são obrigatórios!");
+    function atualizarSelectOrdens() {
+        const select = document.getElementById('mov_ordem_id');
+        select.innerHTML = '<option value="">-- SELECIONE A OP ATIVA --</option>';
+        for(let id in ordensGlobal) {
+            select.innerHTML += `<option value="${id}">${id} - [${ordensGlobal[id].cod}] ${ordensGlobal[id].prod}</option>`;
+        }
+    }
 
-        db.ref('produtos/'+c).set({
-            prod: nome,
-            desc: document.getElementById('cad_desc').value.trim(),
-            peso: parseFloat(document.getElementById('cad_peso').value) || 0,
-            min: parseInt(document.getElementById('cad_min').value) || 0
-        }).then(() => {
-            alert("Artigo Atualizado!");
-            ["cad_cod", "cad_prod", "cad_desc", "cad_peso", "cad_min"].forEach(id => document.getElementById(id).value = "");
-        });
+    function verificarExistencia(cod) {
+        const c = cod.toUpperCase().trim();
+        if(produtosGlobal[c]) {
+            document.getElementById('cad_cod').style.background = "#fff3cd";
+        } else {
+            document.getElementById('cad_cod').style.background = "";
+        }
+    }
+
+    function salvarProduto() {
+        if(!isAdmin) return;
+        const cod = document.getElementById('cad_cod').value.toUpperCase().trim();
+        const prod = document.getElementById('cad_prod').value.trim();
+        const desc = document.getElementById('cad_desc').value.trim();
+        const peso = parseFloat(document.getElementById('cad_peso').value) || 0;
+        const min = parseInt(document.getElementById('cad_min').value) || 0;
+
+        if(!cod || !prod) return alert("Código e Nome Comercial são campos obrigatórios!");
+
+        const dados = { prod, desc, peso, min };
+
+        db.ref(`produtos/${cod}`).set(dados).then(() => {
+            alert("Artigo salvo com sucesso na base de dados!");
+            document.getElementById('cad_cod').value = "";
+            document.getElementById('cad_prod').value = "";
+            document.getElementById('cad_desc').value = "";
+            document.getElementById('cad_peso').value = "";
+            document.getElementById('cad_min').value = "";
+            document.getElementById('cad_cod').readOnly = false;
+        }).catch(() => alert("Erro ao salvar produto."));
+    }
+
+    function carregarParaEditar(cod) {
+        if(!isAdmin) return;
+        const p = produtosGlobal[cod];
+        if(!p) return;
+
+        document.getElementById('admin_modo').value = 'PROD';
+        alternarFormAdmin();
+
+        document.getElementById('cad_cod').value = cod;
+        document.getElementById('cad_cod').readOnly = true;
+        document.getElementById('cad_prod').value = p.prod || '';
+        document.getElementById('cad_desc').value = p.desc || '';
+        document.getElementById('cad_peso').value = p.peso || '';
+        document.getElementById('cad_min').value = p.min || '';
+        document.getElementById('cad_prod').focus();
     }
 
     function salvarOrdem() {
-        if(!isAdmin) return alert("Sem permissão administrativa");
-        const id = document.getElementById('ord_id').value.toUpperCase().trim();
-        const c = document.getElementById('ord_cod').value.toUpperCase().trim();
-        const meta = parseInt(document.getElementById('ord_meta').value);
-
-        if(!id || !c || isNaN(meta) || meta <= 0) return alert("Preencha todos os campos da OP de forma válida.");
-        if(!produtosGlobal[c]) return alert("Artigo base não encontrado!");
-
-        db.ref('ordens/'+id).set({
-            cod: c,
-            prod: produtosGlobal[c].prod || '',
-            meta: meta,
-            criadaEm: new Date().toISOString()
-        }).then(() => {
-            alert("Ordem de Produção Ativada!");
-            ["ord_id", "ord_meta", "ord_cod", "ord_nome"].forEach(id => document.getElementById(id).value = "");
-        });
-    }
-
-    function atualizarSelectOrdens() {
-        const s = document.getElementById('mov_ordem_id');
-        const val = s.value;
-        s.innerHTML = '<option value="">-- Selecionar OP Ativa --</option>';
-        for(let id in ordensGlobal) s.innerHTML += `<option value="${id}">${id} | ${ordensGlobal[id].prod || ''}</option>`;
-        s.value = val;
-    }
-
-    function carregarParaEditar(c) {
         if(!isAdmin) return;
-        const p = produtosGlobal[c];
-        document.getElementById('admin_modo').value = "PROD";
-        alternarFormAdmin();
-        document.getElementById('cad_cod').value = c;
-        document.getElementById('cad_prod').value = p.prod || '';
-        document.getElementById('cad_desc').value = p.desc || '';
-        document.getElementById('cad_peso').value = p.peso || 0;
-        document.getElementById('cad_min').value = p.min || 0;
-        window.scrollTo(0,0);
-    }
+        const id = document.getElementById('ord_id').value.toUpperCase().trim();
+        const cod = document.getElementById('ord_cod').value.toUpperCase().trim();
+        const prod = document.getElementById('ord_nome').value;
+        const meta = parseInt(document.getElementById('ord_meta').value) || 0;
 
-    function verificarExistencia(c) {
-        const p = produtosGlobal[c.toUpperCase().trim()];
-        if(p && document.activeElement.id === 'cad_cod') {
-            document.getElementById('cad_prod').value = p.prod || '';
-            document.getElementById('cad_desc').value = p.desc || '';
-            document.getElementById('cad_peso').value = p.peso || 0;
-            document.getElementById('cad_min').value = p.min || 0;
-        }
+        if(!id || !cod || meta <= 0 || !prod) return alert("Preencha todos os dados corretamente. O artigo precisa existir.");
+        if(ordensGlobal[id]) return alert("Já existe uma Ordem de Produção ativa com esse ID!");
+
+        const dadosOp = {
+            cod: cod,
+            prod: prod,
+            meta: meta,
+            criadaEm: firebase.database.ServerValue.TIMESTAMP
+        };
+
+        db.ref(`ordens/${id}`).set(dadosOp).then(() => {
+            alert(`Ordem de Produção ${id} lançada com sucesso!`);
+            document.getElementById('ord_id').value = "";
+            document.getElementById('ord_cod').value = "";
+            document.getElementById('ord_nome').value = "";
+            document.getElementById('ord_meta').value = "";
+        }).catch(() => alert("Erro ao tentar lançar a OP."));
     }
 
     function reverterMov(id) {
         if(!isAdmin) return;
-        if(confirm("Reverter este movimento alterará o stock permanentemente. Confirmar?")) db.ref('movimentacoes/'+id).remove();
+        if(confirm("Tem certeza que deseja estornar este movimento? O saldo de stock será recalculado automaticamente.")) {
+            db.ref(`movimentacoes/${id}`).remove()
+                .then(() => alert("Movimento removido com sucesso."))
+                .catch(() => alert("Erro ao processar remoção."));
+        }
     }
 
     function exportarCSV() {
-        let csv = 'DATA;OP;COD;ARTIGO;TIPO;QTD;PESO_UNIT;TOTAL_KG;OPERADOR\n';
-        document.querySelectorAll('#corpoHist tr').forEach(tr => {
-            const tds = Array.from(tr.children).slice(0,9).map(td => `"${td.innerText.replace(/"/g, '""')}"`);
-            csv += tds.join(';') + '\n';
+        if(Object.keys(movsGlobal).length === 0) return alert("Não existem dados para exportar.");
+        
+        let csvContent = "\uFEFF"; 
+        csvContent += "DATA;ORDEM/DOC;CODIGO;ARTIGO;TIPO;QUANTIDADE;PESO_UNIT;PESO_TOTAL;OPERADOR\r\n";
+
+        const ordenado = Object.values(movsGlobal).sort((a,b) => (b[1].dataISO || '').localeCompare(a[1].dataISO || ''));
+
+        ordenado.forEach(h => {
+            const linha = [
+                h.data || '',
+                h.ordem || 'EXPEDIÇÃO',
+                h.cod || '',
+                `"${(h.prod || '').replace(/"/g, '""')}"`,
+                h.tipo || '',
+                h.qtd || 0,
+                h.peso_unit || 0,
+                (h.peso_total || 0).toFixed(3),
+                h.ope || ''
+            ];
+            csvContent += linha.join(";") + "\r\n";
         });
-        const blob = new Blob(["\uFEFF" + csv], {type: 'text/csv;charset=utf-8;'});
-        const a = document.createElement('a');
-        a.href = URL.createObjectURL(blob);
-        a.download = `historico_semiacabado_${new Date().toISOString().slice(0,10)}.csv`;
-        a.click();
+
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement("a");
+        const url = URL.createObjectURL(blob);
+        
+        link.setAttribute("href", url);
+        link.setAttribute("download", `Historico_Movimentacao_SA_${new Date().toISOString().slice(0,10)}.csv`);
+        link.style.visibility = 'hidden';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
     }
 </script>
-
 </body>
 </html>
