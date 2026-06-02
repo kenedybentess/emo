@@ -101,7 +101,7 @@
 <div id="login-screen">
     <div class="login-card">
         <h1 style="color: var(--primary); margin-bottom: 5px; letter-spacing: -1px;">CONTROLE DE SEMI-ACABADO</h1>
-        <p style="color: #666; margin-bottom: 25px; font-size: 12px;">SISTEMA DE GESTÃO - I9 INDUSTRIAL v3.9</p>
+        <p style="color: #666; margin-bottom: 25px; font-size: 12px;">SISTEMA DE GESTÃO - I9 INDUSTRIAL v3.7</p>
         <input type="email" id="email" placeholder="E-mail do Utilizador">
         <input type="password" id="password" placeholder="Palavra-passe" onkeypress="if(event.key==='Enter') fazerLogin()">
         <button onclick="fazerLogin()" id="btn-login" class="btn-reg" style="background: var(--info); margin-top: 10px;">Entrar no Sistema</button>
@@ -119,10 +119,11 @@
     </div>
 
     <div class="container">
-        <button id="btn-abrir-historico" onclick="abrirHistorico()" style="background: white; color: var(--primary); padding:18px; width:100%; border: 2px solid var(--primary); margin-bottom:25px; font-weight:bold; cursor:pointer; border-radius:10px; display: flex; justify-content: center; align-items: center; gap: 12px; transition: 0.3s;">
+        <button onclick="abrirHistorico()" style="background: white; color: var(--primary); padding:18px; width:100%; border: 2px solid var(--primary); margin-bottom:25px; font-weight:bold; cursor:pointer; border-radius:10px; display: flex; justify-content: center; align-items: center; gap: 12px; transition: 0.3s;">
             <span>🕒</span> CONSULTAR HISTÓRICO E MOVIMENTAÇÕES TÉCNICAS
         </button>
 
+        <!-- DASHBOARD DE INDICADORES (OPS ATIVAS) -->
         <div class="dash-container">
             <div class="dash-card dash-active">
                 <div class="dash-title">🟢 OPs em Monitorização</div>
@@ -142,13 +143,12 @@
             </div>
         </div>
 
-        <div class="flex-row" id="row-formularios">
+        <div class="flex-row">
             <div id="panel-admin" class="card" style="display:none; border-top: 4px solid var(--danger);">
                 <div class="section-header"><h3>🛠️ Gestão Administrativa</h3></div>
                 <select id="admin_modo" onchange="alternarFormAdmin()">
                     <option value="PROD">CADASTRO DE ARTIGOS SA (BASE)</option>
                     <option value="ORDEM">ORDENS DE PRODUÇÃO SA (ATIVAS)</option>
-                    <option value="USER">👤 CADASTRAR NOVO UTILIZADOR</option>
                 </select>
 
                 <div id="form-prod">
@@ -167,20 +167,9 @@
                     <input type="number" id="ord_meta" placeholder="Quantidade a Produzir (Meta)">
                     <button class="btn-reg" style="background: var(--done)" onclick="salvarOrdem()">Lançar Ordem de Produção</button>
                 </div>
-
-                <div id="form-user" style="display:none">
-                    <p style="color: #666; margin-top: 0; font-size: 11px; line-height: 1.4;">
-                        💡 <b>Regras de Perfil por E-mail:</b><br>
-                        • Inclua <b>admin</b> ou <b>super</b> no e-mail para acesso administrativo total.<br>
-                        • Inclua <b>visitante</b> ou <b>guest</b> para modo de visualização exclusiva do Dashboard.
-                    </p>
-                    <input type="email" id="new_user_email" placeholder="E-mail do Novo Utilizador">
-                    <input type="password" id="new_user_pass" placeholder="Definir Palavra-passe (Mínimo 6 caracteres)">
-                    <button id="btn-cadastrar-user" class="btn-reg" style="background: var(--primary)" onclick="cadastrarNovoUtilizador()">Criar Conta de Acesso</button>
-                </div>
             </div>
 
-            <div id="panel-operador" class="card" style="border-top: 4px solid var(--info);">
+            <div class="card" style="border-top: 4px solid var(--info);">
                 <div class="section-header"><h3>📦 Lançamento de Movimentos SA</h3></div>
                 <select id="mov_tipo" onchange="alternarCamposEntrada()">
                     <option value="ENTRADA">ENTRADA: PEÇA SEMI-ACABADA</option>
@@ -292,13 +281,8 @@
     const auth = firebase.auth();
     const db = firebase.database();
 
-    // App secundário isolado para gerenciar criação de usuários sem quebrar a sessão atual
-    const secondaryApp = firebase.initializeApp(firebaseConfig, "SecondaryApp");
-    const secondaryAuth = secondaryApp.auth();
-
     let userEmail = "";
     let isAdmin = false;
-    let isVisitor = false; 
     let produtosGlobal = {};
     let ordensGlobal = {};
     let ordensArquivadasGlobal = {};
@@ -310,22 +294,11 @@
         if (user) {
             userEmail = user.email;
             isAdmin = /admin|super/.test(userEmail.toLowerCase());
-            isVisitor = /visitante|guest/.test(userEmail.toLowerCase()); 
             
             document.getElementById('login-screen').style.display = 'none';
             document.getElementById('main-content').style.display = 'block';
-            document.getElementById('user-display').innerText = userEmail + (isVisitor ? " (VISITANTE)" : "");
+            document.getElementById('user-display').innerText = userEmail;
             
-            if(isVisitor) {
-                document.getElementById('btn-abrir-historico').style.display = 'none';
-                document.getElementById('panel-operador').style.display = 'none';
-                document.getElementById('row-formularios').style.gridTemplateColumns = '1fr';
-            } else {
-                document.getElementById('btn-abrir-historico').style.display = 'flex';
-                document.getElementById('panel-operador').style.display = 'block';
-                document.getElementById('row-formularios').style.gridTemplateColumns = '1fr 1fr';
-            }
-
             transparentInterfaceUpdate();
             monitorarConexao();
             carregarDados();
@@ -395,38 +368,6 @@
         });
     }
 
-    // --- FUNÇÃO PARA CRIAR UTILIZADOR ---
-    function cadastrarNovoUtilizador() {
-        if(!isAdmin || isVisitor) return alert("Ação não autorizada.");
-
-        const emailNovo = document.getElementById('new_user_email').value.trim();
-        const passNova = document.getElementById('new_user_pass').value;
-        const btn = document.getElementById('btn-cadastrar-user');
-
-        if(!emailNovo || !passNova) return alert("Preencha o e-mail e a palavra-passe!");
-        if(passNova.length < 6) return alert("A palavra-passe deve conter pelo menos 6 caracteres!");
-
-        btn.disabled = true;
-        btn.innerText = "A PROCESSAR...";
-
-        secondaryAuth.createUserWithEmailAndPassword(emailNovo, passNova)
-            .then((userCredential) => {
-                alert(`Sucesso! O utilizador ${emailNovo} foi cadastrado e já pode fazer login.`);
-                document.getElementById('new_user_email').value = "";
-                document.getElementById('new_user_pass').value = "";
-                
-                secondaryAuth.signOut();
-                
-                btn.disabled = false;
-                btn.innerText = "Criar Conta de Acesso";
-            })
-            .catch((error) => {
-                btn.disabled = false;
-                btn.innerText = "Criar Conta de Acesso";
-                alert("Erro ao cadastrar: " + error.message);
-            });
-    }
-
     // --- CARREGAMENTO DE DADOS ---
     function carregarDados() {
         db.ref('produtos').on('value', s => { produtosGlobal = s.val() || {}; transparentInterfaceUpdate(); });
@@ -437,7 +378,7 @@
             movsGlobal = s.val() || {};
             calcularSaldos();
             transparentInterfaceUpdate();
-            if(!isVisitor) renderizarHistorial();
+            renderizarHistorial();
         });
     }
 
@@ -466,7 +407,7 @@
                 <td><span class="item-nome">${p.prod || 'Sem Nome'}</span><span class="item-desc">${p.desc || ''}</span></td>
                 <td><b style="font-size:15px">${saldo}</b></td>
                 <td>${min}</td>
-                <td>${(isAdmin && !isVisitor) ? `<button class="btn-edit" onclick="carregarParaEditar('${c}')">EDITAR</button>` : 'OK'}</td>
+                <td>${isAdmin ? `<button class="btn-edit" onclick="carregarParaEditar('${c}')">EDITAR</button>` : 'OK'}</td>
             </tr>`;
         }
     }
@@ -477,12 +418,11 @@
         const movs = Object.values(movsGlobal);
         
         const modoFiltro = document.getElementById('filtro-estado-op').value;
-        const checkMarcarTodas = document.getElementById('chk-marcar-todas');
-        if (checkMarcarTodas) checkMarcarTodas.checked = false;
+        document.getElementById('chk-marcar-todas').checked = false;
 
         const listaParaRenderizar = (modoFiltro === 'ATIVAS') ? ordensGlobal : ordensArquivadasGlobal;
 
-        // --- CÁLCULOS DO DASHBOARD ---
+        // --- CÁLCULOS DO DASHBOARD EM TEMPO REAL ---
         let totalOpsAtivas = 0;
         let metaGlobalAtiva = 0;
         let realizadoGlobalAtivo = 0;
@@ -499,7 +439,7 @@
         
         const eficienciaGlobal = metaGlobalAtiva > 0 ? ((realizadoGlobalAtivo / metaGlobalAtiva) * 100).toFixed(1) : 0;
         document.getElementById('dash-eficiencia-global').innerText = `${eficienciaGlobal}%`;
-        // -----------------------------
+        // -------------------------------------------
 
         for(let id in listaParaRenderizar) {
             const realizado = movs.filter(h => h.ordem === id).reduce((a, b) => a + parseFloat(b.qtd || 0), 0);
@@ -531,7 +471,7 @@
                     </div>
                     <small>${perc}% concluído</small>
                 </td>
-                 ${(isAdmin && modoFiltro === 'ARQUIVADAS' && !isVisitor) ? `<td><button class="btn-del" style="background:var(--danger); padding:4px 8px;" onclick="desarquivarOrdem('${id}')">REATIVAR</button></td>` : (modoFiltro === 'ARQUIVADAS' ? '<td>-</td>' : '')}
+                 ${(isAdmin && modoFiltro === 'ARQUIVADAS') ? `<td><button class="btn-del" style="background:var(--danger); padding:4px 8px;" onclick="desarquivarOrdem('${id}')">REATIVAR</button></td>` : (modoFiltro === 'ARQUIVADAS' ? '<td>-</td>' : '')}
             </tr>`;
         }
     }
@@ -540,15 +480,11 @@
         document.querySelectorAll('.chk-op').forEach(checkbox => checkbox.checked = marca);
     }
 
-    function abrirHistorico() { 
-        if(isVisitor) return;
-        document.getElementById('modal-historico').style.display = 'block'; 
-        document.getElementById('inputFiltro').focus(); 
-    }
+    function abrirHistorico() { document.getElementById('modal-historico').style.display = 'block'; document.getElementById('inputFiltro').focus(); }
     function fecharHistorico() { document.getElementById('modal-historico').style.display = 'none'; }
     
     function arquivarOrdensMarcadas() {
-        if(!isAdmin || isVisitor) return;
+        if(!isAdmin) return;
         const selecionados = Array.from(document.querySelectorAll('.chk-op:checked')).map(cb => cb.value);
 
         if(selecionados.length === 0) return alert("Por favor, marque pelo menos uma Ordem de Produção.");
@@ -565,13 +501,14 @@
             });
             db.ref().update(atualizacoes).then(() => {
                 alert("Ordens movidas para o histórico de arquivadas com sucesso!");
-            }).catch(() => alert("Erro ao tentar processar o arquivamento."));
+            }).catch(() => alert("Erro ao tentar processar o arquivamento. Verifique as regras do Firebase."));
         }
     }
 
     function desarquivarOrdem(id) {
-        if(!isAdmin || isVisitor) return;
+        if(!isAdmin) return;
         const opDados = ordensArquivadasGlobal[id];
+        
         if(!opDados) return alert("Dados da Ordem de Produção não localizados.");
 
         if(confirm(`Deseja reativar e desarquivar a OP ${id}? Ela retornará para a monitorização ativa.`)) {
@@ -583,12 +520,11 @@
 
             db.ref().update(atualizacoes).then(() => {
                 alert(`OP ${id} reativada com sucesso!`);
-            }).catch(() => alert("Erro ao tentar desarquivar a OP."));
+            }).catch(() => alert("Erro ao tentar desarquivar a OP. Verifique as regras do Firebase."));
         }
     }
 
     function renderizarHistorial() {
-        if(isVisitor) return;
         const filtro = document.getElementById('inputFiltro').value.toLowerCase();
         const corpo = document.getElementById('corpoHist');
         corpo.innerHTML = '';
@@ -622,7 +558,6 @@
     }
 
     function lancarMovimento() {
-        if(isVisitor) return alert("Ação Bloqueada: Utilizador Visitante.");
         const btn = document.getElementById('btn-confirmar-mov');
         const tipo = document.getElementById('mov_tipo').value;
         const qtd = parseFloat(document.getElementById('mov_qtd').value);
@@ -718,9 +653,8 @@
 
     function alternarFormAdmin() {
         const m = document.getElementById('admin_modo').value;
-        document.getElementById('form-prod').style.display = m === 'PROD' ? 'block' : 'none';
-        document.getElementById('form-ordem').style.display = m === 'ORDEM' ? 'block' : 'none';
-        document.getElementById('form-user').style.display = m === 'USER' ? 'block' : 'none';
+        document.getElementById('form-prod').style.display = m === 'PROD'? 'block' : 'none';
+        document.getElementById('form-ordem').style.display = m === 'ORDEM'? 'block' : 'none';
     }
 
     function alternarCamposEntrada() {
@@ -744,7 +678,6 @@
 
     function atualizarSelectOrdens() {
         const select = document.getElementById('mov_ordem_id');
-        if (!select) return;
         select.innerHTML = '<option value="">-- SELECIONE A OP ATIVA --</option>';
         for(let id in ordensGlobal) {
             select.innerHTML += `<option value="${id}">${id} - [${ordensGlobal[id].cod}] ${ordensGlobal[id].prod}</option>`;
@@ -761,7 +694,7 @@
     }
 
     function salvarProduto() {
-        if(!isAdmin || isVisitor) return;
+        if(!isAdmin) return;
         const cod = document.getElementById('cad_cod').value.toUpperCase().trim();
         const prod = document.getElementById('cad_prod').value.trim();
         const desc = document.getElementById('cad_desc').value.trim();
@@ -784,7 +717,7 @@
     }
 
     function carregarParaEditar(cod) {
-        if(!isAdmin || isVisitor) return;
+        if(!isAdmin) return;
         const p = produtosGlobal[cod];
         if(!p) return;
 
@@ -801,7 +734,7 @@
     }
 
     function salvarOrdem() {
-        if(!isAdmin || isVisitor) return;
+        if(!isAdmin) return;
         const id = document.getElementById('ord_id').value.toUpperCase().trim();
         const cod = document.getElementById('ord_cod').value.toUpperCase().trim();
         const prod = document.getElementById('ord_nome').value;
@@ -827,7 +760,7 @@
     }
 
     function reverterMov(id) {
-        if(!isAdmin || isVisitor) return;
+        if(!isAdmin) return;
         if(confirm("Tem certeza que deseja estornar este movimento? O saldo de stock será recalculado automaticamente.")) {
             db.ref(`movimentacoes/${id}`).remove()
                 .then(() => alert("Movimento removido com sucesso."))
@@ -836,7 +769,7 @@
     }
 
     function exportarCSV() {
-        if(isVisitor || Object.keys(movsGlobal).length === 0) return alert("Não existem dados autorizados para exportar.");
+        if(Object.keys(movsGlobal).length === 0) return alert("Não existem dados para exportar.");
         
         let csvContent = "\uFEFF"; 
         csvContent += "DATA;ORDEM/DOC;CODIGO;ARTIGO;TIPO;QUANTIDADE;PESO_UNIT;PESO_TOTAL;OPERADOR\r\n";
