@@ -8,6 +8,8 @@
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-auth-compat.js"></script>
+    
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <style>
         :root {
@@ -37,15 +39,25 @@
         .tab-btn.active { background: var(--info); border-color: var(--info); }
 
         /* Dashboard Global */
-        .dash-container { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-bottom: 25px; }
+        .dash-container { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-bottom: 15px; }
         .dash-card { background: white; padding: 15px 20px; border-radius: 8px; border: 1px solid var(--border); box-shadow: 0 2px 4px rgba(0,0,0,0.02); border-bottom: 4px solid #ccd1d1; transition: transform 0.2s; }
         .dash-card:hover { transform: translateY(-2px); }
         .dash-card.dash-active { border-bottom-color: var(--info); }
         .dash-card.dash-meta { border-bottom-color: var(--orange); }
         .dash-card.dash-prod { border-bottom-color: var(--success); }
         .dash-card.dash-efet { border-bottom-color: var(--done); }
+        
+        /* Cores Extras dos Novos Cards Executivos */
+        .dash-card.dash-saidas { border-bottom-color: var(--danger); }
+        .dash-card.dash-saldo { border-bottom-color: #16a085; }
+        .dash-card.dash-massa { border-bottom-color: #f1c40f; }
+        .dash-card.dash-media { border-bottom-color: #34495e; }
+
         .dash-title { font-size: 10px; color: #7f8c8d; font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px; }
         .dash-value { font-size: 22px; font-weight: bold; color: var(--primary); margin: 5px 0 0 0; }
+
+        /* Container do Gráfico */
+        .chart-container { background: white; padding: 20px; border-radius: 8px; border: 1px solid var(--border); margin-top: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
 
         /* Cards & Tables */
         .card { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 25px; border: 1px solid var(--border); }
@@ -75,13 +87,9 @@
 
         .flex-row { display: grid; grid-template-columns: 1fr 1fr; gap: 25px; }
         
-        /* Checkbox Customization */
         .chk-op { transform: scale(1.2); cursor: pointer; margin: 0 auto; display: block; }
-        
-        /* Select de Filtro */
         .select-filtro-tabela { width: auto; min-width: 200px; padding: 8px; margin: 0; font-weight: bold; border: 2px solid var(--info); }
 
-        /* Badges */
         .badge-falta { background: #fff3cd; color: #856404; padding: 3px 6px; border-radius: 4px; font-weight: bold; font-size: 11px; }
         .badge-concluido { background: #d4edda; color: #155724; padding: 3px 6px; border-radius: 4px; font-weight: bold; font-size: 11px; }
 
@@ -107,7 +115,7 @@
 <div id="login-screen">
     <div class="login-card">
         <h1 style="color: var(--primary); margin-bottom: 5px; letter-spacing: -1px;">CONTROLE DE SEMI-ACABADO</h1>
-        <p style="color: #666; margin-bottom: 25px; font-size: 12px;">SISTEMA DE GESTÃO - I9 INDUSTRIAL v3.7</p>
+        <p style="color: #666; margin-bottom: 25px; font-size: 12px;">SISTEMA DE GESTÃO - I9 INDUSTRIAL v3.8</p>
         <input type="email" id="email" placeholder="E-mail do Utilizador">
         <input type="password" id="password" placeholder="Palavra-passe" onkeypress="if(event.key==='Enter') fazerLogin()">
         <button onclick="fazerLogin()" id="btn-login" class="btn-reg" style="background: var(--info); margin-top: 10px;">Entrar no Sistema</button>
@@ -122,44 +130,68 @@
             <span id="status-conn" class="status-conn status-offline">OFFLINE</span>
         </div>
 
-        <!-- Sistema de Alternância entre Abas -->
         <div class="nav-tabs">
             <button id="tab-completo" class="tab-btn active" onclick="mudarAba('COMPLETO')">📋 Painel Geral</button>
-            <button id="tab-indicadores" class="tab-btn" onclick="mudarAba('INDICADORES')">📊 Apenas Indicadores</button>
+            <button id="tab-indicadores" class="tab-btn" onclick="mudarAba('INDICADORES')">📊 Aba Indicadores Executivos</button>
         </div>
 
         <button onclick="logout()" style="background:transparent; border:1px solid rgba(255,255,255,0.4); color:white; padding:6px 15px; cursor:pointer; border-radius:4px; font-size:11px; transition: 0.3s;">Sair</button>
     </div>
 
     <div class="container">
-        <!-- Elemento envelopado para ocultação dinâmica na aba de foco -->
         <div id="wrapper-operacoes">
             <button onclick="abrirHistorico()" style="background: white; color: var(--primary); padding:18px; width:100%; border: 2px solid var(--primary); margin-bottom:25px; font-weight:bold; cursor:pointer; border-radius:10px; display: flex; justify-content: center; align-items: center; gap: 12px; transition: 0.3s;">
                 <span>🕒</span> CONSULTAR HISTÓRICO E MOVIMENTAÇÕES TÉCNICAS
             </button>
         </div>
 
-        <!-- DASHBOARD DE INDICADORES (CONFORME FOTO image_3ce01d.png) -->
-        <div class="dash-container" id="section-dashboard">
-            <div class="dash-card dash-active">
-                <div class="dash-title">🟢 OPs em Monitorização</div>
-                <div class="dash-value" id="dash-total-ops">0</div>
+        <div id="section-dashboard">
+            <div class="dash-container">
+                <div class="dash-card dash-active">
+                    <div class="dash-title">🟢 OPs em Monitorização</div>
+                    <div class="dash-value" id="dash-total-ops">0</div>
+                </div>
+                <div class="dash-card dash-meta">
+                    <div class="dash-title">🎯 Meta Global Acumulada</div>
+                    <div class="dash-value" id="dash-meta-pecas">0 <span style="font-size:11px; font-weight:normal; color:#7f8c8d;">pçs</span></div>
+                </div>
+                <div class="dash-card dash-prod">
+                    <div class="dash-title">🏭 Total Semi-Acabado Produzido</div>
+                    <div class="dash-value" id="dash-realizado-pecas">0 <span style="font-size:11px; font-weight:normal; color:#7f8c8d;">pçs</span></div>
+                </div>
+                <div class="dash-card dash-efet">
+                    <div class="dash-title">📊 Eficiência Total Ativa</div>
+                    <div class="dash-value" id="dash-eficiencia-global">0%</div>
+                </div>
             </div>
-            <div class="dash-card dash-meta">
-                <div class="dash-title">🎯 Meta Global Acumulada</div>
-                <div class="dash-value" id="dash-meta-pecas">0 <span style="font-size:11px; font-weight:normal; color:#7f8c8d;">pçs</span></div>
+
+            <div class="dash-container" id="novos-cards-executivos" style="display: none; margin-top: 5px;">
+                <div class="dash-card dash-saidas">
+                    <div class="dash-title">🛑 Total Consumos / Saídas</div>
+                    <div class="dash-value" id="dash-total-saidas">0 <span style="font-size:11px; font-weight:normal; color:#7f8c8d;">pçs</span></div>
+                </div>
+                <div class="dash-card dash-saldo">
+                    <div class="dash-title">📦 Saldo Total em Stock</div>
+                    <div class="dash-value" id="dash-saldo-total">0 <span style="font-size:11px; font-weight:normal; color:#7f8c8d;">pçs</span></div>
+                </div>
+                <div class="dash-card dash-massa">
+                    <div class="dash-title">⚖️ Massa Movimentada</div>
+                    <div class="dash-value" id="dash-massa-total">0.000 <span style="font-size:11px; font-weight:normal; color:#7f8c8d;">kg</span></div>
+                </div>
+                <div class="dash-card dash-media">
+                    <div class="dash-title">📈 Eficiência Média de OPs</div>
+                    <div class="dash-value" id="dash-media-conclusao">0%</div>
+                </div>
             </div>
-            <div class="dash-card dash-prod">
-                <div class="dash-title">🏭 Total Semi-Acabado Produzido</div>
-                <div class="dash-value" id="dash-realizado-pecas">0 <span style="font-size:11px; font-weight:normal; color:#7f8c8d;">pçs</span></div>
-            </div>
-            <div class="dash-card dash-efet">
-                <div class="dash-title">📊 Eficiência Total Ativa</div>
-                <div class="dash-value" id="dash-eficiencia-global">0%</div>
+
+            <div class="chart-container" id="wrapper-grafico" style="display: none;">
+                <h4 style="margin: 0 0 15px 0; color: var(--primary); text-transform: uppercase; letter-spacing: 0.5px; font-size: 11px;">📊 Gráfico Comparativo: Meta Planeada vs. Produção Realizada por OP</h4>
+                <div style="width: 100%; height: 320px; position: relative;">
+                    <canvas id="executivoChart"></canvas>
+                </div>
             </div>
         </div>
 
-        <!-- Elemento envelopado contendo formulários e listagens gerais -->
         <div id="wrapper-tabelas">
             <div class="flex-row">
                 <div id="panel-admin" class="card" style="display:none; border-top: 4px solid var(--danger);">
@@ -305,24 +337,39 @@
     let ordensArquivadasGlobal = {};
     let movsGlobal = {};
     let saldosCache = {};
+    let meuGrafico = null; // Instância do Chart.js
 
-    // --- SISTEMA DE NAVEGAÇÃO DE ABAS ---
+    // --- NAVEGAÇÃO DE ABAS ---
     function mudarAba(modo) {
         const btnCompleto = document.getElementById('tab-completo');
         const btnIndicadores = document.getElementById('tab-indicadores');
         const wrapperOperacoes = document.getElementById('wrapper-operacoes');
         const wrapperTabelas = document.getElementById('wrapper-tabelas');
+        const novosCards = document.getElementById('novos-cards-executivos');
+        const wrapperGrafico = document.getElementById('wrapper-grafico');
 
         if (modo === 'INDICADORES') {
             btnCompleto.classList.remove('active');
             btnIndicadores.classList.add('active');
             wrapperOperacoes.style.display = 'none';
             wrapperTabelas.style.display = 'none';
+            
+            // Exibe os elementos adicionais da aba executiva
+            novosCards.style.display = 'grid';
+            wrapperGrafico.style.display = 'block';
+            
+            // Força renderização do gráfico com dados atualizados
+            setTimeout(renderizarGraficoExecutivo, 100);
         } else {
             btnIndicadores.classList.remove('active');
             btnCompleto.classList.add('active');
             wrapperOperacoes.style.display = 'block';
             wrapperTabelas.style.display = 'block';
+            
+            // Oculta os complementos na visualização simples
+            novosCards.style.display = 'none';
+            wrapperGrafico.style.display = 'none';
+            
             transparentInterfaceUpdate();
         }
     }
@@ -347,7 +394,6 @@
     });
 
     function transparentInterfaceUpdate() {
-        // Se estiver na aba focada de indicadores, não força a exibição dos painéis administrativos escondidos
         if(document.getElementById('tab-indicadores').classList.contains('active')) return;
 
         const modoFiltro = document.getElementById('filtro-estado-op').value;
@@ -412,7 +458,7 @@
     // --- CARREGAMENTO DE DADOS ---
     function carregarDados() {
         db.ref('produtos').on('value', s => { produtosGlobal = s.val() || {}; transparentInterfaceUpdate(); });
-        db.ref('ordens').on('value', s => { ordensGlobal = s.val() || {}; transparentInterfaceUpdate(); atualizarSelectOrdens(); });
+        db.ref('ordens').on('value', s => { ordensGlobal = s.val() || {}; transparentInterfaceUpdate(); atualizarSelectOrdens(); renderizarOrdens(); });
         db.ref('ordens_arquivadas').on('value', s => { ordensArquivadasGlobal = s.val() || {}; transparentInterfaceUpdate(); });
 
         db.ref('movimentacoes').orderByChild('dataISO').limitToLast(500).on('value', s => {
@@ -420,6 +466,10 @@
             calcularSaldos();
             transparentInterfaceUpdate();
             renderizarHistorial();
+            renderizarOrdens();
+            if(document.getElementById('tab-indicadores').classList.contains('active')) {
+                renderizarGraficoExecutivo();
+            }
         });
     }
 
@@ -456,36 +506,62 @@
 
     function renderizarOrdens() {
         const corpo = document.getElementById('corpoOrdens');
-        if(!corpo) return;
-        corpo.innerHTML = '';
         const movs = Object.values(movsGlobal);
-        
-        const modoFiltro = document.getElementById('filtro-estado-op').value;
-        document.getElementById('chk-marcar-todas').checked = false;
+        const modoFiltro = document.getElementById('filtro-estado-op') ? document.getElementById('filtro-estado-op').value : 'ATIVAS';
 
         const listaParaRenderizar = (modoFiltro === 'ATIVAS') ? ordensGlobal : ordensArquivadasGlobal;
 
-        // --- CÁLCULOS DO DASHBOARD EM TEMPO REAL ---
+        // --- CÁLCULOS DO DASHBOARD (REAL-TIME) ---
         let totalOpsAtivas = 0;
         let metaGlobalAtiva = 0;
         let realizadoGlobalAtivo = 0;
+        
+        let totalPecasSaidas = 0;
+        let totalMassaKg = 0;
+        let somaEficiencias = 0;
 
+        // Processa dados ativos
         for(let id in ordensGlobal) {
             totalOpsAtivas++;
-            metaGlobalAtiva += parseFloat(ordensGlobal[id].meta) || 0;
-            realizadoGlobalAtivo += movs.filter(h => h.ordem === id).reduce((a, b) => a + parseFloat(b.qtd || 0), 0);
+            const metaOP = parseFloat(ordensGlobal[id].meta) || 0;
+            metaGlobalAtiva += metaOP;
+            
+            const realizadoOP = movs.filter(h => h.ordem === id && h.tipo === 'ENTRADA').reduce((a, b) => a + parseFloat(b.qtd || 0), 0);
+            realizadoGlobalAtivo += realizadoOP;
+            
+            somaEficiencias += metaOP > 0 ? Math.min(100, (realizadoOP / metaOP) * 100) : 0;
         }
 
+        // Processa dados históricos gerais para a aba executiva
+        movs.forEach(m => {
+            if(m.tipo === 'SAIDA') totalPecasSaidas += parseFloat(m.qtd || 0);
+            totalMassaKg += parseFloat(m.peso_total || 0);
+        });
+
+        let saldoTotalStock = Object.values(saldosCache).reduce((a,b) => a + b, 0);
+
+        // Atualização da Interface dos Cards Base
         document.getElementById('dash-total-ops').innerText = totalOpsAtivas;
         document.getElementById('dash-meta-pecas').innerHTML = `${metaGlobalAtiva} <span style="font-size:11px; font-weight:normal; color:#7f8c8d;">pçs</span>`;
         document.getElementById('dash-realizado-pecas').innerHTML = `${realizadoGlobalAtivo} <span style="font-size:11px; font-weight:normal; color:#7f8c8d;">pçs</span>`;
         
         const eficienciaGlobal = metaGlobalAtiva > 0 ? ((realizadoGlobalAtivo / metaGlobalAtiva) * 100).toFixed(1) : 0;
         document.getElementById('dash-eficiencia-global').innerText = `${eficienciaGlobal}%`;
+
+        // Atualização da Interface dos Cards Executivos Avançados
+        document.getElementById('dash-total-saidas').innerHTML = `${totalPecasSaidas} <span style="font-size:11px; font-weight:normal; color:#7f8c8d;">pçs</span>`;
+        document.getElementById('dash-saldo-total').innerHTML = `${saldoTotalStock} <span style="font-size:11px; font-weight:normal; color:#7f8c8d;">pçs</span>`;
+        document.getElementById('dash-massa-total').innerHTML = `${totalMassaKg.toFixed(1)} <span style="font-size:11px; font-weight:normal; color:#7f8c8d;">kg</span>`;
+        
+        const mediaEficiencia = totalOpsAtivas > 0 ? (somaEficiencias / totalOpsAtivas).toFixed(1) : 0;
+        document.getElementById('dash-media-conclusao').innerText = `${mediaEficiencia}%`;
         // -------------------------------------------
 
+        if(!corpo) return;
+        corpo.innerHTML = '';
+
         for(let id in listaParaRenderizar) {
-            const realizado = movs.filter(h => h.ordem === id).reduce((a, b) => a + parseFloat(b.qtd || 0), 0);
+            const realizado = movs.filter(h => h.ordem === id && h.tipo === 'ENTRADA').reduce((a, b) => a + parseFloat(b.qtd || 0), 0);
             const meta = parseFloat(listaParaRenderizar[id].meta) || 1;
             const falta = Math.max(0, meta - realizado);
             const perc = Math.min(100, ((realizado/meta)*100)).toFixed(0);
@@ -519,6 +595,78 @@
         }
     }
 
+    // --- ALGORITMO DO GRÁFICO DA ABA EXECUTIVA (CHART.JS) ---
+    function renderizarGraficoExecutivo() {
+        const ctx = document.getElementById('executivoChart');
+        if(!ctx) return;
+
+        const labelsOPs = [];
+        const dadosMetas = [];
+        const dadosRealizados = [];
+        const movs = Object.values(movsGlobal);
+
+        // Extrai dados das OPs ativas para plotagem
+        for (let id in ordensGlobal) {
+            labelsOPs.push(`OP ${id}`);
+            dadosMetas.push(parseFloat(ordensGlobal[id].meta) || 0);
+            
+            const realizado = movs.filter(h => h.ordem === id && h.tipo === 'ENTRADA').reduce((a, b) => a + parseFloat(b.qtd || 0), 0);
+            dadosRealizados.push(realizado);
+        }
+
+        // Se o gráfico já existir, destrói para redesenhar sem duplicar cache
+        if (meuGrafico) {
+            meuGrafico.destroy();
+        }
+
+        meuGrafico = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: labelsOPs,
+                datasets: [
+                    {
+                        label: 'Produção Realizada (pçs)',
+                        data: dadosRealizados,
+                        backgroundColor: 'rgba(39, 174, 96, 0.85)',
+                        borderColor: '#27ae60',
+                        borderWidth: 1,
+                        borderRadius: 4,
+                        order: 2
+                    },
+                    {
+                        label: 'Meta Planeada (pçs)',
+                        data: dadosMetas,
+                        type: 'line',
+                        borderColor: '#e67e22',
+                        borderWidth: 3,
+                        pointBackgroundColor: '#d35400',
+                        fill: false,
+                        tension: 0.1,
+                        order: 1
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'top', labels: { boxWidth: 12, font: { size: 11 } } }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: { color: '#f1f2f6' },
+                        ticks: { font: { size: 10 } }
+                    },
+                    x: {
+                        grid: { display: false },
+                        ticks: { font: { size: 10, weight: 'bold' } }
+                    }
+                }
+            }
+        });
+    }
+
     function marcarTodasAsOps(marca) {
         document.querySelectorAll('.chk-op').forEach(checkbox => checkbox.checked = marca);
     }
@@ -543,27 +691,25 @@
                 }
             });
             db.ref().update(atualizacoes).then(() => {
-                alert("Ordens movidas para o histórico de arquivadas com sucesso!");
-            }).catch(() => alert("Erro ao tentar processar o arquivamento. Verifique as regras do Firebase."));
+                alert("Ordens movidas para o histórico com sucesso!");
+            }).catch(() => alert("Erro ao tentar processar o arquivamento."));
         }
     }
 
     function desarquivarOrdem(id) {
         if(!isAdmin) return;
         const opDados = ordensArquivadasGlobal[id];
-        
-        if(!opDados) return alert("Dados da Ordem de Produção não localizados.");
+        if(!opDados) return alert("Dados da Ordem não localizados.");
 
-        if(confirm(`Deseja reativar e desarquivar a OP ${id}? Ela retornará para a monitorização activa.`)) {
+        if(confirm(`Deseja reativar a OP ${id}? Ela retornará para a monitorização activa.`)) {
             let atualizacoes = {};
             if(opDados.arquivadaEm) delete opDados.arquivadaEm;
-            
             atualizacoes[`ordens/${id}`] = opDados;
             atualizacoes[`ordens_arquivadas/${id}`] = null;
 
             db.ref().update(atualizacoes).then(() => {
                 alert(`OP ${id} reativada com sucesso!`);
-            }).catch(() => alert("Erro ao tentar desarquivar a OP. Verifique as regras do Firebase."));
+            }).catch(() => alert("Erro ao tentar desarquivar a OP."));
         }
     }
 
@@ -613,10 +759,10 @@
 
         if(tipo === 'ENTRADA') {
             ofId = document.getElementById('mov_ordem_id').value;
-            if(!ofId || !ordensGlobal[ofId]) return alert("Selecione uma Ordem de Produção SA válida e ativa!");
+            if(!ofId || !ordensGlobal[ofId]) return alert("Selecione uma Ordem de Produção válida!");
 
             const meta = parseFloat(ordensGlobal[ofId].meta) || 0;
-            const realizado = Object.values(movsGlobal).filter(h => h.ordem === ofId).reduce((a, b) => a + parseFloat(b.qtd || 0), 0);
+            const realizado = Object.values(movsGlobal).filter(h => h.ordem === ofId && h.tipo === 'ENTRADA').reduce((a, b) => a + parseFloat(b.qtd || 0), 0);
             if(realizado + qtd > meta) return alert(`BLOQUEIO: Quantidade excede a meta da OP (Restante: ${meta - realizado})`);
 
             cod = ordensGlobal[ofId].cod;
@@ -625,7 +771,7 @@
             if(!cod || !produtosGlobal[cod]) return alert("Insira um Código de Artigo válido!");
             
             const saldoAtual = saldosCache[cod] || 0;
-            if(qtd > saldoAtual) return alert(`BLOQUEIO: Stock insuficiente para saída. Disponível: ${saldoAtual}`);
+            if(qtd > saldoAtual) return alert(`BLOQUEIO: Stock insuficiente. Disponível: ${saldoAtual}`);
         }
 
         const prodDados = produtosGlobal[cod];
@@ -658,7 +804,7 @@
                     document.getElementById('mov_cod').focus();
                 }
             })
-            .catch(() => alert("Erro ao tentar gravar o movimento."))
+            .catch(() => alert("Erro ao gravar movimento."))
             .finally(() => {
                 btn.disabled = false;
                 btn.innerText = "Confirmar Registo";
@@ -667,7 +813,7 @@
 
     function reverterMov(id) {
         if(!isAdmin) return;
-        if(confirm("Tem a certeza que deseja eliminar/reverter este movimento do histórico?")) {
+        if(confirm("Deseja eliminar este movimento do histórico?")) {
             db.ref(`movimentacoes/${id}`).remove()
                 .then(() => alert("Movimento removido com sucesso!"))
                 .catch(() => alert("Erro ao remover movimento."));
@@ -768,16 +914,14 @@
         const peso = parseFloat(document.getElementById('cad_peso').value) || 0;
         const min = parseInt(document.getElementById('cad_min').value) || 0;
 
-        if(!cod || !prod) return alert("Código e Nome Comercial são campos obrigatórios!");
-
+        if(!cod || !prod) return alert("Código e Nome são obrigatórios!");
         const dados = { prod, desc, peso, min };
 
         db.ref(`produtos/${cod}`).set(dados)
             .then(() => {
-                alert("Artigo salvo na base de dados!");
+                alert("Artigo guardado!");
                 document.getElementById('form-prod').querySelectorAll('input').forEach(i => i.value = "");
-            })
-            .catch(() => alert("Erro ao salvar o produto."));
+            });
     }
 
     function salvarOrdem() {
@@ -787,22 +931,16 @@
         const prod = document.getElementById('ord_nome').value;
         const meta = parseInt(document.getElementById('ord_meta').value) || 0;
 
-        if(!id || !cod || meta <= 0) return alert("Todos os campos do formulário de OP são obrigatórios!");
-        if(!produtosGlobal[cod]) return alert("O código do artigo inserido não existe!");
+        if(!id || !cod || meta <= 0) return alert("Campos obrigatórios ausentes!");
+        if(!produtosGlobal[cod]) return alert("Código inexistente!");
 
-        const novaOp = {
-            cod: cod,
-            prod: prod,
-            meta: meta,
-            criadaEm: new Date().toISOString()
-        };
+        const novaOp = { cod, prod, meta, criadaEm: new Date().toISOString() };
 
         db.ref(`ordens/${id}`).set(novaOp)
             .then(() => {
-                alert(`Ordem de Produção ${id} lançada com sucesso!`);
+                alert(`OP ${id} lançada!`);
                 document.getElementById('form-ordem').querySelectorAll('input').forEach(i => i.value = "");
-            })
-            .catch(() => alert("Erro ao lançar Ordem de Produção."));
+            });
     }
 
     function exportarCSV() {
@@ -812,17 +950,7 @@
 
         movsArray.forEach(h => {
             if(JSON.stringify(h).toLowerCase().includes(filtro)) {
-                let linha = [
-                    `"${h.data || ''}"`,
-                    `"${h.ordem || 'SAÍDA'}"`,
-                    `"${h.cod || ''}"`,
-                    `"${(h.prod || '').replace(/"/g, '""')}"`,
-                    `"${h.tipo || ''}"`,
-                    h.qtd || 0,
-                    h.peso_unit || 0,
-                    h.peso_total || 0,
-                    `"${h.ope ? h.ope.split('@')[0] : '---'}"`
-                ];
+                let linha = [ `"${h.data || ''}"`, `"${h.ordem || 'SAÍDA'}"`, `"${h.cod || ''}"`, `"${(h.prod || '').replace(/"/g, '""')}"`, `"${h.tipo || ''}"`, h.qtd || 0, h.peso_unit || 0, h.peso_total || 0, `"${h.ope ? h.ope.split('@')[0] : '---'}"` ];
                 csv += linha.join(';') + '\n';
             }
         });
@@ -830,7 +958,7 @@
         const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
         const link = document.createElement("a");
         link.href = URL.createObjectURL(blob);
-        link.setAttribute("download", `historico_movimentacoes_${new Date().toISOString().split('T')[0]}.csv`);
+        link.setAttribute("download", `historico_${new Date().toISOString().split('T')[0]}.csv`);
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
