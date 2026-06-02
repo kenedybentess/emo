@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CONTROLE DE SEMI-ACABADO - I9 Industrial</title>
 
-    <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-auth-compat.js"></script>
@@ -21,20 +20,20 @@
 
         /* Login Screen */
         #login-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(135deg, var(--primary), #1a252f); display: flex; justify-content: center; align-items: center; z-index: 1000; }
-     .login-card { background: white; padding: 40px; border-radius: 15px; width: 320px; text-align: center; box-shadow: 0 15px 35px rgba(0,0,0,0.4); }
+        .login-card { background: white; padding: 40px; border-radius: 15px; width: 320px; text-align: center; box-shadow: 0 15px 35px rgba(0,0,0,0.4); }
         #main-content { display: none; animation: fadeIn 0.5s; }
 
         /* Navigation */
-     .navbar { background: var(--primary); color: white; padding: 12px 25px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
-     .container { width: 96%; max-width: 1400px; margin: 20px auto; }
-     .status-conn { font-size: 10px; padding: 3px 8px; border-radius: 10px; margin-left: 10px; }
-     .status-online { background: var(--success); }
-     .status-offline { background: var(--danger); }
+        .navbar { background: var(--primary); color: white; padding: 12px 25px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .container { width: 96%; max-width: 1400px; margin: 20px auto; }
+        .status-conn { font-size: 10px; padding: 3px 8px; border-radius: 10px; margin-left: 10px; }
+        .status-online { background: var(--success); }
+        .status-offline { background: var(--danger); }
 
         /* Cards & Tables */
-     .card { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 25px; border: 1px solid var(--border); }
-     .section-header { border-left: 5px solid var(--info); padding-left: 15px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; }
-     .section-header h3 { margin: 0; text-transform: uppercase; color: var(--primary); letter-spacing: 1px; }
+        .card { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 25px; border: 1px solid var(--border); }
+        .section-header { border-left: 5px solid var(--info); padding-left: 15px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; }
+        .section-header h3 { margin: 0; text-transform: uppercase; color: var(--primary); letter-spacing: 1px; }
 
         table { width: 100%; border-collapse: collapse; margin-top: 10px; }
         th { background: #f8f9fa; padding: 12px; text-align: left; border-bottom: 2px solid var(--border); font-size: 11px; color: #636e72; text-transform: uppercase; }
@@ -42,29 +41,29 @@
         tr:hover { background-color: #f9fbff; }
 
         /* UI Components */
-     .item-nome { color: var(--orange); font-weight: bold; font-size: 13px; display: block; }
-     .item-desc { color: #636e72; font-size: 11px; display: block; margin-top: 2px; }
-     .stock-baixo { background-color: #fff5f5!important; color: var(--danger); font-weight: bold; }
+        .item-nome { color: var(--orange); font-weight: bold; font-size: 13px; display: block; }
+        .item-desc { color: #636e72; font-size: 11px; display: block; margin-top: 2px; }
+        .stock-baixo { background-color: #fff5f5!important; color: var(--danger); font-weight: bold; }
 
         input, select { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid var(--border); border-radius: 6px; box-sizing: border-box; transition: 0.3s; font-family: inherit; }
         input:focus { border-color: var(--info); outline: none; box-shadow: 0 0 0 3px rgba(52,152,219,0.1); }
         input[readonly] { background-color: #f1f2f6; cursor: not-allowed; }
 
-     .btn-reg { background: var(--primary); color: white; width: 100%; padding: 14px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; transition: 0.3s; text-transform: uppercase; }
-     .btn-reg:hover { background: #1e272e; transform: translateY(-1px); }
-     .btn-reg:disabled { background: #ccc; cursor: not-allowed; transform: none; }
-     .btn-edit { background: var(--info); color: white; padding: 6px 12px; border-radius: 4px; border:none; cursor: pointer; font-size: 10px; }
-     .btn-del { background: var(--danger); color: white; padding: 6px 12px; border-radius: 4px; border:none; cursor: pointer; font-size: 10px; }
-     .btn-secondary { background: #95a5a6; color: white; padding: 8px 15px; border-radius: 4px; border:none; cursor: pointer; font-size: 11px; }
+        .btn-reg { background: var(--primary); color: white; width: 100%; padding: 14px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; transition: 0.3s; text-transform: uppercase; }
+        .btn-reg:hover { background: #1e272e; transform: translateY(-1px); }
+        .btn-reg:disabled { background: #ccc; cursor: not-allowed; transform: none; }
+        .btn-edit { background: var(--info); color: white; padding: 6px 12px; border-radius: 4px; border:none; cursor: pointer; font-size: 10px; }
+        .btn-del { background: var(--danger); color: white; padding: 6px 12px; border-radius: 4px; border:none; cursor: pointer; font-size: 10px; }
+        .btn-secondary { background: #95a5a6; color: white; padding: 8px 15px; border-radius: 4px; border:none; cursor: pointer; font-size: 11px; }
 
-     .flex-row { display: grid; grid-template-columns: 1fr 1fr; gap: 25px; }
+        .flex-row { display: grid; grid-template-columns: 1fr 1fr; gap: 25px; }
         @media (max-width: 900px) {.flex-row { grid-template-columns: 1fr; } }
 
         /* Modal */
         #modal-historico { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 2000; overflow-y: auto; backdrop-filter: blur(5px); }
-     .modal-content { background: white; width: 95%; max-width: 1200px; margin: 30px auto; padding: 30px; border-radius: 12px; position: relative; }
+        .modal-content { background: white; width: 95%; max-width: 1200px; margin: 30px auto; padding: 30px; border-radius: 12px; position: relative; }
 
-     .resumo-black { background: var(--dark-card); color: white; padding: 25px; border-radius: 10px; display: flex; justify-content: space-around; margin-bottom: 25px; border-bottom: 4px solid var(--info); }
+        .resumo-black { background: var(--dark-card); color: white; padding: 25px; border-radius: 10px; display: flex; justify-content: space-around; margin-bottom: 25px; border-bottom: 4px solid var(--info); }
 
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
     </style>
@@ -77,7 +76,7 @@
         <p style="color: #666; margin-bottom: 25px; font-size: 12px;">SISTEMA DE GESTÃO - I9 INDUSTRIAL v3.3</p>
         <input type="email" id="email" placeholder="E-mail do Utilizador">
         <input type="password" id="password" placeholder="Palavra-passe" onkeypress="if(event.key==='Enter') fazerLogin()">
-        <button onclick="fazerLogin()" class="btn-reg" style="background: var(--info); margin-top: 10px;">Entrar no Sistema</button>
+        <button onclick="fazerLogin()" id="btn-login" class="btn-reg" style="background: var(--info); margin-top: 10px;">Entrar no Sistema</button>
     </div>
 </div>
 
@@ -88,17 +87,15 @@
             <span id="user-display" style="font-size: 11px; opacity: 0.9;">---</span>
             <span id="status-conn" class="status-conn status-offline">OFFLINE</span>
         </div>
-        <button onclick="auth.signOut().then(() => location.reload())" style="background:transparent; border:1px solid rgba(255,255,255,0.4); color:white; padding:6px 15px; cursor:pointer; border-radius:4px; font-size:11px; transition: 0.3s;">Sair</button>
+        <button onclick="logout()" style="background:transparent; border:1px solid rgba(255,255,255,0.4); color:white; padding:6px 15px; cursor:pointer; border-radius:4px; font-size:11px; transition: 0.3s;">Sair</button>
     </div>
 
     <div class="container">
-        <!-- Acesso Rápido -->
         <button onclick="abrirHistorico()" style="background: white; color: var(--primary); padding:18px; width:100%; border: 2px solid var(--primary); margin-bottom:25px; font-weight:bold; cursor:pointer; border-radius:10px; display: flex; justify-content: center; align-items: center; gap: 12px; transition: 0.3s;">
             <span>🕒</span> CONSULTAR HISTÓRICO E MOVIMENTAÇÕES TÉCNICAS
         </button>
 
         <div class="flex-row">
-            <!-- PAINEL DE GESTÃO (Visível para Admin) -->
             <div id="panel-admin" class="card" style="display:none; border-top: 4px solid var(--danger);">
                 <div class="section-header"><h3>🛠️ Gestão Administrativa</h3></div>
                 <select id="admin_modo" onchange="alternarFormAdmin()">
@@ -124,7 +121,6 @@
                 </div>
             </div>
 
-            <!-- PAINEL DE OPERAÇÃO -->
             <div class="card" style="border-top: 4px solid var(--info);">
                 <div class="section-header"><h3>📦 Lançamento de Movimentos SA</h3></div>
                 <select id="mov_tipo" onchange="alternarCamposEntrada()">
@@ -156,7 +152,6 @@
             </div>
         </div>
 
-        <!-- Tabelas de Monitorização -->
         <div class="card">
             <div class="section-header"><h3>📋 Ordens de Produção SA em Monitorização</h3></div>
             <div style="overflow-x: auto;">
@@ -179,7 +174,6 @@
     </div>
 </div>
 
-<!-- Modal Histórico -->
 <div id="modal-historico">
     <div class="modal-content">
         <span onclick="fecharHistorico()" style="position:absolute; right:25px; top:20px; cursor:pointer; font-size:30px; color: #bbb;">&times;</span>
@@ -198,7 +192,7 @@
 
         <div style="overflow-x: auto;">
             <table>
-                <thead><tr><th>DATA</th><th>DOC/OP</th><th>COD</th><th>ARTIGO</th><th>TIPO</th><th>QTD</th><th>PESO UNIT.</th><th>TOTAL (KG)</th><th>OP</th><th>-</th></tr></thead>
+                <thead><tr><th>DATA</th><th>DOC/OP</th><th>COD</th><th>ARTIGO</th><th>TIPO</th><th>QTD</th><th>PESO UNIT.</th><th>TOTAL (KG)</th><th>OPERADOR</th><th>-</th></tr></thead>
                 <tbody id="corpoHist"></tbody>
             </table>
         </div>
@@ -225,21 +219,56 @@
     let movsGlobal = {};
     let saldosCache = {};
 
-    // --- AUTENTICAÇÃO ---
+    // --- CICLO DE VIDA DE AUTENTICAÇÃO CONSTANTE ---
+    auth.onAuthStateChanged(user => {
+        if (user) {
+            userEmail = user.email;
+            isAdmin = /admin|super/.test(userEmail.toLowerCase());
+            
+            document.getElementById('login-screen').style.display = 'none';
+            document.getElementById('main-content').style.display = 'block';
+            document.getElementById('user-display').innerText = userEmail;
+            
+            if(isAdmin) {
+                document.getElementById('panel-admin').style.display = 'block';
+            } else {
+                document.getElementById('panel-admin').style.display = 'none';
+            }
+            
+            monitorarConexao();
+            carregarDados();
+        } else {
+            document.getElementById('login-screen').style.display = 'flex';
+            document.getElementById('main-content').style.display = 'none';
+        }
+    });
+
     function fazerLogin() {
-        const email = document.getElementById('email').value;
+        const email = document.getElementById('email').value.trim();
         const pass = document.getElementById('password').value;
-        auth.signInWithEmailAndPassword(email, pass)
-          .then(res => {
-                userEmail = res.user.email;
-                isAdmin = /admin|super/.test(userEmail.toLowerCase());
-                document.getElementById('login-screen').style.display = 'none';
-                document.getElementById('main-content').style.display = 'block';
-                document.getElementById('user-display').innerText = userEmail;
-                if(isAdmin) document.getElementById('panel-admin').style.display = 'block';
-                monitorarConexao();
-                carregarDados();
-            }).catch(err => alert("Acesso Negado: Credenciais Inválidas"));
+        const btnLogin = document.getElementById('btn-login');
+
+        if(!email || !pass) return alert("Por favor, preencha todos os campos.");
+
+        btnLogin.disabled = true;
+        btnLogin.innerText = "A AUTENTICAR...";
+
+        // Define a persistência local explicitamente
+        auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL)
+            .then(() => {
+                return auth.signInWithEmailAndPassword(email, pass);
+            })
+            .catch(err => {
+                btnLogin.disabled = false;
+                btnLogin.innerText = "Entrar no Sistema";
+                alert("Acesso Negado: Credenciais Inválidas ou Falha na rede.");
+            });
+    }
+
+    function logout() {
+        auth.signOut().then(() => {
+            location.reload();
+        });
     }
 
     function monitorarConexao() {
@@ -256,12 +285,11 @@
         });
     }
 
-    // --- GESTÃO DE DADOS ---
+    // --- GESTÃO DE DADOS CONTÍNUA ---
     function carregarDados() {
         db.ref('produtos').on('value', s => { produtosGlobal = s.val() || {}; atualizarInterface(); });
         db.ref('ordens').on('value', s => { ordensGlobal = s.val() || {}; atualizarInterface(); atualizarSelectOrdens(); });
 
-        // Performance: só carrega últimos 500 movimentos
         db.ref('movimentacoes').orderByChild('dataISO').limitToLast(500).on('value', s => {
             movsGlobal = s.val() || {};
             calcularSaldos();
@@ -273,9 +301,10 @@
     function calcularSaldos() {
         saldosCache = {};
         Object.values(movsGlobal).forEach(h => {
+            if(!h.cod) return;
             if(!saldosCache[h.cod]) saldosCache[h.cod] = 0;
-            if(h.tipo === 'ENTRADA') saldosCache[h.cod] += parseFloat(h.qtd);
-            else saldosCache[h.cod] -= parseFloat(h.qtd);
+            if(h.tipo === 'ENTRADA') saldosCache[h.cod] += parseFloat(h.qtd || 0);
+            else saldosCache[h.cod] -= parseFloat(h.qtd || 0);
         });
     }
 
@@ -292,15 +321,15 @@
             const saldo = saldosCache[c] || 0;
             const p = produtosGlobal[c];
             const min = parseFloat(p.min) || 0;
-            const alerta = saldo <= min? 'stock-baixo' : '';
+            const alerta = saldo <= min ? 'stock-baixo' : '';
 
             corpo.innerHTML += `<tr class="${alerta}">
                 <td><b>${c}</b></td>
-                <td><span class="item-nome">${p.prod}</span><span class="item-desc">${p.desc || ''}</span></td>
+                <td><span class="item-nome">${p.prod || 'Sem Nome'}</span><span class="item-desc">${p.desc || ''}</span></td>
                 <td><b style="font-size:15px">${saldo}</b></td>
                 <td>${min}</td>
                 <td>
-                    ${isAdmin? `<button class="btn-edit" onclick="carregarParaEditar('${c}')">EDITAR</button>` : 'OK'}
+                    ${isAdmin ? `<button class="btn-edit" onclick="carregarParaEditar('${c}')">EDITAR</button>` : 'OK'}
                 </td>
             </tr>`;
         }
@@ -312,14 +341,14 @@
         const movs = Object.values(movsGlobal);
 
         for(let id in ordensGlobal) {
-            const realizado = movs.filter(h => h.ordem === id).reduce((a, b) => a + parseFloat(b.qtd), 0);
+            const realizado = movs.filter(h => h.ordem === id).reduce((a, b) => a + parseFloat(b.qtd || 0), 0);
             const meta = parseFloat(ordensGlobal[id].meta) || 1;
             const perc = Math.min(100, ((realizado/meta)*100)).toFixed(0);
 
             corpo.innerHTML += `<tr>
                 <td style="color:var(--done); font-weight:bold">${id}</td>
                 <td>${ordensGlobal[id].cod}</td>
-                <td><span class="item-nome">${ordensGlobal[id].prod}</span></td>
+                <td><span class="item-nome">${ordensGlobal[id].prod || ''}</span></td>
                 <td>${meta}</td>
                 <td><b style="color:var(--done)">${realizado}</b></td>
                 <td>
@@ -328,7 +357,7 @@
                     </div>
                     <small>${perc}% concluído</small>
                 </td>
-                <td>${isAdmin? `<button class="btn-del" onclick="fecharOrdem('${id}')">FECHAR</button>` : '-'}</td>
+                <td>${isAdmin ? `<button class="btn-del" onclick="fecharOrdem('${id}')">FECHAR</button>` : '-'}</td>
             </tr>`;
         }
     }
@@ -339,7 +368,7 @@
         corpo.innerHTML = '';
         let tCount = 0, tQtd = 0, tPeso = 0;
 
-        // Ordena por dataISO desc
+        // Garante a ordenação inversa padrão (Mais recente primeiro)
         const movsArray = Object.entries(movsGlobal).sort((a,b) => (b[1].dataISO || '').localeCompare(a[1].dataISO || ''));
 
         movsArray.forEach(([id, h]) => {
@@ -349,16 +378,16 @@
                 tCount++; tQtd += q; tPeso += pt;
 
                 corpo.innerHTML += `<tr>
-                    <td><small>${h.data}</small></td>
+                    <td><small>${h.data || ''}</small></td>
                     <td style="color:var(--info); font-weight:bold">${h.ordem || 'EXP'}</td>
-                    <td>${h.cod}</td>
-                    <td><span class="item-nome" style="font-size:11px">${h.prod}</span></td>
-                    <td><small style="color:${h.tipo === 'ENTRADA'? 'green':'red'}">${h.tipo}</small></td>
+                    <td>${h.cod || ''}</td>
+                    <td><span class="item-nome" style="font-size:11px">${h.prod || ''}</span></td>
+                    <td><small style="color:${h.tipo === 'ENTRADA'? 'green':'red'}">${h.tipo || ''}</small></td>
                     <td><b>${q}</b></td>
                     <td>${h.peso_unit || 0}</td>
                     <td style="background:#f9f9f9"><b>${pt.toFixed(3)}</b></td>
-                    <td><small>${h.ope.split('@')[0]}</small></td>
-                    <td>${isAdmin? `<button class="btn-del" onclick="reverterMov('${id}')">REV</button>` : ''}</td>
+                    <td><small>${h.ope ? h.ope.split('@')[0] : '---'}</small></td>
+                    <td>${isAdmin ? `<button class="btn-del" onclick="reverterMov('${id}')">REV</button>` : ''}</td>
                 </tr>`;
             }
         });
@@ -367,28 +396,29 @@
         document.getElementById('soma-peso').innerText = tPeso.toFixed(3);
     }
 
-    // --- LÓGICA DE LANÇAMENTOS ---
+    // --- LANÇAMENTOS SEGUROS E VALIDAÇÕES ---
     function lancarMovimento() {
         const btn = document.getElementById('btn-confirmar-mov');
         const tipo = document.getElementById('mov_tipo').value;
         const qtd = parseFloat(document.getElementById('mov_qtd').value);
 
-        if(!qtd || qtd <= 0) return alert("Quantidade Inválida");
+        if(isNaN(qtd) || qtd <= 0) return alert("Quantidade Inválida!");
 
         let cod = "";
         let ofId = "";
 
         if(tipo === 'ENTRADA') {
             ofId = document.getElementById('mov_ordem_id').value;
-            if(!ofId) return alert("Selecione uma Ordem de Produção SA");
+            if(!ofId || !ordensGlobal[ofId]) return alert("Selecione uma Ordem de Produção SA válida!");
 
-            const meta = parseFloat(ordensGlobal[ofId].meta);
-            const realizado = Object.values(movsGlobal).filter(h => h.ordem === ofId).reduce((a, b) => a + parseFloat(b.qtd), 0);
+            const meta = parseFloat(ordensGlobal[ofId].meta) || 0;
+            const realizado = Object.values(movsGlobal).filter(h => h.ordem === ofId).reduce((a, b) => a + parseFloat(b.qtd || 0), 0);
             if(realizado + qtd > meta) return alert(`BLOQUEIO: Quantidade excede a meta da OP (Restante: ${meta - realizado})`);
 
             cod = ordensGlobal[ofId].cod;
         } else {
             cod = document.getElementById('mov_cod').value.toUpperCase().trim();
+            if(!cod) return alert("Insira o código do artigo para saída.");
             const saldo = saldosCache[cod] || 0;
             if(qtd > saldo) return alert(`STOCK INSUFICIENTE: Saldo atual de ${saldo} unidades.`);
         }
@@ -405,13 +435,12 @@
             ope: userEmail,
             tipo: tipo,
             cod: cod,
-            prod: p.prod,
+            prod: p.prod || '',
             peso_unit: pu,
             peso_total: (qtd * pu),
             ordem: ofId || "EXPEDIÇÃO"
         };
 
-        // Bloqueio Anti-Duplicado
         btn.disabled = true;
         btn.innerText = "A GRAVAR...";
 
@@ -423,18 +452,18 @@
         }).catch(() => {
             btn.disabled = false;
             btn.innerText = "Confirmar Registo";
-            alert("Erro ao gravar dados.");
+            alert("Erro ao gravar dados no Firebase.");
         });
     }
 
-    // --- AUXILIARES TÉCNICOS ---
+    // --- AUXILIARES E INTERFACE ---
     function procv(cod, targetId) {
         const codigoLimpo = cod.toUpperCase().trim();
         const p = produtosGlobal[codigoLimpo];
         const target = document.getElementById(targetId);
 
         if(p) {
-            target.value = p.prod;
+            target.value = p.prod || '';
             if(targetId === 'nome_prod') {
                 document.getElementById('desc_prod').value = p.desc || "";
                 document.getElementById('mov_peso_unit').value = p.peso || 0;
@@ -489,35 +518,43 @@
     }
 
     function salvarProduto() {
-        if(!isAdmin) return alert("Sem permissão");
+        if(!isAdmin) return alert("Sem permissão administrativa");
         const c = document.getElementById('cad_cod').value.toUpperCase().trim();
-        if(!c) return;
+        const nome = document.getElementById('cad_prod').value.trim();
+        
+        if(!c || !nome) return alert("Código Único e Nome Comercial são obrigatórios!");
+
         db.ref('produtos/'+c).set({
-            prod: document.getElementById('cad_prod').value,
-            desc: document.getElementById('cad_desc').value,
-            peso: document.getElementById('cad_peso').value,
-            min: document.getElementById('cad_min').value
+            prod: nome,
+            desc: document.getElementById('cad_desc').value.trim(),
+            peso: parseFloat(document.getElementById('cad_peso').value) || 0,
+            min: parseInt(document.getElementById('cad_min').value) || 0
         }).then(() => {
-            alert("Artigo Atualizado com Sucesso");
+            alert("Artigo Atualizado com Sucesso!");
             ["cad_cod", "cad_prod", "cad_desc", "cad_peso", "cad_min"].forEach(id => document.getElementById(id).value = "");
         });
     }
 
     function salvarOrdem() {
-        if(!isAdmin) return alert("Sem permissão");
+        if(!isAdmin) return alert("Sem permissão administrativa");
         const id = document.getElementById('ord_id').value.toUpperCase().trim();
         const c = document.getElementById('ord_cod').value.toUpperCase().trim();
-        if(!id ||!c ||!produtosGlobal[c]) return alert("Código de Artigo inválido ou campos vazios.");
+        const meta = parseInt(document.getElementById('ord_meta').value);
+
+        if(!id || !c || isNaN(meta) || meta <= 0) return alert("Verifique se o ID da OP, código ou meta estão vazios ou nulos.");
+        if(!produtosGlobal[c]) return alert("Artigo base não encontrado! Registe o artigo primeiro.");
 
         db.ref('ordens/'+id).set({
             cod: c,
-            prod: produtosGlobal[c].prod,
-            meta: document.getElementById('ord_meta').value,
+            prod: produtosGlobal[c].prod || '',
+            meta: meta,
             criadaEm: new Date().toISOString()
         }).then(() => {
             alert("Ordem de Produção Ativada!");
             document.getElementById('ord_id').value = "";
             document.getElementById('ord_meta').value = "";
+            document.getElementById('ord_cod').value = "";
+            document.getElementById('ord_nome').value = "";
         });
     }
 
@@ -525,7 +562,7 @@
         const s = document.getElementById('mov_ordem_id');
         const val = s.value;
         s.innerHTML = '<option value="">-- Selecionar OP Ativa --</option>';
-        for(let id in ordensGlobal) s.innerHTML += `<option value="${id}">${id} | ${ordensGlobal[id].prod}</option>`;
+        for(let id in ordensGlobal) s.innerHTML += `<option value="${id}">${id} | ${ordensGlobal[id].prod || ''}</option>`;
         s.value = val;
     }
 
@@ -535,20 +572,20 @@
         document.getElementById('admin_modo').value = "PROD";
         alternarFormAdmin();
         document.getElementById('cad_cod').value = c;
-        document.getElementById('cad_prod').value = p.prod;
-        document.getElementById('cad_desc').value = p.desc;
-        document.getElementById('cad_peso').value = p.peso;
-        document.getElementById('cad_min').value = p.min;
+        document.getElementById('cad_prod').value = p.prod || '';
+        document.getElementById('cad_desc').value = p.desc || '';
+        document.getElementById('cad_peso').value = p.peso || 0;
+        document.getElementById('cad_min').value = p.min || 0;
         window.scrollTo(0,0);
     }
 
     function verificarExistencia(c) {
         const p = produtosGlobal[c.toUpperCase().trim()];
         if(p && document.activeElement.id === 'cad_cod') {
-            document.getElementById('cad_prod').value = p.prod;
-            document.getElementById('cad_desc').value = p.desc;
-            document.getElementById('cad_peso').value = p.peso;
-            document.getElementById('cad_min').value = p.min;
+            document.getElementById('cad_prod').value = p.prod || '';
+            document.getElementById('cad_desc').value = p.desc || '';
+            document.getElementById('cad_peso').value = p.peso || 0;
+            document.getElementById('cad_min').value = p.min || 0;
         }
     }
 
@@ -557,9 +594,13 @@
         if(confirm("Deseja fechar e arquivar esta OP?")) db.ref('ordens/'+id).remove();
     }
 
+    document.addEventListener("DOMContentLoaded", function() {
+         // O listener do Firebase onAuthStateChanged irá tratar o login automaticamente.
+    });
+
     function reverterMov(id) {
         if(!isAdmin) return;
-        if(confirm("CUIDADO: Reverter este movimento irá alterar o stock. Confirmar?")) db.ref('movimentacoes/'+id).remove();
+        if(confirm("CUIDADO: Reverter este movimento irá alterar o stock permanentemente. Confirmar?")) db.ref('movimentacoes/'+id).remove();
     }
 
     function abrirHistorico() {
