@@ -18,69 +18,81 @@
 
         body { font-family: 'Segoe UI', system-ui, sans-serif; margin: 0; background: var(--light); color: #2d3436; font-size: 13px; }
 
+        /* Login Screen */
         #login-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(135deg, var(--primary), #1a252f); display: flex; justify-content: center; align-items: center; z-index: 1000; }
-       .login-card { background: white; padding: 40px; border-radius: 15px; width: 320px; text-align: center; box-shadow: 0 15px 35px rgba(0,0,0,0.4); }
-        #login-error { color: var(--danger); font-size: 12px; margin-top: 10px; min-height: 18px; }
+        .login-card { background: white; padding: 40px; border-radius: 15px; width: 320px; text-align: center; box-shadow: 0 15px 35px rgba(0,0,0,0.4); }
         #main-content { display: none; animation: fadeIn 0.5s; }
 
-       .navbar { background: var(--primary); color: white; padding: 12px 25px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
-       .container { width: 96%; max-width: 1400px; margin: 20px auto; }
-       .status-conn { font-size: 10px; padding: 3px 8px; border-radius: 10px; margin-left: 10px; }
-       .status-online { background: var(--success); }
-       .status-offline { background: var(--danger); }
+        /* Navigation */
+        .navbar { background: var(--primary); color: white; padding: 12px 25px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .container { width: 96%; max-width: 1400px; margin: 20px auto; }
+        .status-conn { font-size: 10px; padding: 3px 8px; border-radius: 10px; margin-left: 10px; }
+        .status-online { background: var(--success); }
+        .status-offline { background: var(--danger); }
 
-       .dash-container { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-bottom: 25px; }
-       .dash-card { background: white; padding: 15px 20px; border-radius: 8px; border: 1px solid var(--border); box-shadow: 0 2px 4px rgba(0,0,0,0.02); border-bottom: 4px solid #ccd1d1; transition: transform 0.2s; }
-       .dash-card:hover { transform: translateY(-2px); }
-       .dash-card.dash-active { border-bottom-color: var(--info); }
-       .dash-card.dash-meta { border-bottom-color: var(--orange); }
-       .dash-card.dash-prod { border-bottom-color: var(--success); }
-       .dash-card.dash-efet { border-bottom-color: var(--done); }
-       .dash-title { font-size: 10px; color: #7f8c8d; font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px; }
-       .dash-value { font-size: 22px; font-weight: bold; color: var(--primary); margin: 5px 0 0 0; }
+        /* Dashboard Global */
+        .dash-container { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-bottom: 25px; }
+        .dash-card { background: white; padding: 15px 20px; border-radius: 8px; border: 1px solid var(--border); box-shadow: 0 2px 4px rgba(0,0,0,0.02); border-bottom: 4px solid #ccd1d1; transition: transform 0.2s; }
+        .dash-card:hover { transform: translateY(-2px); }
+        .dash-card.dash-active { border-bottom-color: var(--info); }
+        .dash-card.dash-meta { border-bottom-color: var(--orange); }
+        .dash-card.dash-prod { border-bottom-color: var(--success); }
+        .dash-card.dash-efet { border-bottom-color: var(--done); }
+        .dash-title { font-size: 10px; color: #7f8c8d; font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px; }
+        .dash-value { font-size: 22px; font-weight: bold; color: var(--primary); margin: 5px 0 0 0; }
 
-       .card { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 25px; border: 1px solid var(--border); }
-       .section-header { border-left: 5px solid var(--info); padding-left: 15px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; gap: 15px; }
-       .section-header h3 { margin: 0; text-transform: uppercase; color: var(--primary); letter-spacing: 1px; flex-grow: 1; }
+        /* Cards & Tables */
+        .card { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 25px; border: 1px solid var(--border); }
+        .section-header { border-left: 5px solid var(--info); padding-left: 15px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; gap: 15px; }
+        .section-header h3 { margin: 0; text-transform: uppercase; color: var(--primary); letter-spacing: 1px; flex-grow: 1; }
 
         table { width: 100%; border-collapse: collapse; margin-top: 10px; }
         th { background: #f8f9fa; padding: 12px; text-align: left; border-bottom: 2px solid var(--border); font-size: 11px; color: #636e72; text-transform: uppercase; }
         td { padding: 12px; border-bottom: 1px solid #eee; vertical-align: middle; }
         tr:hover { background-color: #f9fbff; }
 
-       .item-nome { color: var(--orange); font-weight: bold; font-size: 13px; display: block; }
-       .item-desc { color: #636e72; font-size: 11px; display: block; margin-top: 2px; }
-       .stock-baixo { background-color: #fff5f5!important; color: var(--danger); font-weight: bold; }
+        /* UI Components */
+        .item-nome { color: var(--orange); font-weight: bold; font-size: 13px; display: block; }
+        .item-desc { color: #636e72; font-size: 11px; display: block; margin-top: 2px; }
+        .stock-baixo { background-color: #fff5f5!important; color: var(--danger); font-weight: bold; }
 
         input, select { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid var(--border); border-radius: 6px; box-sizing: border-box; transition: 0.3s; font-family: inherit; }
         input:focus { border-color: var(--info); outline: none; box-shadow: 0 0 0 3px rgba(52,152,219,0.1); }
         input[readonly] { background-color: #f1f2f6; cursor: not-allowed; }
 
-       .btn-reg { background: var(--primary); color: white; width: 100%; padding: 14px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; transition: 0.3s; text-transform: uppercase; }
-       .btn-reg:hover { background: #1e272e; transform: translateY(-1px); }
-       .btn-reg:disabled { background: #ccc; cursor: not-allowed; transform: none; }
-       .btn-edit { background: var(--info); color: white; padding: 6px 12px; border-radius: 4px; border:none; cursor: pointer; font-size: 10px; }
-       .btn-del { background: var(--danger); color: white; padding: 6px 12px; border-radius: 4px; border:none; cursor: pointer; font-size: 10px; }
-       .btn-secondary { background: #95a5a6; color: white; padding: 8px 15px; border-radius: 4px; border:none; cursor: pointer; font-size: 11px; white-space: nowrap; }
+        .btn-reg { background: var(--primary); color: white; width: 100%; padding: 14px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; transition: 0.3s; text-transform: uppercase; }
+        .btn-reg:hover { background: #1e272e; transform: translateY(-1px); }
+        .btn-reg:disabled { background: #ccc; cursor: not-allowed; transform: none; }
+        .btn-edit { background: var(--info); color: white; padding: 6px 12px; border-radius: 4px; border:none; cursor: pointer; font-size: 10px; }
+        .btn-del { background: var(--danger); color: white; padding: 6px 12px; border-radius: 4px; border:none; cursor: pointer; font-size: 10px; }
+        .btn-secondary { background: #95a5a6; color: white; padding: 8px 15px; border-radius: 4px; border:none; cursor: pointer; font-size: 11px; white-space: nowrap; }
 
-       .flex-row { display: grid; grid-template-columns: 1fr 1fr; gap: 25px; }
-       .chk-op { transform: scale(1.2); cursor: pointer; margin: 0 auto; display: block; }
-       .select-filtro-tabela { width: auto; min-width: 200px; padding: 8px; margin: 0; font-weight: bold; border: 2px solid var(--info); }
+        .flex-row { display: grid; grid-template-columns: 1fr 1fr; gap: 25px; }
+        
+        /* Checkbox Customization */
+        .chk-op { transform: scale(1.2); cursor: pointer; margin: 0 auto; display: block; }
+        
+        /* Select de Filtro */
+        .select-filtro-tabela { width: auto; min-width: 200px; padding: 8px; margin: 0; font-weight: bold; border: 2px solid var(--info); }
 
-       .badge-falta { background: #fff3cd; color: #856404; padding: 3px 6px; border-radius: 4px; font-weight: bold; font-size: 11px; }
-       .badge-concluido { background: #d4edda; color: #155724; padding: 3px 6px; border-radius: 4px; font-weight: bold; font-size: 11px; }
+        /* Badges */
+        .badge-falta { background: #fff3cd; color: #856404; padding: 3px 6px; border-radius: 4px; font-weight: bold; font-size: 11px; }
+        .badge-concluido { background: #d4edda; color: #155724; padding: 3px 6px; border-radius: 4px; font-weight: bold; font-size: 11px; }
 
+        /* Modal */
         #modal-historico { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 2000; overflow-y: auto; backdrop-filter: blur(5px); }
-       .modal-content { background: white; width: 95%; max-width: 1200px; margin: 30px auto; padding: 30px; border-radius: 12px; position: relative; }
-       .resumo-black { background: var(--dark-card); color: white; padding: 25px; border-radius: 10px; display: flex; justify-content: space-around; margin-bottom: 25px; border-bottom: 4px solid var(--info); }
+        .modal-content { background: white; width: 95%; max-width: 1200px; margin: 30px auto; padding: 30px; border-radius: 12px; position: relative; }
+
+        .resumo-black { background: var(--dark-card); color: white; padding: 25px; border-radius: 10px; display: flex; justify-content: space-around; margin-bottom: 25px; border-bottom: 4px solid var(--info); }
 
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        
         @media (max-width: 900px) {
-           .flex-row { grid-template-columns: 1fr; }
-           .dash-container { grid-template-columns: repeat(2, 1fr); }
+            .flex-row { grid-template-columns: 1fr; }
+            .dash-container { grid-template-columns: repeat(2, 1fr); }
         }
         @media (max-width: 500px) {
-           .dash-container { grid-template-columns: 1fr; }
+            .dash-container { grid-template-columns: 1fr; }
         }
     </style>
 </head>
@@ -93,7 +105,6 @@
         <input type="email" id="email" placeholder="E-mail do Utilizador">
         <input type="password" id="password" placeholder="Palavra-passe" onkeypress="if(event.key==='Enter') fazerLogin()">
         <button onclick="fazerLogin()" id="btn-login" class="btn-reg" style="background: var(--info); margin-top: 10px;">Entrar no Sistema</button>
-        <div id="login-error"></div>
     </div>
 </div>
 
@@ -112,6 +123,7 @@
             <span>🕒</span> CONSULTAR HISTÓRICO E MOVIMENTAÇÕES TÉCNICAS
         </button>
 
+        <!-- DASHBOARD DE INDICADORES (OPS ATIVAS) -->
         <div class="dash-container">
             <div class="dash-card dash-active">
                 <div class="dash-title">🟢 OPs em Monitorização</div>
@@ -133,7 +145,7 @@
 
         <div class="flex-row">
             <div id="panel-admin" class="card" style="display:none; border-top: 4px solid var(--danger);">
-                <div class="section-header"><h3>🛠 Gestão Administrativa</h3></div>
+                <div class="section-header"><h3>🛠️ Gestão Administrativa</h3></div>
                 <select id="admin_modo" onchange="alternarFormAdmin()">
                     <option value="PROD">CADASTRO DE ARTIGOS SA (BASE)</option>
                     <option value="ORDEM">ORDENS DE PRODUÇÃO SA (ATIVAS)</option>
@@ -191,11 +203,13 @@
         <div class="card">
             <div class="section-header">
                 <h3>📋 Painel de Ordens de Produção</h3>
+                
                 <select id="filtro-estado-op" class="select-filtro-tabela" onchange="transparentInterfaceUpdate()">
                     <option value="ATIVAS">🟢 OPs ATIVAS (MONITORIZAÇÃO)</option>
                     <option value="ARQUIVADAS">⚫ OPs ARQUIVADAS (HISTÓRICO)</option>
                 </select>
-                <button id="btn-arquivar-selecionadas" class="btn-secondary" style="background: #27ae60; display:none;" onclick="arquivarOrdensMarcadas()">🗄 Arquivar OPs Selecionadas</button>
+
+                <button id="btn-arquivar-selecionadas" class="btn-secondary" style="background: #27ae60; display:none;" onclick="arquivarOrdensMarcadas()">🗄️ Arquivar OPs Selecionadas</button>
             </div>
             <div style="overflow-x: auto;">
                 <table>
@@ -205,7 +219,7 @@
                             <th>DATA CRIAÇÃO</th>
                             <th>OP</th>
                             <th>CÓDIGO</th>
-                            <th>ARTIGO / DESCRIÇÃO TÉCNICA</th>
+                            <th>ARTIGO</th>
                             <th>FALTA / META</th>
                             <th>CONCLUÍDO</th>
                             <th>EFICIÊNCIA</th>
@@ -236,12 +250,15 @@
             <h2 style="margin: 0; color: var(--primary);">🕒 Histórico de Movimentação SA</h2>
             <button class="btn-secondary" onclick="exportarCSV()">📊 Exportar CSV</button>
         </div>
+
         <input type="text" id="inputFiltro" style="padding:15px; border:2px solid var(--info); margin-bottom:25px;" placeholder="Pesquisar por Código, Artigo, OP ou Operador..." oninput="renderizarHistorial()">
+
         <div class="resumo-black">
             <div style="text-align:center"><span>MOVIMENTOS</span><br><b id="soma-count" style="font-size:24px">0</b></div>
             <div style="text-align:center"><span>QTD TOTAL</span><br><b id="soma-qtd" style="font-size:24px">0</b></div>
             <div style="text-align:center"><span>PESO ACUMULADO</span><br><b id="soma-peso" style="font-size:24px">0.000</b> kg</div>
         </div>
+
         <div style="overflow-x: auto;">
             <table>
                 <thead><tr><th>DATA</th><th>DOC/OP</th><th>COD</th><th>ARTIGO</th><th>TIPO</th><th>QTD</th><th>PESO UNIT.</th><th>TOTAL (KG)</th><th>OPERADOR</th><th>-</th></tr></thead>
@@ -252,6 +269,7 @@
 </div>
 
 <script>
+    // Configuração Firebase
     const firebaseConfig = {
         apiKey: "AIzaSyAPHVbVNdYEp_b7-_bWkTyn5jCVrbZogTo",
         authDomain: "i9-industrial.firebaseapp.com",
@@ -271,13 +289,16 @@
     let movsGlobal = {};
     let saldosCache = {};
 
+    // --- CICLO DE VIDA DE AUTENTICAÇÃO ---
     auth.onAuthStateChanged(user => {
         if (user) {
             userEmail = user.email;
             isAdmin = /admin|super/.test(userEmail.toLowerCase());
+            
             document.getElementById('login-screen').style.display = 'none';
             document.getElementById('main-content').style.display = 'block';
             document.getElementById('user-display').innerText = userEmail;
+            
             transparentInterfaceUpdate();
             monitorarConexao();
             carregarDados();
@@ -289,6 +310,7 @@
 
     function transparentInterfaceUpdate() {
         const modoFiltro = document.getElementById('filtro-estado-op').value;
+        
         if(isAdmin) {
             document.getElementById('panel-admin').style.display = 'block';
             if(modoFiltro === 'ATIVAS') {
@@ -314,27 +336,20 @@
         const email = document.getElementById('email').value.trim();
         const pass = document.getElementById('password').value;
         const btnLogin = document.getElementById('btn-login');
-        const errorDiv = document.getElementById('login-error');
-        errorDiv.innerText = "";
 
-        if(!email ||!pass) {
-            errorDiv.innerText = "Preencha e-mail e senha.";
-            return;
-        }
+        if(!email || !pass) return alert("Por favor, preencha todos os campos.");
 
         btnLogin.disabled = true;
         btnLogin.innerText = "A AUTENTICAR...";
 
         auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL)
-          .then(() => auth.signInWithEmailAndPassword(email, pass))
-          .catch(err => {
+            .then(() => {
+                return auth.signInWithEmailAndPassword(email, pass);
+            })
+            .catch(err => {
                 btnLogin.disabled = false;
                 btnLogin.innerText = "Entrar no Sistema";
-                if (err.code === 'auth/user-not-found') errorDiv.innerText = "Usuário não encontrado.";
-                else if (err.code === 'auth/wrong-password') errorDiv.innerText = "Senha incorreta.";
-                else if (err.code === 'auth/invalid-email') errorDiv.innerText = "E-mail inválido.";
-                else if (err.code === 'auth/too-many-requests') errorDiv.innerText = "Muitas tentativas. Tente mais tarde.";
-                else errorDiv.innerText = "Erro: " + err.message;
+                alert("Acesso Negado: Credenciais Inválidas.");
             });
     }
 
@@ -353,10 +368,12 @@
         });
     }
 
+    // --- CARREGAMENTO DE DADOS ---
     function carregarDados() {
         db.ref('produtos').on('value', s => { produtosGlobal = s.val() || {}; transparentInterfaceUpdate(); });
         db.ref('ordens').on('value', s => { ordensGlobal = s.val() || {}; transparentInterfaceUpdate(); atualizarSelectOrdens(); });
         db.ref('ordens_arquivadas').on('value', s => { ordensArquivadasGlobal = s.val() || {}; transparentInterfaceUpdate(); });
+
         db.ref('movimentacoes').orderByChild('dataISO').limitToLast(500).on('value', s => {
             movsGlobal = s.val() || {};
             calcularSaldos();
@@ -378,17 +395,19 @@
     function renderizarStock() {
         const corpo = document.getElementById('corpoStock');
         corpo.innerHTML = '';
+
         for(let c in produtosGlobal) {
             const saldo = saldosCache[c] || 0;
             const p = produtosGlobal[c];
             const min = parseFloat(p.min) || 0;
-            const alerta = saldo <= min? 'stock-baixo' : '';
+            const alerta = saldo <= min ? 'stock-baixo' : '';
+
             corpo.innerHTML += `<tr class="${alerta}">
                 <td><b>${c}</b></td>
                 <td><span class="item-nome">${p.prod || 'Sem Nome'}</span><span class="item-desc">${p.desc || ''}</span></td>
                 <td><b style="font-size:15px">${saldo}</b></td>
                 <td>${min}</td>
-                <td>${isAdmin? `<button class="btn-edit" onclick="carregarParaEditar('${c}')">EDITAR</button>` : 'OK'}</td>
+                <td>${isAdmin ? `<button class="btn-edit" onclick="carregarParaEditar('${c}')">EDITAR</button>` : 'OK'}</td>
             </tr>`;
         }
     }
@@ -397,10 +416,13 @@
         const corpo = document.getElementById('corpoOrdens');
         corpo.innerHTML = '';
         const movs = Object.values(movsGlobal);
+        
         const modoFiltro = document.getElementById('filtro-estado-op').value;
         document.getElementById('chk-marcar-todas').checked = false;
-        const listaParaRenderizar = (modoFiltro === 'ATIVAS')? ordensGlobal : ordensArquivadasGlobal;
 
+        const listaParaRenderizar = (modoFiltro === 'ATIVAS') ? ordensGlobal : ordensArquivadasGlobal;
+
+        // --- CÁLCULOS DO DASHBOARD EM TEMPO REAL ---
         let totalOpsAtivas = 0;
         let metaGlobalAtiva = 0;
         let realizadoGlobalAtivo = 0;
@@ -414,45 +436,42 @@
         document.getElementById('dash-total-ops').innerText = totalOpsAtivas;
         document.getElementById('dash-meta-pecas').innerHTML = `${metaGlobalAtiva} <span style="font-size:11px; font-weight:normal; color:#7f8c8d;">pçs</span>`;
         document.getElementById('dash-realizado-pecas').innerHTML = `${realizadoGlobalAtivo} <span style="font-size:11px; font-weight:normal; color:#7f8c8d;">pçs</span>`;
-        const eficienciaGlobal = metaGlobalAtiva > 0? ((realizadoGlobalAtivo / metaGlobalAtiva) * 100).toFixed(1) : 0;
+        
+        const eficienciaGlobal = metaGlobalAtiva > 0 ? ((realizadoGlobalAtivo / metaGlobalAtiva) * 100).toFixed(1) : 0;
         document.getElementById('dash-eficiencia-global').innerText = `${eficienciaGlobal}%`;
+        // -------------------------------------------
 
         for(let id in listaParaRenderizar) {
             const realizado = movs.filter(h => h.ordem === id).reduce((a, b) => a + parseFloat(b.qtd || 0), 0);
             const meta = parseFloat(listaParaRenderizar[id].meta) || 1;
             const falta = Math.max(0, meta - realizado);
             const perc = Math.min(100, ((realizado/meta)*100)).toFixed(0);
-            const codProduto = listaParaRenderizar[id].cod;
-            const descProduto = produtosGlobal[codProduto]?.desc || 'Sem descrição cadastrada';
-
+            
             let dataCriacao = '---';
             if(listaParaRenderizar[id].criadaEm) {
                 const d = new Date(listaParaRenderizar[id].criadaEm);
                 dataCriacao = d.toLocaleString('pt-pt', { day: '2-digit', month: '2-digit', year: '2-digit', hour: '2-digit', minute:'2-digit' });
             }
 
-            const displayMetaFalta = falta === 0
-              ? `<span class="badge-concluido">✔ CONCLUÍDO</span> <span style="color:#7f8c8d; font-size:11px;">/ ${meta}</span>`
+            const displayMetaFalta = falta === 0 
+                ? `<span class="badge-concluido">✔ CONCLUÍDO</span> <span style="color:#7f8c8d; font-size:11px;">/ ${meta}</span>` 
                 : `<span class="badge-falta">Falta: ${falta}</span> <span style="color:#7f8c8d; font-size:11px;">/ ${meta}</span>`;
 
             corpo.innerHTML += `<tr>
-                 ${(isAdmin && modoFiltro === 'ATIVAS')? `<td style="text-align:center;"><input type="checkbox" class="chk-op" value="${id}"></td>` : (modoFiltro === 'ATIVAS'? '' : '<td>📂</td>')}
+                 ${(isAdmin && modoFiltro === 'ATIVAS') ? `<td style="text-align:center;"><input type="checkbox" class="chk-op" value="${id}"></td>` : (modoFiltro === 'ATIVAS' ? '' : '<td>📂</td>')}
                 <td><small style="color: #555;">${dataCriacao}</small></td>
-                <td style="color:${modoFiltro === 'ATIVAS'? 'var(--done)' : '#7f8c8d'}; font-weight:bold">${id}</td>
+                <td style="color:${modoFiltro === 'ATIVAS' ? 'var(--done)' : '#7f8c8d'}; font-weight:bold">${id}</td>
                 <td>${listaParaRenderizar[id].cod}</td>
-                <td>
-                    <span class="item-nome" style="color:${modoFiltro === 'ATIVAS'? 'var(--orange)' : '#7f8c8d'}">${listaParaRenderizar[id].prod || ''}</span>
-                    <span class="item-desc">${descProduto}</span>
-                </td>
+                <td><span class="item-nome" style="color:${modoFiltro === 'ATIVAS' ? 'var(--orange)' : '#7f8c8d'}">${listaParaRenderizar[id].prod || ''}</span></td>
                 <td>${displayMetaFalta}</td>
                 <td><b style="color:var(--done)">${realizado}</b></td>
                 <td>
                     <div style="width:100%; background:#eee; height:8px; border-radius:4px; margin-top:5px">
-                        <div style="width:${perc}%; background:${modoFiltro === 'ATIVAS'? 'var(--success)' : '#7f8c8d'}; height:100%; border-radius:4px"></div>
+                        <div style="width:${perc}%; background:${modoFiltro === 'ATIVAS' ? 'var(--success)' : '#7f8c8d'}; height:100%; border-radius:4px"></div>
                     </div>
                     <small>${perc}% concluído</small>
                 </td>
-                 ${(isAdmin && modoFiltro === 'ARQUIVADAS')? `<td><button class="btn-del" style="background:var(--danger); padding:4px 8px;" onclick="desarquivarOrdem('${id}')">REATIVAR</button></td>` : (modoFiltro === 'ARQUIVADAS'? '<td>-</td>' : '')}
+                 ${(isAdmin && modoFiltro === 'ARQUIVADAS') ? `<td><button class="btn-del" style="background:var(--danger); padding:4px 8px;" onclick="desarquivarOrdem('${id}')">REATIVAR</button></td>` : (modoFiltro === 'ARQUIVADAS' ? '<td>-</td>' : '')}
             </tr>`;
         }
     }
@@ -463,11 +482,13 @@
 
     function abrirHistorico() { document.getElementById('modal-historico').style.display = 'block'; document.getElementById('inputFiltro').focus(); }
     function fecharHistorico() { document.getElementById('modal-historico').style.display = 'none'; }
-
+    
     function arquivarOrdensMarcadas() {
         if(!isAdmin) return;
         const selecionados = Array.from(document.querySelectorAll('.chk-op:checked')).map(cb => cb.value);
+
         if(selecionados.length === 0) return alert("Por favor, marque pelo menos uma Ordem de Produção.");
+
         if(confirm(`Confirma o arquivamento de ${selecionados.length} Ordem(ns) de Produção selecionada(s)?`)) {
             let atualizacoes = {};
             selecionados.forEach(id => {
@@ -487,12 +508,16 @@
     function desarquivarOrdem(id) {
         if(!isAdmin) return;
         const opDados = ordensArquivadasGlobal[id];
+        
         if(!opDados) return alert("Dados da Ordem de Produção não localizados.");
+
         if(confirm(`Deseja reativar e desarquivar a OP ${id}? Ela retornará para a monitorização ativa.`)) {
             let atualizacoes = {};
             if(opDados.arquivadaEm) delete opDados.arquivadaEm;
+            
             atualizacoes[`ordens/${id}`] = opDados;
             atualizacoes[`ordens_arquivadas/${id}`] = null;
+
             db.ref().update(atualizacoes).then(() => {
                 alert(`OP ${id} reativada com sucesso!`);
             }).catch(() => alert("Erro ao tentar desarquivar a OP. Verifique as regras do Firebase."));
@@ -504,4 +529,279 @@
         const corpo = document.getElementById('corpoHist');
         corpo.innerHTML = '';
         let tCount = 0, tQtd = 0, tPeso = 0;
-        const movsArray = Object.entries(movsGlobal).sort((a,b) => (b[1].dataISO || '').localeCompare(a[1].
+
+        const movsArray = Object.entries(movsGlobal).sort((a,b) => (b[1].dataISO || '').localeCompare(a[1].dataISO || ''));
+
+        movsArray.forEach(([id, h]) => {
+            if(JSON.stringify(h).toLowerCase().includes(filtro)) {
+                const q = parseFloat(h.qtd) || 0;
+                const pt = parseFloat(h.peso_total) || 0;
+                tCount++; tQtd += q; tPeso += pt;
+
+                corpo.innerHTML += `<tr>
+                    <td><small>${h.data || ''}</small></td>
+                    <td style="color:var(--info); font-weight:bold">${h.ordem || 'EXP'}</td>
+                    <td>${h.cod || ''}</td>
+                    <td><span class="item-nome" style="font-size:11px">${h.prod || ''}</span></td>
+                    <td><small style="color:${h.tipo === 'ENTRADA'? 'green':'red'}">${h.tipo || ''}</small></td>
+                    <td><b>${q}</b></td>
+                    <td>${h.peso_unit || 0}</td>
+                    <td style="background:#f9f9f9"><b>${pt.toFixed(3)}</b></td>
+                    <td><small>${h.ope ? h.ope.split('@')[0] : '---'}</small></td>
+                    <td>${isAdmin ? `<button class="btn-del" onclick="reverterMov('${id}')">REV</button>` : ''}</td>
+                </tr>`;
+            }
+        });
+        document.getElementById('soma-count').innerText = tCount;
+        document.getElementById('soma-qtd').innerText = tQtd;
+        document.getElementById('soma-peso').innerText = tPeso.toFixed(3);
+    }
+
+    function lancarMovimento() {
+        const btn = document.getElementById('btn-confirmar-mov');
+        const tipo = document.getElementById('mov_tipo').value;
+        const qtd = parseFloat(document.getElementById('mov_qtd').value);
+
+        if(isNaN(qtd) || qtd <= 0) return alert("Quantidade Inválida!");
+
+        let cod = "";
+        let ofId = "";
+
+        if(tipo === 'ENTRADA') {
+            ofId = document.getElementById('mov_ordem_id').value;
+            if(!ofId || !ordensGlobal[ofId]) return alert("Selecione uma Ordem de Produção SA válida e ativa!");
+
+            const meta = parseFloat(ordensGlobal[ofId].meta) || 0;
+            const realizado = Object.values(movsGlobal).filter(h => h.ordem === ofId).reduce((a, b) => a + parseFloat(b.qtd || 0), 0);
+            if(realizado + qtd > meta) return alert(`BLOQUEIO: Quantidade excede a meta da OP (Restante: ${meta - realizado})`);
+
+            cod = ordensGlobal[ofId].cod;
+        } else {
+            cod = document.getElementById('mov_cod').value.toUpperCase().trim();
+            if(!cod) return alert("Insira o código do artigo para saída.");
+            const saldo = saldosCache[cod] || 0;
+            if(qtd > saldo) return alert(`STOCK INSUFICIENTE: Saldo atual de ${saldo} unidades.`);
+        }
+
+        const p = produtosGlobal[cod];
+        if(!p) return alert("Artigo não encontrado no sistema!");
+        const pu = parseFloat(p.peso) || 0;
+        const agora = new Date();
+
+        const dados = {
+            dataISO: agora.toISOString(),
+            data: agora.toLocaleString('pt-pt'),
+            qtd: qtd,
+            ope: userEmail,
+            tipo: tipo,
+            cod: cod,
+            prod: p.prod || '',
+            peso_unit: pu,
+            peso_total: (qtd * pu),
+            ordem: ofId || "EXPEDIÇÃO"
+        };
+
+        btn.disabled = true;
+        btn.innerText = "A GRAVAR...";
+
+        db.ref('movimentacoes').push(dados).then(() => {
+            btn.disabled = false;
+            btn.innerText = "Confirmar Registo";
+            resetCamposMov();
+            if(tipo === 'SAIDA') document.getElementById('mov_cod').focus();
+        }).catch(() => {
+            btn.disabled = false;
+            btn.innerText = "Confirmar Registo";
+            alert("Erro ao gravar dados.");
+        });
+    }
+
+    function procv(cod, targetId) {
+        const codigoLimpo = cod.toUpperCase().trim();
+        const p = produtosGlobal[codigoLimpo];
+        const target = document.getElementById(targetId);
+
+        if(p) {
+            target.value = p.prod || '';
+            if(targetId === 'nome_prod') {
+                document.getElementById('desc_prod').value = p.desc || "";
+                document.getElementById('mov_peso_unit').value = p.peso || 0;
+                calcularPesoDinamico();
+                document.getElementById('mov_qtd').focus();
+            }
+        } else {
+            target.value = "";
+            if(targetId === 'nome_prod') {
+                document.getElementById('desc_prod').value = "";
+                document.getElementById('mov_peso_unit').value = "";
+                document.getElementById('display_peso_total').innerText = "0.000";
+            }
+        }
+    }
+
+    function preencherPelaOrdem() {
+        const id = document.getElementById('mov_ordem_id').value;
+        if(id && ordensGlobal[id]) procv(ordensGlobal[id].cod, 'nome_prod');
+        else resetCamposMov();
+    }
+
+    function calcularPesoDinamico() {
+        const q = parseFloat(document.getElementById('mov_qtd').value) || 0;
+        const pu = parseFloat(document.getElementById('mov_peso_unit').value) || 0;
+        document.getElementById('display_peso_total').innerText = (q * pu).toFixed(3);
+    }
+
+    function alternarFormAdmin() {
+        const m = document.getElementById('admin_modo').value;
+        document.getElementById('form-prod').style.display = m === 'PROD'? 'block' : 'none';
+        document.getElementById('form-ordem').style.display = m === 'ORDEM'? 'block' : 'none';
+    }
+
+    function alternarCamposEntrada() {
+        const t = document.getElementById('mov_tipo').value;
+        document.getElementById('campos-entrada').style.display = t === 'ENTRADA'? 'block' : 'none';
+        document.getElementById('campos-saida').style.display = t === 'SAIDA'? 'block' : 'none';
+        resetCamposMov();
+        if(t === 'SAIDA') {
+            setTimeout(() => document.getElementById('mov_cod').focus(), 50);
+        }
+    }
+
+    function resetCamposMov() {
+        document.getElementById('mov_cod').value = "";
+        document.getElementById('nome_prod').value = "";
+        document.getElementById('desc_prod').value = "";
+        document.getElementById('mov_qtd').value = "";
+        document.getElementById('mov_peso_unit').value = "";
+        document.getElementById('display_peso_total').innerText = "0.000";
+    }
+
+    function atualizarSelectOrdens() {
+        const select = document.getElementById('mov_ordem_id');
+        select.innerHTML = '<option value="">-- SELECIONE A OP ATIVA --</option>';
+        for(let id in ordensGlobal) {
+            select.innerHTML += `<option value="${id}">${id} - [${ordensGlobal[id].cod}] ${ordensGlobal[id].prod}</option>`;
+        }
+    }
+
+    function verificarExistencia(cod) {
+        const c = cod.toUpperCase().trim();
+        if(produtosGlobal[c]) {
+            document.getElementById('cad_cod').style.background = "#fff3cd";
+        } else {
+            document.getElementById('cad_cod').style.background = "";
+        }
+    }
+
+    function salvarProduto() {
+        if(!isAdmin) return;
+        const cod = document.getElementById('cad_cod').value.toUpperCase().trim();
+        const prod = document.getElementById('cad_prod').value.trim();
+        const desc = document.getElementById('cad_desc').value.trim();
+        const peso = parseFloat(document.getElementById('cad_peso').value) || 0;
+        const min = parseInt(document.getElementById('cad_min').value) || 0;
+
+        if(!cod || !prod) return alert("Código e Nome Comercial são campos obrigatórios!");
+
+        const dados = { prod, desc, peso, min };
+
+        db.ref(`produtos/${cod}`).set(dados).then(() => {
+            alert("Artigo salvo com sucesso na base de dados!");
+            document.getElementById('cad_cod').value = "";
+            document.getElementById('cad_prod').value = "";
+            document.getElementById('cad_desc').value = "";
+            document.getElementById('cad_peso').value = "";
+            document.getElementById('cad_min').value = "";
+            document.getElementById('cad_cod').readOnly = false;
+        }).catch(() => alert("Erro ao salvar produto."));
+    }
+
+    function carregarParaEditar(cod) {
+        if(!isAdmin) return;
+        const p = produtosGlobal[cod];
+        if(!p) return;
+
+        document.getElementById('admin_modo').value = 'PROD';
+        alternarFormAdmin();
+
+        document.getElementById('cad_cod').value = cod;
+        document.getElementById('cad_cod').readOnly = true;
+        document.getElementById('cad_prod').value = p.prod || '';
+        document.getElementById('cad_desc').value = p.desc || '';
+        document.getElementById('cad_peso').value = p.peso || '';
+        document.getElementById('cad_min').value = p.min || '';
+        document.getElementById('cad_prod').focus();
+    }
+
+    function salvarOrdem() {
+        if(!isAdmin) return;
+        const id = document.getElementById('ord_id').value.toUpperCase().trim();
+        const cod = document.getElementById('ord_cod').value.toUpperCase().trim();
+        const prod = document.getElementById('ord_nome').value;
+        const meta = parseInt(document.getElementById('ord_meta').value) || 0;
+
+        if(!id || !cod || meta <= 0 || !prod) return alert("Preencha todos os dados corretamente. O artigo precisa existir.");
+        if(ordensGlobal[id]) return alert("Já existe uma Ordem de Produção ativa com esse ID!");
+
+        const dadosOp = {
+            cod: cod,
+            prod: prod,
+            meta: meta,
+            criadaEm: firebase.database.ServerValue.TIMESTAMP
+        };
+
+        db.ref(`ordens/${id}`).set(dadosOp).then(() => {
+            alert(`Ordem de Produção ${id} lançada com sucesso!`);
+            document.getElementById('ord_id').value = "";
+            document.getElementById('ord_cod').value = "";
+            document.getElementById('ord_nome').value = "";
+            document.getElementById('ord_meta').value = "";
+        }).catch(() => alert("Erro ao tentar lançar a OP."));
+    }
+
+    function reverterMov(id) {
+        if(!isAdmin) return;
+        if(confirm("Tem certeza que deseja estornar este movimento? O saldo de stock será recalculado automaticamente.")) {
+            db.ref(`movimentacoes/${id}`).remove()
+                .then(() => alert("Movimento removido com sucesso."))
+                .catch(() => alert("Erro ao processar remoção."));
+        }
+    }
+
+    function exportarCSV() {
+        if(Object.keys(movsGlobal).length === 0) return alert("Não existem dados para exportar.");
+        
+        let csvContent = "\uFEFF"; 
+        csvContent += "DATA;ORDEM/DOC;CODIGO;ARTIGO;TIPO;QUANTIDADE;PESO_UNIT;PESO_TOTAL;OPERADOR\r\n";
+
+        const ordenado = Object.values(movsGlobal).sort((a,b) => (b[1].dataISO || '').localeCompare(a[1].dataISO || ''));
+
+        ordenado.forEach(h => {
+            const linha = [
+                h.data || '',
+                h.ordem || 'EXPEDIÇÃO',
+                h.cod || '',
+                `"${(h.prod || '').replace(/"/g, '""')}"`,
+                h.tipo || '',
+                h.qtd || 0,
+                h.peso_unit || 0,
+                (h.peso_total || 0).toFixed(3),
+                h.ope || ''
+            ];
+            csvContent += linha.join(";") + "\r\n";
+        });
+
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement("a");
+        const url = URL.createObjectURL(blob);
+        
+        link.setAttribute("href", url);
+        link.setAttribute("download", `Historico_Movimentacao_SA_${new Date().toISOString().slice(0,10)}.csv`);
+        link.style.visibility = 'hidden';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }
+</script>
+</body>
+</html>
