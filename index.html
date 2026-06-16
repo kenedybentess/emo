@@ -223,6 +223,7 @@
                             <th>FALTA / META</th>
                             <th>CONCLUÍDO</th>
                             <th>EFICIÊNCIA</th>
+                            <th>AÇÕES</th>
                             <th id="th-acao-arquivada" style="display:none;">AÇÃO</th>
                         </tr>
                     </thead>
@@ -288,6 +289,7 @@
     let ordensArquivadasGlobal = {};
     let movsGlobal = {};
     let saldosCache = {};
+    let ordemEmEdicao = null;
 
     // --- CICLO DE VIDA DE AUTENTICAÇÃO ---
     auth.onAuthStateChanged(user => {
@@ -733,7 +735,22 @@
         document.getElementById('cad_prod').focus();
     }
 
-    function salvarOrdem() {
+    
+    function editarOrdem(id) {
+        if(!isAdmin) return;
+        const op = ordensGlobal[id];
+        if(!op) return;
+        ordemEmEdicao = id;
+        document.getElementById('admin_modo').value = 'ORDEM';
+        alternarFormAdmin();
+        document.getElementById('ord_id').value = id;
+        document.getElementById('ord_id').readOnly = true;
+        document.getElementById('ord_cod').value = op.cod;
+        document.getElementById('ord_nome').value = op.prod;
+        document.getElementById('ord_meta').value = op.meta;
+    }
+
+function salvarOrdem() {
         if(!isAdmin) return;
         const id = document.getElementById('ord_id').value.toUpperCase().trim();
         const cod = document.getElementById('ord_cod').value.toUpperCase().trim();
@@ -759,7 +776,21 @@
         }).catch(() => alert("Erro ao tentar lançar a OP."));
     }
 
-    function reverterMov(id) {
+    
+    function excluirOrdem(id){
+        if(!isAdmin) return;
+        const possuiMovimentos = Object.values(movsGlobal).some(m => m.ordem === id);
+        if(possuiMovimentos){
+            alert("Esta OP possui movimentações e não pode ser excluída.");
+            return;
+        }
+        if(!confirm(`Deseja excluir a OP ${id}?`)) return;
+        db.ref(`ordens/${id}`).remove()
+        .then(()=>alert(`OP ${id} excluída com sucesso.`))
+        .catch(()=>alert("Erro ao excluir OP."));
+    }
+
+function reverterMov(id) {
         if(!isAdmin) return;
         if(confirm("Tem certeza que deseja estornar este movimento? O saldo de stock será recalculado automaticamente.")) {
             db.ref(`movimentacoes/${id}`).remove()
