@@ -219,6 +219,7 @@
                             <th>DATA CRIAÇÃO</th>
                             <th>OP</th>
                             <th>CÓDIGO</th>
+                            <th>DESCRIÇÃO</th>
                             <th>ARTIGO</th>
                             <th>FALTA / META</th>
                             <th>CONCLUÍDO</th>
@@ -462,6 +463,7 @@
                 <td><small style="color: #555;">${dataCriacao}</small></td>
                 <td style="color:${modoFiltro === 'ATIVAS' ? 'var(--done)' : '#7f8c8d'}; font-weight:bold">${id}</td>
                 <td>${listaParaRenderizar[id].cod}</td>
+                <td><div style="max-width:250px;font-size:11px;">${produtosGlobal[listaParaRenderizar[id].cod]?.desc || '-'}</div></td>
                 <td><span class="item-nome" style="color:${modoFiltro === 'ATIVAS' ? 'var(--orange)' : '#7f8c8d'}">${listaParaRenderizar[id].prod || ''}</span></td>
                 <td>${displayMetaFalta}</td>
                 <td><b style="color:var(--done)">${realizado}</b></td>
