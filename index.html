@@ -253,6 +253,12 @@
         </div>
 
         <input type="text" id="inputFiltro" style="padding:15px; border:2px solid var(--info); margin-bottom:25px;" placeholder="Pesquisar por Código, Artigo, OP ou Operador..." oninput="renderizarHistorial()">
+        <div style="display:flex; gap:10px; margin-bottom:15px; flex-wrap:wrap;">
+            <input type="number" id="filtroDia" placeholder="Dia" min="1" max="31" oninput="renderizarHistorial()" style="width:100px;">
+            <input type="number" id="filtroMes" placeholder="Mês" min="1" max="12" oninput="renderizarHistorial()" style="width:100px;">
+            <input type="number" id="filtroAno" placeholder="Ano" oninput="renderizarHistorial()" style="width:120px;">
+            <button class="btn-secondary" onclick="limparFiltroData()">Limpar Filtros</button>
+        </div>
 
         <div class="resumo-black">
             <div style="text-align:center"><span>MOVIMENTOS</span><br><b id="soma-count" style="font-size:24px">0</b></div>
@@ -526,8 +532,18 @@
         }
     }
 
-    function renderizarHistorial() {
+    function limparFiltroData() {
+    document.getElementById('filtroDia').value='';
+    document.getElementById('filtroMes').value='';
+    document.getElementById('filtroAno').value='';
+    renderizarHistorial();
+}
+
+function renderizarHistorial() {
         const filtro = document.getElementById('inputFiltro').value.toLowerCase();
+        const diaFiltro = document.getElementById('filtroDia')?.value;
+        const mesFiltro = document.getElementById('filtroMes')?.value;
+        const anoFiltro = document.getElementById('filtroAno')?.value;
         const corpo = document.getElementById('corpoHist');
         corpo.innerHTML = '';
         let tCount = 0, tQtd = 0, tPeso = 0;
@@ -535,6 +551,10 @@
         const movsArray = Object.entries(movsGlobal).sort((a,b) => (b[1].dataISO || '').localeCompare(a[1].dataISO || ''));
 
         movsArray.forEach(([id, h]) => {
+            const dataMov = new Date(h.dataISO || '');
+            if (diaFiltro && dataMov.getDate() != parseInt(diaFiltro)) return;
+            if (mesFiltro && (dataMov.getMonth()+1) != parseInt(mesFiltro)) return;
+            if (anoFiltro && dataMov.getFullYear() != parseInt(anoFiltro)) return;
             if(JSON.stringify(h).toLowerCase().includes(filtro)) {
                 const q = parseFloat(h.qtd) || 0;
                 const pt = parseFloat(h.peso_total) || 0;
