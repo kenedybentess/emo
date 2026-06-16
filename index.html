@@ -790,53 +790,39 @@ function renderizarHistorial() {
         }
     }
 
-  function exportarCSV() {
-    // 1. Coleta os dados da tabela (ajuste o nome da sua variável de dados se necessário)
-    // Aqui usamos um filtro para garantir que apenas itens válidos e com a propriedade existam
-    let dadosValidos = (typeof dados !== 'undefined' ? dados : []).filter(item => item && item.dataISO);
+    function exportarCSV() {
+        if(Object.keys(movsGlobal).length === 0) return alert("Não existem dados para exportar.");
+        
+        let csvContent = "\uFEFF"; 
+        csvContent += "DATA;ORDEM/DOC;CODIGO;ARTIGO;TIPO;QUANTIDADE;PESO_UNIT;PESO_TOTAL;OPERADOR\r\n";
 
-    // 2. Se a tabela estiver vazia, avisa o usuário em vez de quebrar o sistema
-    if (dadosValidos.length === 0) {
-        alert("Não existem dados disponíveis no histórico para exportar.");
-        return;
-    }
+        const ordenado = Object.values(movsGlobal).sort((a,b) => (b[1].dataISO || '').localeCompare(a[1].dataISO || ''));
 
-    // 3. Ordenação segura prevenindo o erro "Cannot read properties of undefined"
-    dadosValidos.sort((a, b) => {
-        let dataA = a?.dataISO ? new Date(a.dataISO) : 0;
-        let dataB = b?.dataISO ? new Date(b.dataISO) : 0;
-        return dataA - dataB;
-    });
+        ordenado.forEach(h => {
+            const linha = [
+                h.data || '',
+                h.ordem || 'EXPEDIÇÃO',
+                h.cod || '',
+                `"${(h.prod || '').replace(/"/g, '""')}"`,
+                h.tipo || '',
+                h.qtd || 0,
+                h.peso_unit || 0,
+                (h.peso_total || 0).toFixed(3),
+                h.ope || ''
+            ];
+            csvContent += linha.join(";") + "\r\n";
+        });
 
-    // 4. Código restante que gera o CSV (mantenha a sua lógica de montagem do arquivo abaixo)
-    let csvContent = "data:text/csv;charset=utf-8,";
-    csvContent += "DATA,DOCUMENTO,CODIGO,ARTIGO,TIPO,QTD,PESO,TOTAL,OPERADOR\n";
-    
-    dadosValidos.forEach(row => {
-        let linha = [
-            row.data || '',
-            row.doc || '',
-            row.cod || '',
-            row.artigo || '',
-            row.tipo || '',
-            row.qtd || 0,
-            row.pesoUnit || 0,
-            row.totalKg || 0,
-            row.operador || ''
-        ].join(",");
-        csvContent += linha + "\n";
-    });
-
-    // 5. Executa o download do arquivo
-    let encodedUri = encodeURI(csvContent);
-    let link = document.createElement("a");
-    link.setAttribute("href", encodedUri);
-    link.setAttribute("download", "historico_movimentacao_sa.csv");
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-}
-
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement("a");
+        const url = URL.createObjectURL(blob);
+        
+        link.setAttribute("href", url);
+        link.setAttribute("download", `Historico_Movimentacao_SA_${new Date().toISOString().slice(0,10)}.csv`);
+        link.style.visibility = 'hidden';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
     }
 </script>
 </body>
