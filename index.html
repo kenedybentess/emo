@@ -15,22 +15,15 @@
             --done: #8e44ad; --orange: #e67e22; --dark-card: #34495e; --success: #27ae60;
             --border: #dfe6e9;
         }
-
         body { font-family: 'Segoe UI', system-ui, sans-serif; margin: 0; background: var(--light); color: #2d3436; font-size: 13px; }
-
-        /* Login Screen */
         #login-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(135deg, var(--primary), #1a252f); display: flex; justify-content: center; align-items: center; z-index: 1000; }
        .login-card { background: white; padding: 40px; border-radius: 15px; width: 320px; text-align: center; box-shadow: 0 15px 35px rgba(0,0,0,0.4); }
         #main-content { display: none; animation: fadeIn 0.5s; }
-
-        /* Navigation */
        .navbar { background: var(--primary); color: white; padding: 12px 25px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
        .container { width: 96%; max-width: 1400px; margin: 20px auto; }
        .status-conn { font-size: 10px; padding: 3px 8px; border-radius: 10px; margin-left: 10px; }
        .status-online { background: var(--success); }
        .status-offline { background: var(--danger); }
-
-        /* Dashboard Global */
        .dash-container { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-bottom: 25px; }
        .dash-card { background: white; padding: 15px 20px; border-radius: 8px; border: 1px solid var(--border); box-shadow: 0 2px 4px rgba(0,0,0,0.02); border-bottom: 4px solid #ccd1d1; transition: transform 0.2s; }
        .dash-card:hover { transform: translateY(-2px); }
@@ -40,53 +33,34 @@
        .dash-card.dash-efet { border-bottom-color: var(--done); }
        .dash-title { font-size: 10px; color: #7f8c8d; font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px; }
        .dash-value { font-size: 22px; font-weight: bold; color: var(--primary); margin: 5px 0 0 0; }
-
-        /* Cards & Tables */
        .card { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 25px; border: 1px solid var(--border); }
        .section-header { border-left: 5px solid var(--info); padding-left: 15px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; gap: 15px; }
        .section-header h3 { margin: 0; text-transform: uppercase; color: var(--primary); letter-spacing: 1px; flex-grow: 1; }
-
         table { width: 100%; border-collapse: collapse; margin-top: 10px; }
         th { background: #f8f9fa; padding: 12px; text-align: left; border-bottom: 2px solid var(--border); font-size: 11px; color: #636e72; text-transform: uppercase; }
         td { padding: 12px; border-bottom: 1px solid #eee; vertical-align: middle; }
         tr:hover { background-color: #f9fbff; }
-
-        /* UI Components */
        .item-nome { color: var(--orange); font-weight: bold; font-size: 13px; display: block; }
        .item-desc { color: #636e72; font-size: 11px; display: block; margin-top: 2px; }
        .stock-baixo { background-color: #fff5f5!important; color: var(--danger); font-weight: bold; }
-
         input, select { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid var(--border); border-radius: 6px; box-sizing: border-box; transition: 0.3s; font-family: inherit; }
         input:focus { border-color: var(--info); outline: none; box-shadow: 0 0 0 3px rgba(52,152,219,0.1); }
         input[readonly] { background-color: #f1f2f6; cursor: not-allowed; }
-
        .btn-reg { background: var(--primary); color: white; width: 100%; padding: 14px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; transition: 0.3s; text-transform: uppercase; }
        .btn-reg:hover { background: #1e272e; transform: translateY(-1px); }
        .btn-reg:disabled { background: #ccc; cursor: not-allowed; transform: none; }
        .btn-edit { background: var(--info); color: white; padding: 6px 12px; border-radius: 4px; border:none; cursor: pointer; font-size: 10px; }
        .btn-del { background: var(--danger); color: white; padding: 6px 12px; border-radius: 4px; border:none; cursor: pointer; font-size: 10px; }
        .btn-secondary { background: #95a5a6; color: white; padding: 8px 15px; border-radius: 4px; border:none; cursor: pointer; font-size: 11px; white-space: nowrap; }
-
        .flex-row { display: grid; grid-template-columns: 1fr 1fr; gap: 25px; }
-
-        /* Checkbox Customization */
        .chk-op { transform: scale(1.2); cursor: pointer; margin: 0 auto; display: block; }
-
-        /* Select de Filtro */
        .select-filtro-tabela { width: auto; min-width: 200px; padding: 8px; margin: 0; font-weight: bold; border: 2px solid var(--info); }
-
-        /* Badges */
        .badge-falta { background: #fff3cd; color: #856404; padding: 3px 6px; border-radius: 4px; font-weight: bold; font-size: 11px; }
        .badge-concluido { background: #d4edda; color: #155724; padding: 3px 6px; border-radius: 4px; font-weight: bold; font-size: 11px; }
-
-        /* Modal */
         #modal-historico { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 2000; overflow-y: auto; backdrop-filter: blur(5px); }
        .modal-content { background: white; width: 95%; max-width: 1200px; margin: 30px auto; padding: 30px; border-radius: 12px; position: relative; }
-
        .resumo-black { background: var(--dark-card); color: white; padding: 25px; border-radius: 10px; display: flex; justify-content: space-around; margin-bottom: 25px; border-bottom: 4px solid var(--info); }
-
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-
         @media (max-width: 900px) {
            .flex-row { grid-template-columns: 1fr; }
            .dash-container { grid-template-columns: repeat(2, 1fr); }
@@ -105,6 +79,7 @@
         <input type="email" id="email" placeholder="E-mail do Utilizador">
         <input type="password" id="password" placeholder="Palavra-passe" onkeypress="if(event.key==='Enter') fazerLogin()">
         <button onclick="fazerLogin()" id="btn-login" class="btn-reg" style="background: var(--info); margin-top: 10px;">Entrar no Sistema</button>
+        <p id="login-erro" style="color: var(--danger); font-size: 11px; margin-top: 10px; display: none;"></p>
     </div>
 </div>
 
@@ -123,7 +98,6 @@
             <span>🕒</span> CONSULTAR HISTÓRICO E MOVIMENTAÇÕES TÉCNICAS
         </button>
 
-        <!-- DASHBOARD DE INDICADORES (OPS ATIVAS) -->
         <div class="dash-container">
             <div class="dash-card dash-active">
                 <div class="dash-title">🟢 OPs em Monitorização</div>
@@ -165,7 +139,7 @@
                     <input type="text" id="ord_cod" placeholder="Código do Artigo" oninput="procv(this.value, 'ord_nome')">
                     <input type="text" id="ord_nome" readonly placeholder="Produto Identificado">
                     <input type="number" id="ord_meta" placeholder="Quantidade a Produzir (Meta)">
-                    <button class="btn-reg" style="background: var(--done)" onclick="salvarOrdem()">Lançar Ordem de Produção</button>
+                    <button class="btn-reg" style="background: var(--done)" onclick="salvarOrdem()">Lançar/Atualizar Ordem</button>
                 </div>
             </div>
 
@@ -203,12 +177,10 @@
         <div class="card">
             <div class="section-header">
                 <h3>📋 Painel de Ordens de Produção</h3>
-
                 <select id="filtro-estado-op" class="select-filtro-tabela" onchange="transparentInterfaceUpdate()">
                     <option value="ATIVAS">🟢 OPs ATIVAS (MONITORIZAÇÃO)</option>
                     <option value="ARQUIVADAS">⚫ OPs ARQUIVADAS (HISTÓRICO)</option>
                 </select>
-
                 <button id="btn-arquivar-selecionadas" class="btn-secondary" style="background: #27ae60; display:none;" onclick="arquivarOrdensMarcadas()">🗄 Arquivar OPs Selecionadas</button>
             </div>
             <div style="overflow-x: auto;">
@@ -250,15 +222,12 @@
             <h2 style="margin: 0; color: var(--primary);">🕒 Histórico de Movimentação SA</h2>
             <button class="btn-secondary" onclick="exportarCSV()">📊 Exportar CSV</button>
         </div>
-
         <input type="text" id="inputFiltro" style="padding:15px; border:2px solid var(--info); margin-bottom:25px;" placeholder="Pesquisar por Código, Artigo, OP ou Operador..." oninput="renderizarHistorial()">
-
         <div class="resumo-black">
             <div style="text-align:center"><span>MOVIMENTOS</span><br><b id="soma-count" style="font-size:24px">0</b></div>
             <div style="text-align:center"><span>QTD TOTAL</span><br><b id="soma-qtd" style="font-size:24px">0</b></div>
             <div style="text-align:center"><span>PESO ACUMULADO</span><br><b id="soma-peso" style="font-size:24px">0.000</b> kg</div>
         </div>
-
         <div style="overflow-x: auto;">
             <table>
                 <thead><tr><th>DATA</th><th>DOC/OP</th><th>COD</th><th>ARTIGO</th><th>TIPO</th><th>QTD</th><th>PESO UNIT.</th><th>TOTAL (KG)</th><th>OPERADOR</th><th>-</th></tr></thead>
@@ -269,7 +238,6 @@
 </div>
 
 <script>
-    // Configuração Firebase
     const firebaseConfig = {
         apiKey: "AIzaSyAPHVbVNdYEp_b7-_bWkTyn5jCVrbZogTo",
         authDomain: "i9-industrial.firebaseapp.com",
@@ -289,16 +257,14 @@
     let movsGlobal = {};
     let saldosCache = {};
 
-    // --- CICLO DE VIDA DE AUTENTICAÇÃO ---
     auth.onAuthStateChanged(user => {
         if (user) {
             userEmail = user.email;
             isAdmin = /admin|super/.test(userEmail.toLowerCase());
-
             document.getElementById('login-screen').style.display = 'none';
             document.getElementById('main-content').style.display = 'block';
             document.getElementById('user-display').innerText = userEmail;
-
+            document.getElementById('login-erro').style.display = 'none';
             transparentInterfaceUpdate();
             monitorarConexao();
             carregarDados();
@@ -310,7 +276,6 @@
 
     function transparentInterfaceUpdate() {
         const modoFiltro = document.getElementById('filtro-estado-op').value;
-
         if(isAdmin) {
             document.getElementById('panel-admin').style.display = 'block';
             if(modoFiltro === 'ATIVAS') {
@@ -333,20 +298,25 @@
         const email = document.getElementById('email').value.trim();
         const pass = document.getElementById('password').value;
         const btnLogin = document.getElementById('btn-login');
+        const erroEl = document.getElementById('login-erro');
 
-        if(!email ||!pass) return alert("Por favor, preencha todos os campos.");
+        if(!email ||!pass) {
+            erroEl.innerText = "Por favor, preencha todos os campos.";
+            erroEl.style.display = 'block';
+            return;
+        }
 
         btnLogin.disabled = true;
         btnLogin.innerText = "A AUTENTICAR...";
+        erroEl.style.display = 'none';
 
         auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL)
-           .then(() => {
-                return auth.signInWithEmailAndPassword(email, pass);
-            })
-           .catch(err => {
+          .then(() => auth.signInWithEmailAndPassword(email, pass))
+          .catch(err => {
                 btnLogin.disabled = false;
                 btnLogin.innerText = "Entrar no Sistema";
-                alert("Acesso Negado: Credenciais Inválidas.");
+                erroEl.innerText = "Acesso Negado: " + err.message;
+                erroEl.style.display = 'block';
             });
     }
 
@@ -365,12 +335,10 @@
         });
     }
 
-    // --- CARREGAMENTO DE DADOS ---
     function carregarDados() {
         db.ref('produtos').on('value', s => { produtosGlobal = s.val() || {}; transparentInterfaceUpdate(); });
         db.ref('ordens').on('value', s => { ordensGlobal = s.val() || {}; transparentInterfaceUpdate(); atualizarSelectOrdens(); });
         db.ref('ordens_arquivadas').on('value', s => { ordensArquivadasGlobal = s.val() || {}; transparentInterfaceUpdate(); });
-
         db.ref('movimentacoes').orderByChild('dataISO').limitToLast(500).on('value', s => {
             movsGlobal = s.val() || {};
             calcularSaldos();
@@ -392,13 +360,11 @@
     function renderizarStock() {
         const corpo = document.getElementById('corpoStock');
         corpo.innerHTML = '';
-
         for(let c in produtosGlobal) {
             const saldo = saldosCache[c] || 0;
             const p = produtosGlobal[c];
             const min = parseFloat(p.min) || 0;
             const alerta = saldo <= min? 'stock-baixo' : '';
-
             corpo.innerHTML += `<tr class="${alerta}">
                 <td><b>${c}</b></td>
                 <td><span class="item-nome">${p.prod || 'Sem Nome'}</span><span class="item-desc">${p.desc || ''}</span></td>
@@ -413,13 +379,10 @@
         const corpo = document.getElementById('corpoOrdens');
         corpo.innerHTML = '';
         const movs = Object.values(movsGlobal);
-
         const modoFiltro = document.getElementById('filtro-estado-op').value;
         document.getElementById('chk-marcar-todas').checked = false;
-
         const listaParaRenderizar = (modoFiltro === 'ATIVAS')? ordensGlobal : ordensArquivadasGlobal;
 
-        // --- CÁLCULOS DO DASHBOARD EM TEMPO REAL ---
         let totalOpsAtivas = 0;
         let metaGlobalAtiva = 0;
         let realizadoGlobalAtivo = 0;
@@ -433,28 +396,23 @@
         document.getElementById('dash-total-ops').innerText = totalOpsAtivas;
         document.getElementById('dash-meta-pecas').innerHTML = `${metaGlobalAtiva} <span style="font-size:11px; font-weight:normal; color:#7f8c8d;">pçs</span>`;
         document.getElementById('dash-realizado-pecas').innerHTML = `${realizadoGlobalAtivo} <span style="font-size:11px; font-weight:normal; color:#7f8c8d;">pçs</span>`;
-
         const eficienciaGlobal = metaGlobalAtiva > 0? ((realizadoGlobalAtivo / metaGlobalAtiva) * 100).toFixed(1) : 0;
         document.getElementById('dash-eficiencia-global').innerText = `${eficienciaGlobal}%`;
-        // -------------------------------------------
 
         for(let id in listaParaRenderizar) {
             const realizado = movs.filter(h => h.ordem === id).reduce((a, b) => a + parseFloat(b.qtd || 0), 0);
             const meta = parseFloat(listaParaRenderizar[id].meta) || 1;
             const falta = Math.max(0, meta - realizado);
             const perc = Math.min(100, ((realizado/meta)*100)).toFixed(0);
-
             let dataCriacao = '---';
             if(listaParaRenderizar[id].criadaEm) {
                 const d = new Date(listaParaRenderizar[id].criadaEm);
                 dataCriacao = d.toLocaleString('pt-pt', { day: '2-digit', month: '2-digit', year: '2-digit', hour: '2-digit', minute:'2-digit' });
             }
-
             const displayMetaFalta = falta === 0
               ? `<span class="badge-concluido">✔ CONCLUÍDO</span> <span style="color:#7f8c8d; font-size:11px;">/ ${meta}</span>`
                 : `<span class="badge-falta">Falta: ${falta}</span> <span style="color:#7f8c8d; font-size:11px;">/ ${meta}</span>`;
 
-            // Monta os botões de ação
             let botoesAcao = '';
             if(isAdmin) {
                 if(modoFiltro === 'ATIVAS') {
@@ -501,9 +459,7 @@
     function arquivarOrdensMarcadas() {
         if(!isAdmin) return;
         const selecionados = Array.from(document.querySelectorAll('.chk-op:checked')).map(cb => cb.value);
-
         if(selecionados.length === 0) return alert("Por favor, marque pelo menos uma Ordem de Produção.");
-
         if(confirm(`Confirma o arquivamento de ${selecionados.length} Ordem(ns) de Produção selecionada(s)?`)) {
             let atualizacoes = {};
             selecionados.forEach(id => {
@@ -523,32 +479,20 @@
     function desarquivarOrdem(id) {
         if(!isAdmin) return;
         const opDados = ordensArquivadasGlobal[id];
-
         if(!opDados) return alert("Dados da Ordem de Produção não localizados.");
-
         if(confirm(`Deseja reativar e desarquivar a OP ${id}? Ela retornará para a monitorização ativa.`)) {
             let atualizacoes = {};
             if(opDados.arquivadaEm) delete opDados.arquivadaEm;
-
             atualizacoes[`ordens/${id}`] = opDados;
             atualizacoes[`ordens_arquivadas/${id}`] = null;
-
             db.ref().update(atualizacoes).then(() => {
                 alert(`OP ${id} reativada com sucesso!`);
             }).catch(() => alert("Erro ao tentar desarquivar a OP. Verifique as regras do Firebase."));
         }
     }
 
-    function renderizarHistorial() {
-        const filtro = document.getElementById('inputFiltro').value.toLowerCase();
-        const corpo = document.getElementById('corpoHist');
-        corpo.innerHTML = '';
-        let tCount = 0, tQtd = 0, tPeso = 0;
-
-        const movsArray = Object.entries(movsGlobal).sort((a,b) => (b[1].dataISO || '').localeCompare(a[1].dataISO || ''));
-
-        movsArray.forEach(([id, h]) => {
-            if(JSON.stringify(h).toLowerCase().includes(filtro)) {
-                const q = parseFloat(h.qtd) || 0;
-                const pt = parseFloat(h.peso_total) || 0;
-                tCount++; t
+    function carregarOpParaEditar(id) {
+        if(!isAdmin) return;
+        const op = ordensGlobal[id];
+        if(!op) return alert("OP não encontrada nas ativas.");
+        const realizado =
